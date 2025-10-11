@@ -5,90 +5,119 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+    provider = "mysql"
+    url      = env("DATABASE_URL")
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  fullName    String
-  email       String    @unique
-  password    String
-  avatar      String?
-  roleId      Int
-  role        Role     @relation(fields: [roleId], references: [id])
-  isActive    Boolean   @default(true)
-  createdBy   Int?   // user ID of creator (admin)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  isDeleted   Boolean   @default(false)
-  deletedAt   DateTime? 
+    id        Int       @id @default(autoincrement())
+    fullName  String
+    email     String    @unique
+    password  String
+    avatar    String?
+    roleId    Int
+    role      Role      @relation(fields: [roleId], references: [id])
+    isActive  Boolean   @default(true)
+    createdBy Int? // user ID of creator (admin)
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
 
-  modulePermissions UserModulePermission[]
+    modulePermissions UserModulePermission[]
 
-  @@index([email])
-  @@map("users")
+    @@index([email])
+    @@map("users")
 }
 
 model Role {
-  id          Int      @id @default(autoincrement())
-  name        String
-  slug        String    @unique
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  isDeleted   Boolean   @default(false)
-  deletedAt   DateTime? 
+    id        Int       @id @default(autoincrement())
+    name      String
+    slug      String    @unique
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
 
-  users       User[]
-  @@map("roles")
+    users User[]
+
+    @@map("roles")
 }
 
 model Permission {
-  id          Int      @id @default(autoincrement())
-  name        String
-  slug        String    @unique
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  isDeleted   Boolean   @default(false)
-  deletedAt   DateTime?
+    id        Int       @id @default(autoincrement())
+    name      String
+    slug      String    @unique
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
 
-  modulePermissions UserModulePermission[]
+    modulePermissions UserModulePermission[]
 
-  @@map("permissions")
+    @@map("permissions")
 }
 
 model Module {
-  id          Int      @id @default(autoincrement())
-  name        String
-  slug        String    @unique
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  isDeleted   Boolean   @default(false)
-  deletedAt   DateTime?
+    id        Int       @id @default(autoincrement())
+    name      String
+    slug      String    @unique
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
 
-  modulePermissions UserModulePermission[]
+    modulePermissions UserModulePermission[]
 
-  @@map("modules")
+    @@map("modules")
 }
 
 model UserModulePermission {
-  id            Int      @id @default(autoincrement())
-  userId        Int
-  moduleId      Int
-  permissionId  Int
+    id           Int @id @default(autoincrement())
+    userId       Int
+    moduleId     Int
+    permissionId Int
 
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  module        Module      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  permission    Permission  @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+    user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+    module     Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+    permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  isDeleted     Boolean     @default(false)
-  deletedAt     DateTime?
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
 
-  @@map("user_module_permissions")
+    @@map("user_module_permissions")
+}
+
+model Client {
+    id            String      @id @default(cuid())
+    shopDomain    String      @unique
+    email         String?
+    shopName      String
+    accessToken   String
+    planName      String?
+    country       String?
+    currency      String?
+    timezone      String?
+    installedAt   DateTime    @default(now())
+    uninstalledAt DateTime?
+    status        StoreStatus @default(ACTIVE)
+    createdAt     DateTime    @default(now())
+    updatedAt     DateTime    @updatedAt
+    isDeleted     Boolean     @default(false)
+    deletedAt     DateTime?
+
+    @@index([shopDomain, email])
+    @@map("clients")
+}
+
+enum StoreStatus {
+    ACTIVE
+    UNINSTALLED
+    SUSPENDED
 }
