@@ -2,6 +2,8 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function seedUserModulePermissions() {
+
+  await prisma.userModulePermission.deleteMany();
   const admin = await prisma.user.findUnique({ where: { email: "superadmin@inkybay.com" } });
   const permissions = await prisma.permission.findMany();
   const modules = await prisma.module.findMany();

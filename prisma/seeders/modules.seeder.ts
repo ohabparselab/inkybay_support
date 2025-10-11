@@ -7,7 +7,7 @@ export async function seedModules() {
     { name: "Chats", slug: "chats" },
     { name: "Tasks", slug: "tasks" },
     { name: "Meetings", slug: "meetings" },
-    { name: "Marketing Funnel", slug: "marketing-funnel" }
+    { name: "Marketing Funnels", slug: "marketing-funnels" }
   ];
 
   for (const mod of modules) {
