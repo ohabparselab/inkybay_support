@@ -54,27 +54,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             },
             {
                 title: "Clients",
-                url: "/dashboard/clients",
+                url: "/clients",
                 icon: Contact,
             },
             {
                 title: "Chats",
-                url: "/dashboard/chats",
+                url: "/chats",
                 icon: MessageCircle,
             },
             {
                 title: "Tasks",
-                url: "/dashboard/tasks",
+                url: "/tasks",
                 icon: List,
             },
             {
                 title: "Meetings",
-                url: "/dashboard/meetings",
+                url: "/meetings",
                 icon: Video,
             },
             {
                 title: "Marketing Funnels",
-                url: "/dashboard/marketing-funnels",
+                url: "/marketing-funnels",
                 icon: Megaphone,
             },
             ...(isSuperAdmin ? [
@@ -83,16 +83,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 },
                 {
                     title: "Settings",
-                    url: "/dashboard/settings",
+                    url: "/settings",
                     icon: Settings2,
                     items: [
                         {
                             title: "Permissions",
-                            url: "/dashboard/settings/permissions",
+                            url: "/settings/permissions",
                         },
                         {
                             title: "Modules",
-                            url: "/dashboard/settings/modules",
+                            url: "/settings/modules",
                         }
                     ],
                 },

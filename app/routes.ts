@@ -14,6 +14,8 @@ export default [
     // dashboard layout routes
     layout("./routes/dashboard/layout.tsx", [
         route("dashboard", "./routes/dashboard/dashboard.tsx"),
+        // Clients module routes
+        route("clients", "./routes/clients/list.tsx"),
         // user module routes
         route("users", "./routes/users/list.tsx"),
         route("users/create", "./routes/users/create.tsx"),

@@ -70,10 +70,9 @@ export default function UsersList() {
     }
 
     return (
-        <div className="px-6 space-y-6">
+        <div className="px-6 space-y-2">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
-
                 <Button
                     asChild
                     className="gap-2"

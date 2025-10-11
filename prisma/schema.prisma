@@ -95,7 +95,7 @@ model UserModulePermission {
 }
 
 model Client {
-    id            String      @id @default(cuid())
+    id           Int @id @default(autoincrement())
     shopDomain    String      @unique
     email         String?
     shopName      String

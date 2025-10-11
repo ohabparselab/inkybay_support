@@ -62,16 +62,15 @@ export function DataTable({ data, meta, onPageChange, onSearch }: DataTableProps
     return (
         <div className="w-full space-y-4">
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Search className="text-muted-foreground size-4" />
+                <div className="relative w-full sm:w-64">
                     <Input
                         placeholder="Search users..."
-                        className="w-full sm:w-64"
+                        className="pr-10" // add right padding so text doesn’t overlap the icon
                         value={search}
                         onChange={handleSearchChange}
                     />
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground size-4 pointer-events-none" />
                 </div>
-
                 <div className="text-sm text-muted-foreground">
                     Total: {meta.total}
                 </div>
@@ -95,7 +94,7 @@ export function DataTable({ data, meta, onPageChange, onSearch }: DataTableProps
                         {data.length > 0 ? (
                             data.map((user, index) => (
                                 <TableRow key={index}>
-                                    <TableCell>{index+1}</TableCell>
+                                    <TableCell>{index + 1}</TableCell>
                                     <TableCell>
                                         <Avatar className="h-8 w-8 rounded-lg">
                                             <AvatarImage src={user.avatar || '/avatar-default.svg'} alt={user.fullName} />
@@ -108,7 +107,7 @@ export function DataTable({ data, meta, onPageChange, onSearch }: DataTableProps
                                         {new Date(user.createdAt).toLocaleDateString()}
                                     </TableCell>
                                     <TableCell>
-                                        <Link to={`/users/edit/${user.id}`}><SquarePen/></Link>
+                                        <Link to={`/users/edit/${user.id}`}><SquarePen /></Link>
                                     </TableCell>
                                 </TableRow>
                             ))
