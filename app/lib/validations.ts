@@ -1,0 +1,138 @@
+import { z } from "zod";
+
+export const loginSchema = z.object({
+    email: z.string().superRefine((val, ctx) => {
+        if (!val || val.trim() === "") {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Email is required",
+            });
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Invalid email address",
+            });
+        }
+    }),
+
+    password: z.string().superRefine((val, ctx) => {
+        if (!val || val.trim() === "") {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Password is required",
+            });
+        } else if (val.length < 6) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Password must be at least 6 characters",
+            });
+        }
+    }),
+});
+
+
+export const createUserSchema = z.object({
+    fullName: z.string().min(1, "Full Name is required"),
+    email: z.string().superRefine((val, ctx) => {
+        if (!val || val.trim() === "") {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Email is required",
+            });
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Invalid email address",
+            });
+        }
+    }),
+
+    password: z.string().superRefine((val, ctx) => {
+        if (!val || val.trim() === "") {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Password is required",
+            });
+        } else if (val.length < 6) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Password must be at least 6 characters",
+            });
+        }
+    }),
+    role: z.string(),
+    permissions: z.record(z.string(), z.array(z.number())).optional(),
+})
+
+export const updateUserSchema = z.object({
+    fullName: z.string().min(1, "Full Name is required"),
+    email: z.string().superRefine((val, ctx) => {
+        if (!val || val.trim() === "") {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Email is required",
+            });
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Invalid email address",
+            });
+        }
+    }),
+
+    password: z
+        .string()
+        .optional()
+        .superRefine((val, ctx) => {
+            if (val && val.length < 6) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Password must be at least 6 characters",
+                });
+            }
+        }),
+    role: z.string(),
+    permissions: z.record(z.string(), z.array(z.number())).optional(),
+})
+
+export const updateProfileSchema = z.object({
+    fullName: z.string().min(1, "Full Name is required"),
+    email: z.string().superRefine((val, ctx) => {
+        if (!val || val.trim() === "") {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Email is required",
+            });
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Invalid email address",
+            });
+        }
+    }),
+    avatar: z
+        .any()
+        .optional()
+        .refine((fileList) => {
+            if (!fileList) return true; // optional
+            const file = fileList[0];
+            return file instanceof File;
+        }, "Invalid file")
+        .refine((fileList) => {
+            if (!fileList) return true; // optional
+            const file = fileList[0];
+            const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+            return allowedTypes.includes(file.type);
+        }, "Only JPG, PNG, or WEBP images are allowed")
+        .refine((fileList) => {
+            if (!fileList) return true; // optional
+            const file = fileList[0];
+            const maxSizeInMB = 2;
+            return file.size / 1024 / 1024 <= maxSizeInMB;
+        }, "Max file size is 2MB"),
+})
+
+export type ProfileUpdateInput = z.infer<typeof updateProfileSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
