@@ -1,24 +1,15 @@
+import { changePasswordSchema, createUserSchema } from "~/lib/validations"
 import { uploadFile } from "~/lib/upload.server"
-import { createUserSchema } from "~/lib/validations"
+import { getUserId } from "~/session.server"
 import { prisma } from "~/lib/prisma.server"
 import { getUser } from "~/lib/user.server"
 import bcrypt from "bcryptjs"
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
 
-// Common utility to parse JSON safely
-async function parseRequest<T>(request: Request): Promise<T> {
-    try {
-        return await request.json()
-    } catch {
-        throw new Error("Invalid JSON payload")
-    }
-}
-
 //  MAIN CONTROLLER HANDLER
 export const action = async ({ request }: { request: Request }) => {
     const method = request.method.toUpperCase()
-
     switch (method) {
         case "GET":
             return await getUsers(request)
@@ -26,6 +17,8 @@ export const action = async ({ request }: { request: Request }) => {
             return await createUser(request)
         case "PUT":
             return await updateProfile(request)
+        case "PATCH":
+            return await changePassword(request)
         default:
             return methodNotAllowed()
     }
@@ -51,7 +44,7 @@ async function getUsers(_request: Request) {
 //
 async function createUser(request: Request) {
     try {
-        const data = await parseRequest<any>(request)
+        const data = await request.json()
         const parsed = createUserSchema.parse(data)
 
         const { fullName, email, password, role, permissions } = parsed
@@ -103,6 +96,31 @@ async function updateProfile(request: Request) {
         return Response.json({ status: 200, success: true, message: 'Profile updated successfully!' });
     } catch (err: any) {
         console.error("Update profile failed:", err);
+        return Response.json({ success: false, message: err.message }, { status: 400 });
+    }
+}
+
+// Change password
+async function changePassword(request: Request) {
+    try {
+        const userId = await getUserId(request);
+        if (!userId) return new Response("UserId not found.", { status: 401 });
+
+        const data = await request.json();
+        const parsed = changePasswordSchema.parse(data);
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+
+        if (!user) return new Response("User not found", { status: 404 });
+
+        const validCurrent = await bcrypt.compare(parsed.currentPassword, user.password);
+        if (!validCurrent) return Response.json({ status: false, success: false, message: "Current password is incorrect" }, { status: 400 });
+
+        const hashed = await bcrypt.hash(parsed.newPassword, 10);
+        await prisma.user.update({ where: { id: userId }, data: { password: hashed } });
+
+        return new Response(JSON.stringify({ success: true, message: "Password updated successfully" }), { status: 200 });
+    } catch (err: any) {
         return Response.json({ success: false, message: err.message }, { status: 400 });
     }
 }

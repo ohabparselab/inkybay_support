@@ -48,7 +48,6 @@ export default function ProfilePage() {
             if (data.avatar?.[0]) {
                 formData.append("avatar", data.avatar[0]);
             }
-            console.log("=======>>", data);
             const res: any = await fetch("/api/users", {
                 method: "PUT",
                 body: formData,
@@ -74,7 +73,6 @@ export default function ProfilePage() {
         }
     };
 
-    console.log(errors);
 
     // fallback initials
     const initials =

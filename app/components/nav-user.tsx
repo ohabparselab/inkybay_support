@@ -5,6 +5,7 @@ import {
     Bell,
     ChevronsUpDown,
     CreditCard,
+    Key,
     LogOut,
     Sparkles,
 } from "lucide-react"
@@ -89,6 +90,12 @@ export function NavUser({
                                 <DropdownMenuItem className="cursor-pointer">
                                     <BadgeCheck />
                                     Profile
+                                </DropdownMenuItem>
+                            </Link>
+                            <Link to="users/change-password">
+                                <DropdownMenuItem className="cursor-pointer">
+                                    <Key />
+                                    Change Password
                                 </DropdownMenuItem>
                             </Link>
                             <DropdownMenuItem>

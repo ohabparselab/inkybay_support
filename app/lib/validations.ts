@@ -132,6 +132,24 @@ export const updateProfileSchema = z.object({
         }, "Max file size is 2MB"),
 })
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z
+    .string()
+    .min(6, "New password must be at least 6 characters"),
+  confirmPassword: z.string(),
+}).superRefine((data, ctx) => {
+  if (data.newPassword !== data.confirmPassword) {
+    ctx.addIssue({
+      path: ["confirmPassword"],
+      code: z.ZodIssueCode.custom,
+      message: "Confirm password do not match",
+    });
+  }
+});
+
+
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type ProfileUpdateInput = z.infer<typeof updateProfileSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
