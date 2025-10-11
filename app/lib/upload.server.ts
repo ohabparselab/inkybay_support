@@ -23,7 +23,7 @@ export async function uploadFile(file: File | null, folderPath = "public/uploads
 
         await fs.writeFile(filePath, buffer);
 
-        return `uploads/${fileName}`;
+        return `/uploads/${fileName}`;
     } catch (error: any) {
         console.log(error);
         throw new Error(error)

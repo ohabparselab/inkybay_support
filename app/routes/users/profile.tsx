@@ -30,7 +30,7 @@ type ProfileFormValues = {
 
 export default function ProfilePage() {
     const { currentUser } = useLoaderData<{ currentUser: User }>();
-    const [preview, setPreview] = useState(`/${currentUser.avatar}` || "/avatar-default.svg");
+    const [preview, setPreview] = useState(currentUser.avatar || "");
     const { register, handleSubmit, formState: { errors } } = useForm<ProfileUpdateInput>({
         resolver: zodResolver(updateProfileSchema),
         defaultValues: {
@@ -73,7 +73,6 @@ export default function ProfilePage() {
         }
     };
 
-
     // fallback initials
     const initials =
         currentUser.fullName
@@ -81,6 +80,7 @@ export default function ProfilePage() {
             .map((n: string) => n[0])
             .join("")
             .toUpperCase() || "?";
+        console.log(preview);
 
     return (
         <div className="max-w-2xl mx-auto py-10">
