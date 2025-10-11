@@ -1,13 +1,14 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { changePasswordSchema, type ChangePasswordInput } from "~/lib/validations";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function ChangePasswordPage() {
     const { register, handleSubmit, formState: { errors }, reset } = useForm<ChangePasswordInput>({
@@ -15,6 +16,11 @@ export default function ChangePasswordPage() {
     });
 
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState({
+        current: false,
+        new: false,
+        confirm: false,
+    });
 
     const onSubmit = async (data: ChangePasswordInput) => {
         try {
@@ -48,22 +54,67 @@ export default function ChangePasswordPage() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+                        {/* Current Password */}
                         <div className="flex flex-col gap-1">
                             <Label className="pb-2">Current Password</Label>
-                            <Input type="password" {...register("currentPassword")} />
-                            {errors.currentPassword && <p className="text-destructive text-sm">{errors.currentPassword.message}</p>}
+                            <div className="relative">
+                                <Input
+                                    type={showPassword.current ? "text" : "password"}
+                                    {...register("currentPassword")}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(prev => ({ ...prev, current: !prev.current }))}
+                                    className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+                                >
+                                    {showPassword.current ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                            {errors.currentPassword && (
+                                <p className="text-destructive text-sm">{errors.currentPassword.message}</p>
+                            )}
                         </div>
 
+                        {/* New Password */}
                         <div className="flex flex-col gap-1">
                             <Label className="pb-2">New Password</Label>
-                            <Input type="password" {...register("newPassword")} />
-                            {errors.newPassword && <p className="text-destructive text-sm">{errors.newPassword.message}</p>}
+                            <div className="relative">
+                                <Input
+                                    type={showPassword.new ? "text" : "password"}
+                                    {...register("newPassword")}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(prev => ({ ...prev, new: !prev.new }))}
+                                    className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+                                >
+                                    {showPassword.new ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                            {errors.newPassword && (
+                                <p className="text-destructive text-sm">{errors.newPassword.message}</p>
+                            )}
                         </div>
 
+                        {/* Confirm Password */}
                         <div className="flex flex-col gap-1">
                             <Label className="pb-2">Confirm New Password</Label>
-                            <Input type="password" {...register("confirmPassword")} />
-                            {errors.confirmPassword && <p className="text-destructive text-sm">{errors.confirmPassword.message}</p>}
+                            <div className="relative">
+                                <Input
+                                    type={showPassword.confirm ? "text" : "password"}
+                                    {...register("confirmPassword")}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(prev => ({ ...prev, confirm: !prev.confirm }))}
+                                    className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+                                >
+                                    {showPassword.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                            {errors.confirmPassword && (
+                                <p className="text-destructive text-sm">{errors.confirmPassword.message}</p>
+                            )}
                         </div>
 
                         <Button type="submit" disabled={loading}>
