@@ -28,7 +28,7 @@ import { useEffect, useState } from "react";
 import { addChatSchema, type AddChatFormInput } from "~/lib/validations";
 
 interface AddChatModalProps {
-    clientId: boolean;
+    clientId: number;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
@@ -80,6 +80,7 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
     const onSubmit = (data: AddChatFormInput) => {
         const formattedData = {
             ...data,
+            clientId: clientId || null,
             handleBy: Number(data.handleBy) || null,
             chatDate: data.chatDate ? data.chatDate.toISOString() : null,
             lastReviewApproach: data.lastReviewApproach
