@@ -78,9 +78,17 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
     }, []);
 
     const onSubmit = (data: AddChatFormInput) => {
-        console.log("Form Data========>>:", data);
-        onOpenChange(false);
-        reset();
+        const formattedData = {
+            ...data,
+            handleBy: Number(data.handleBy) || null,
+            chatDate: data.chatDate ? data.chatDate.toISOString() : null,
+            lastReviewApproach: data.lastReviewApproach
+                ? data.lastReviewApproach.toISOString()
+                : null,
+        };
+        console.log("Form Data========>>:", formattedData);
+        // onOpenChange(false);
+        // reset();
     };
 
     console.log("Errors========>>:", errors);
@@ -133,7 +141,7 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
                                 className="mt-2"
                                 onClick={() => append("")}
                             >
-                                <Plus/> Add Email
+                                <Plus /> Add Email
                             </Button>
                         </div>
                         <div>
@@ -147,11 +155,29 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
                             <div className="flex items-center gap-2">
                                 <Label>Review Asked ?</Label>
-                                <Checkbox {...register("reviewAsked")} />
+                                <Controller
+                                    name="reviewAsked"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Checkbox
+                                            checked={field.value || false}
+                                            onCheckedChange={(checked) => field.onChange(checked)}
+                                        />
+                                    )}
+                                />
                             </div>
                             <div className="flex items-center gap-2">
                                 <Label>Review Status ?</Label>
-                                <Checkbox {...register("reviewStatus")} />
+                                <Controller
+                                    name="reviewStatus"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Checkbox
+                                            checked={field.value || false}
+                                            onCheckedChange={(checked) => field.onChange(checked)}
+                                        />
+                                    )}
+                                />
                             </div>
 
                         </div>

@@ -2,8 +2,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Link, useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
 import { ChevronLeft, ChevronRight, Ellipsis, Eye, Plus, Search } from "lucide-react";
-// import { ClientViewModal } from "~/components/modals/client-view-modal";
-// import { AddChatModal } from "~/components/modals/add-chat-modal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
