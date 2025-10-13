@@ -152,7 +152,7 @@ export const addChatSchema = z.object({
     clientQuery: z.string().min(1, "Client query is required"),
     handleBy: z.string().optional(),
     chatDate: z.date().optional(),
-     clientEmails: z.array(z.string().email("Invalid email")).optional(),
+    clientEmails: z.array(z.string().email("Invalid email")).optional(),
     chatTranscript: z.any().optional(),
     reviewAsked: z.boolean().optional(),
     reviewStatus: z.boolean().optional(),
@@ -162,10 +162,7 @@ export const addChatSchema = z.object({
     clientFeedback: z.string().optional(),
     storeDetails: z.string().optional(),
     featureRequest: z.string().optional(),
-    agentRating: z.preprocess(
-        (val) => (val === "" ? undefined : Number(val)),
-        z.number().min(1).max(10).optional()
-    ) as unknown as z.ZodOptional<z.ZodNumber>,
+    agentRating: z.number().min(0).max(10).optional(),
     agentComments: z.string().optional(),
     otherStoresUrl: z.string().optional(),
 });

@@ -51,7 +51,7 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
             clientEmails: [],
             reviewAsked: false,
             reviewStatus: false,
-            agentRating: undefined,
+            agentRating: 0,
         },
     });
 

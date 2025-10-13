@@ -72,7 +72,7 @@ export default function DashboardPage (){
     },
     {
       title: "Clients",
-      description: "Total Clients",
+      description: "Total Chats",
       value: "1,234",
       trend: "up",
       badgeValue: "20%",
@@ -81,7 +81,7 @@ export default function DashboardPage (){
     },
     {
       title: "Marketing Funnels",
-      description: "Total Funnels",
+      description: "Total Marketing Funnels",
       value: "45",
       trend: "up",
       badgeValue: "+12.5%",
