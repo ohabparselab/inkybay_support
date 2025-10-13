@@ -1,12 +1,21 @@
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Link, useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
 import { ChevronLeft, ChevronRight, Ellipsis, Eye, Plus, Search } from "lucide-react";
+// import { ClientViewModal } from "~/components/modals/client-view-modal";
+// import { AddChatModal } from "~/components/modals/add-chat-modal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
-import { Suspense, useState } from "react";
-import { ClientViewModal } from "~/components/modals/client-view-modal";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
+import { lazy, Suspense, useState } from "react";
+
+const ClientViewModal = lazy(() =>
+  import('~/components/modals/client-view-modal').then(module => ({ default: module.ClientViewModal }))
+);
+
+const AddChatModal = lazy(() =>
+  import('~/components/modals/add-chat-modal').then(module => ({ default: module.AddChatModal }))
+);
 
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -71,6 +80,7 @@ export default function ClientsList() {
     const [search, setSearch] = useState(meta.search ?? "");
     const navigate = useNavigate();
     const [clientViewDetailsModalOpen, setClientViewDetailsModalOpen] = useState(false);
+    const [chatModalOpen, setChatModalOpen] = useState(false);
 
 
     const handlePageChange = (newPage: number) => {
@@ -164,17 +174,22 @@ export default function ClientsList() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => setClientViewDetailsModalOpen(true)}><Eye /> View Details</DropdownMenuItem>
-                                                    {/* <DropdownMenuItem onClick={() => setModalOpen(true)}><Plus /> Add Chats</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => setModalOpen(true)}><Plus /> Add Tasks</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => setModalOpen(true)}><Plus /> Add Marketing Funnels</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => setModalOpen(true)}><Plus /> Add Meetings</DropdownMenuItem> */}
+                                                    <DropdownMenuItem onClick={() => setChatModalOpen(true)}><Plus /> Add Chats</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => {}}><Plus /> Add Tasks</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => {}}><Plus /> Add Marketing Funnels</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => {}}><Plus /> Add Meetings</DropdownMenuItem>
                                                     {/* <DropdownMenuSeparator />
                                                     <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem> */}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                             {clientViewDetailsModalOpen && (
                                                 <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
-                                                    <ClientViewModal client={client} open={clientViewDetailsModalOpen} onOpenChange={setClientViewDetailsModalOpen} />
+                                                    <ClientViewModal client={client as any} open={clientViewDetailsModalOpen} onOpenChange={setClientViewDetailsModalOpen} />
+                                                </Suspense>
+                                            )}
+                                            {chatModalOpen && (
+                                                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
+                                                    <AddChatModal clientId={client.id as any} open={chatModalOpen} onOpenChange={setChatModalOpen} />
                                                 </Suspense>
                                             )}
                                         </TableCell>

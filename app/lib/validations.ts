@@ -133,22 +133,44 @@ export const updateProfileSchema = z.object({
 })
 
 export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z
-    .string()
-    .min(6, "New password must be at least 6 characters"),
-  confirmPassword: z.string(),
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z
+        .string()
+        .min(6, "New password must be at least 6 characters"),
+    confirmPassword: z.string(),
 }).superRefine((data, ctx) => {
-  if (data.newPassword !== data.confirmPassword) {
-    ctx.addIssue({
-      path: ["confirmPassword"],
-      code: z.ZodIssueCode.custom,
-      message: "Confirm password do not match",
-    });
-  }
+    if (data.newPassword !== data.confirmPassword) {
+        ctx.addIssue({
+            path: ["confirmPassword"],
+            code: z.ZodIssueCode.custom,
+            message: "Confirm password do not match",
+        });
+    }
 });
 
+export const addChatSchema = z.object({
+    clientQuery: z.string().min(1, "Client query is required"),
+    handleBy: z.string().optional(),
+    chatDate: z.date().optional(),
+     clientEmails: z.array(z.string().email("Invalid email")).optional(),
+    chatTranscript: z.any().optional(),
+    reviewAsked: z.boolean().optional(),
+    reviewStatus: z.boolean().optional(),
+    reviewText: z.string().optional(),
+    reviewDate: z.date().optional(),
+    lastReviewApproach: z.date().optional(),
+    clientFeedback: z.string().optional(),
+    storeDetails: z.string().optional(),
+    featureRequest: z.string().optional(),
+    agentRating: z.preprocess(
+        (val) => (val === "" ? undefined : Number(val)),
+        z.number().min(1).max(10).optional()
+    ) as unknown as z.ZodOptional<z.ZodNumber>,
+    agentComments: z.string().optional(),
+    otherStoresUrl: z.string().optional(),
+});
 
+export type AddChatFormInput = z.infer<typeof addChatSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type ProfileUpdateInput = z.infer<typeof updateProfileSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
