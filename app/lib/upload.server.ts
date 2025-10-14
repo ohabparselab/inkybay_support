@@ -8,9 +8,9 @@ export async function uploadFile(file: File | null, folderPath = "public/uploads
         if (!file) return null;
 
         // Only accept certain file types
-        if (!["image/png", "image/jpeg", "image/jpg", "image/svg+xml", "image/webp"].includes(file.type)) {
-            throw new Error("Invalid file type");
-        }
+        // if (!["image/png", "image/jpeg", "image/jpg", "image/svg+xml", "image/webp"].includes(file.type)) {
+        //     throw new Error("Invalid file type");
+        // }
 
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);

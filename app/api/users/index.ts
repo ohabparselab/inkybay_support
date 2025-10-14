@@ -97,8 +97,8 @@ async function updateProfile(request: Request) {
         const fullName = formData.get("fullName") as string;
         const email = formData.get("email") as string;
         const avatarFile = formData.get("avatar") as File | null;
-        const avatar = await uploadFile(avatarFile);
         const data: any = { fullName, email };
+        const avatar = await uploadFile(avatarFile);
         if (avatar) data.avatar = avatar;
 
         await prisma.user.update({

@@ -1,7 +1,6 @@
 import {
     type RouteConfig,
     route,
-    index,
     layout,
 } from "@react-router/dev/routes";
 
@@ -27,6 +26,10 @@ export default [
     route("api/users", "./api/users/index.ts"),
     route("api/users/:id", "./api/users/$id.ts"),
     route("api/statuses", "./api/statuses.ts"),
+    
+    // chats api routes
+    route("api/chats", "./api/chats/index.ts"),
+    
     // 404 route
     route("*", "./routes/404.tsx"),
 ] satisfies RouteConfig;

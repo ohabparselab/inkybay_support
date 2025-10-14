@@ -51,6 +51,7 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
             clientEmails: [],
             reviewAsked: false,
             reviewStatus: false,
+            handleBy: "",
             agentRating: 0,
         },
     });
@@ -77,17 +78,46 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
         fetchUsers();
     }, []);
 
-    const onSubmit = (data: AddChatFormInput) => {
-        const formattedData = {
-            ...data,
-            clientId: clientId || null,
-            handleBy: Number(data.handleBy) || null,
-            chatDate: data.chatDate ? data.chatDate.toISOString() : null,
-            lastReviewApproach: data.lastReviewApproach
-                ? data.lastReviewApproach.toISOString()
-                : null,
-        };
-        console.log("Form Data========>>:", formattedData);
+    const onSubmit = async (data: AddChatFormInput) => {
+
+        const formData = new FormData();
+        console.log("===data====>>", data)
+        // Append all primitive fields
+        formData.append("clientId", clientId ? String(clientId) : "");
+        formData.append("clientQuery", data.clientQuery ? String(data.clientQuery) : "");
+        formData.append("handleBy", data.handleBy ? String(data.handleBy) : "");
+        formData.append("chatDate", data.chatDate ? data.chatDate.toISOString() : "");
+        formData.append("lastReviewApproach", data.lastReviewApproach ? data.lastReviewApproach.toISOString() : "");
+        formData.append("reviewAsked", data.reviewAsked ? "true" : "false");
+        formData.append("reviewStatus", data.reviewStatus ? "true" : "false");
+        formData.append("reviewText", data.reviewText || "");
+        formData.append("clientFeedback", data.clientFeedback || "");
+        formData.append("storeDetails", data.storeDetails || "");
+        formData.append("featureRequest", data.featureRequest || "");
+        formData.append("agentRating", data.agentRating ? String(data.agentRating) : "");
+        formData.append("agentComments", data.agentComments || "");
+        formData.append("otherStoresUrl", data.otherStoresUrl || "");
+
+        // Append file
+        if (data.chatTranscript[0]) {
+            formData.append("chatTranscript", data.chatTranscript[0]);
+        }
+
+        // Append clientEmails array
+        data.clientEmails?.forEach((email: string) => {
+            formData.append("clientEmails[]", email);
+        });
+
+        console.log("===formData====>>", formData);
+        // Send the request
+        const res = await fetch("/api/chats", {
+            method: "POST",
+            body: formData,
+        });
+
+        const result = await res.json();
+        console.log("Response =====>", result);
+
         // onOpenChange(false);
         // reset();
     };

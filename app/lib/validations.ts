@@ -150,7 +150,7 @@ export const changePasswordSchema = z.object({
 
 export const addChatSchema = z.object({
     clientQuery: z.string().min(1, "Client query is required."),
-    handleBy: z.string().optional(),
+    handleBy: z.string().min(1, "Please select handle by"),
     chatDate: z.date().optional(),
     clientEmails: z.array(z.string().email("Invalid email")).optional(),
     chatTranscript: z.any().optional(),
@@ -167,6 +167,7 @@ export const addChatSchema = z.object({
 });
 
 export const addTaskSchema = z.object({
+    clientId: z.string().optional(),
     taskDetails: z.string().min(1, "Task details is required."),
     providedBy: z.string().optional(),
     taskStatus: z.string().optional(),

@@ -29,6 +29,7 @@ model User {
     deletedAt DateTime?
 
     modulePermissions UserModulePermission[]
+    Chat              Chat[]
 
     @@index([email])
     @@map("users")
@@ -95,8 +96,8 @@ model UserModulePermission {
 }
 
 model Client {
-    id           Int @id @default(autoincrement())
-    shopDomain    String      @unique
+    id            Int           @id @default(autoincrement())
+    shopDomain    String        @unique
     email         String?
     shopName      String
     accessToken   String
@@ -104,13 +105,15 @@ model Client {
     country       String?
     currency      String?
     timezone      String?
-    installedAt   DateTime    @default(now())
+    installedAt   DateTime      @default(now())
     uninstalledAt DateTime?
-    status        StoreStatus @default(ACTIVE)
-    createdAt     DateTime    @default(now())
-    updatedAt     DateTime    @updatedAt
-    isDeleted     Boolean     @default(false)
+    status        StoreStatus   @default(ACTIVE)
+    createdAt     DateTime      @default(now())
+    updatedAt     DateTime      @updatedAt
+    isDeleted     Boolean       @default(false)
     deletedAt     DateTime?
+    Chat          Chat[]
+    ClientEmail   ClientEmail[]
 
     @@index([shopDomain, email])
     @@map("clients")
@@ -132,4 +135,47 @@ model Status {
     deletedAt DateTime?
 
     @@map("statuses")
+}
+
+model Chat {
+    id                 Int       @id @default(autoincrement())
+    clientId           Int
+    clientQuery        String
+    handleBy           Int
+    chatDate           DateTime?
+    chatTranscript     String?
+    reviewAsked        Boolean
+    reviewStatus       Boolean
+    reviewText         String?
+    lastReviewApproach DateTime?
+    clientFeedback     String?
+    storeDetails       String?
+    featureRequest     String?
+    agentRating        Int?
+    agentComments      String?
+    otherStoresUrl     String?
+    createdAt          DateTime  @default(now())
+    updatedAt          DateTime  @updatedAt
+    isDeleted          Boolean   @default(false)
+    deletedAt          DateTime?
+
+    // relations
+    handleByUser User   @relation(fields: [handleBy], references: [id])
+    client       Client @relation(fields: [clientId], references: [id])
+
+    @@map("chats")
+}
+
+model ClientEmail {
+    id        Int       @id @default(autoincrement())
+    clientId  Int
+    email     String    @unique
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
+
+    client Client @relation(fields: [clientId], references: [id])
+
+    @@map("client_emails")
 }
