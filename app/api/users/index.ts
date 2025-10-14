@@ -83,7 +83,7 @@ async function createUser(request: Request) {
         return Response.json({ success: true, message: "User created successfully", user })
     } catch (error: any) {
         console.error("Create user failed:", error)
-        return Response.json({ success: false, message: error.message }, { status: 400 })
+        return Response.json({ success: false, message: error.message }, { status: 500 })
     }
 }
 
