@@ -121,3 +121,15 @@ enum StoreStatus {
     UNINSTALLED
     SUSPENDED
 }
+
+model Status {
+    id        Int       @id @default(autoincrement())
+    name      String
+    slug      String    @unique
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
+
+    @@map("statuses")
+}

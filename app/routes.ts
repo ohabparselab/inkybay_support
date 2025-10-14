@@ -26,6 +26,7 @@ export default [
     // api routes
     route("api/users", "./api/users/index.ts"),
     route("api/users/:id", "./api/users/$id.ts"),
+    route("api/statuses", "./api/statuses.ts"),
     // 404 route
     route("*", "./routes/404.tsx"),
 ] satisfies RouteConfig;
