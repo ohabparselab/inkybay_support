@@ -133,7 +133,7 @@ export const updateProfileSchema = z.object({
 })
 
 export const changePasswordSchema = z.object({
-    currentPassword: z.string().min(1, "Current password is required"),
+    currentPassword: z.string().min(1, "Current password is required."),
     newPassword: z
         .string()
         .min(6, "New password must be at least 6 characters"),
@@ -149,7 +149,7 @@ export const changePasswordSchema = z.object({
 });
 
 export const addChatSchema = z.object({
-    clientQuery: z.string().min(1, "Client query is required"),
+    clientQuery: z.string().min(1, "Client query is required."),
     handleBy: z.string().optional(),
     chatDate: z.date().optional(),
     clientEmails: z.array(z.string().email("Invalid email")).optional(),
@@ -166,6 +166,25 @@ export const addChatSchema = z.object({
     otherStoresUrl: z.string().optional(),
 });
 
+export const addTaskSchema = z.object({
+    taskDetails: z.string().min(1, "Task details is required."),
+    providedBy: z.string().optional(),
+    taskStatus: z.string().optional(),
+    storePassword: z.string().optional(),
+    storeAccess: z.string().optional(),
+    emails: z.array(z.string().email("Invalid email")).optional(),
+    taskAddedDate: z.date().optional(),
+    solvedBy: z.string().optional(),
+    reply: z.string().optional(),
+    comments: z.string().optional()
+});
+
+export const createStatusSchema = z.object({
+    name: z.string().min(1, "Status filed is required."),
+})
+
+export type AddStatusInput = z.infer<typeof createStatusSchema>;
+export type AddTaskFormInput = z.infer<typeof addTaskSchema>;
 export type AddChatFormInput = z.infer<typeof addChatSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type ProfileUpdateInput = z.infer<typeof updateProfileSchema>;
