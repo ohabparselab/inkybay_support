@@ -34,18 +34,13 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
     const [users, setUsers] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
 
-    const [taskStatusList, setTaskStatusList] = useState([
-        "Pending",
-        "In Progress",
-        "Completed",
-    ]);
-
-    const { control, register, handleSubmit, formState: { errors }, reset } = useForm({
+    const { control, register, handleSubmit, formState: { errors }, reset } = useForm<AddTaskFormInput>({
         resolver: zodResolver(addTaskSchema),
         defaultValues: {
             taskDetails: "",
             providedBy: "",
             taskStatus: "",
+            taskAddedDate: undefined,
             storePassword: "",
             storeAccess: "",
             emails: [],
@@ -73,7 +68,6 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
             setLoadingUsers(true);
             const res = await fetch("/api/users");
             const data = await res.json();
-            console.log("", data)
             setUsers(data.users);
         } catch (err) {
             console.error("Failed to fetch users:", err);
@@ -89,6 +83,7 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
 
     const onSubmit = (data: AddTaskFormInput) => {
         console.log("Task Data =====>", data);
+        return;
     };
 
     useEffect(() => {
@@ -152,15 +147,15 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
                                                 <SelectValue placeholder="Select Status" />
                                             </SelectTrigger>
                                             <SelectContent className="w-full">
-                                                { statuses.length === 0 ? (
+                                                {statuses.length === 0 ? (
                                                     <div className="p-2 text-center text-sm text-muted-foreground">No status found</div>
                                                 ) : (
-                                                        statuses.map((status, i) => (
-                                                            <SelectItem key={i} value={String(status.id)}>
-                                                                {status.name}
-                                                            </SelectItem>
-                                                        ))
-                                                    )
+                                                    statuses.map((status, i) => (
+                                                        <SelectItem key={i} value={String(status.id)}>
+                                                            {status.name}
+                                                        </SelectItem>
+                                                    ))
+                                                )
                                                 }
 
                                             </SelectContent>
