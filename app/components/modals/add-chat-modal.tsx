@@ -60,7 +60,7 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
         name: "clientEmails",
     });
 
-    async function fetchUsers() {
+    const fetchUsers = async () => {
         try {
             setLoadingUsers(true);
             const res = await fetch("/api/users");
@@ -283,7 +283,7 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
                                                 <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
                                             ) : (
                                                 users.map((user: any) => (
-                                                    <SelectItem key={user.id} value={user.id}>
+                                                    <SelectItem key={user.id} value={String(user.id)}>
                                                         {user.fullName}
                                                     </SelectItem>
                                                 ))
