@@ -15,6 +15,10 @@ const AddChatModal = lazy(() =>
   import('~/components/modals/add-chat-modal').then(module => ({ default: module.AddChatModal }))
 );
 
+const AddTaskModal = lazy(() =>
+  import('~/components/modals/add-task-modal').then(module => ({ default: module.AddTaskModal }))
+);
+
 
 export async function loader({ request }: LoaderFunctionArgs) {
 
@@ -79,6 +83,7 @@ export default function ClientsList() {
     const navigate = useNavigate();
     const [clientViewDetailsModalOpen, setClientViewDetailsModalOpen] = useState(false);
     const [chatModalOpen, setChatModalOpen] = useState(false);
+    const [taskModalOpen, setTaskModalOpen] = useState(false);
 
 
     const handlePageChange = (newPage: number) => {
@@ -173,7 +178,7 @@ export default function ClientsList() {
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => setClientViewDetailsModalOpen(true)}><Eye /> View Details</DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => setChatModalOpen(true)}><Plus /> Add Chats</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => {}}><Plus /> Add Tasks</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => setTaskModalOpen(true)}><Plus /> Add Tasks</DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => {}}><Plus /> Add Marketing Funnels</DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => {}}><Plus /> Add Meetings</DropdownMenuItem>
                                                     {/* <DropdownMenuSeparator />
@@ -187,7 +192,12 @@ export default function ClientsList() {
                                             )}
                                             {chatModalOpen && (
                                                 <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
-                                                    <AddChatModal clientId={client.id as any} open={chatModalOpen} onOpenChange={setChatModalOpen} />
+                                                    <AddChatModal clientId={client.id} open={chatModalOpen} onOpenChange={setChatModalOpen} />
+                                                </Suspense>
+                                            )}
+                                            {taskModalOpen && (
+                                                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
+                                                    <AddTaskModal clientId={client.id as any} open={taskModalOpen} onOpenChange={setTaskModalOpen} />
                                                 </Suspense>
                                             )}
                                         </TableCell>
