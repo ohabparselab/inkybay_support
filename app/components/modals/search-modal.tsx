@@ -1,6 +1,6 @@
 import { Dialog, DialogContent } from "../ui/dialog";
 import { useEffect, useState } from "react";
-import { useFetcher } from "react-router";
+import { Link, useFetcher } from "react-router";
 import { Spinner } from "../ui/spinner";
 import { Search } from "lucide-react";
 import { Input } from "../ui/input";
@@ -68,38 +68,40 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                 </div>
 
                 {/* Modal Body */}
-                <div className="p-4 max-h-[60vh] overflow-y-auto">
+                <div className="max-h-[60vh] overflow-y-auto">
                     {loading ? (
                         <div className="flex justify-center py-10">
                             <Spinner />
                         </div>
                     ) : results.length > 0 ? (
                         results.map((item) => (
-                            <div
-                                key={item.id}
-                                className="group p-4 mb-2 border rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer bg-white hover:bg-gray-50"
-                            >
-                                <div className="flex items-start justify-between">
-                                    {/* Left side: Shop info */}
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-blue-600 group-hover:underline truncate">
-                                            {item.shop_name || "Unknown Shop"}
-                                        </h3>
-                                        <p className="text-sm text-blue-600 group-hover:underline truncate">{item.url}</p>
+                            <Link to={`/shop-details/${item.url}`}>
+                                <div
+                                    key={item.id}
+                                    className="group p-4 mb-2 border rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer bg-white hover:bg-gray-50"
+                                >
+                                    <div className="flex items-start justify-between">
+                                        {/* Left side: Shop info */}
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-blue-600 group-hover:underline truncate">
+                                                {item.shop_name || "Unknown Shop"}
+                                            </h3>
+                                            <p className="text-sm text-blue-600 group-hover:underline truncate">{item.url}</p>
+                                        </div>
+
+                                        {/* Right side: ID badge */}
+                                        <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-md">
+                                            ID: {item.id}
+                                        </span>
                                     </div>
 
-                                    {/* Right side: ID badge */}
-                                    <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-md">
-                                        ID: {item.id}
-                                    </span>
+                                    {/* Client info */}
+                                    <div className="mt-2 text-sm text-gray-700">
+                                        <span className="font-medium text-gray-600">Email:</span>{" "}
+                                        {item.client_email || "N/A"}
+                                    </div>
                                 </div>
-
-                                {/* Client info */}
-                                <div className="mt-2 text-sm text-gray-700">
-                                    <span className="font-medium text-gray-600">Client Email:</span>{" "}
-                                    {item.client_email || "N/A"}
-                                </div>
-                            </div>
+                            </Link>
                         ))
                     ) : (
                         <div className="text-center text-gray-400 py-10">
