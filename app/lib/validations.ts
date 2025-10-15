@@ -167,15 +167,15 @@ export const addChatSchema = z.object({
 });
 
 export const addTaskSchema = z.object({
-    clientId: z.string().optional(),
+    clientId: z.number().optional(),
     taskDetails: z.string().min(1, "Task details is required."),
-    providedBy: z.string().optional(),
+    providedBy: z.string().min(1, "Please select handle by"),
     taskStatus: z.string().optional(),
     storePassword: z.string().optional(),
     storeAccess: z.string().optional(),
     emails: z.array(z.string().email("Invalid email")).optional(),
     taskAddedDate: z.date().optional(),
-    solvedBy: z.string().optional(),
+    solvedBy: z.string().min(1, "Please select handle by"),
     reply: z.string().optional(),
     comments: z.string().optional()
 });

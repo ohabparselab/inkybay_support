@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const AddStatusModal = lazy(() =>
     import('~/components/modals/add-status-modal').then(module => ({ default: module.AddStatusModal }))
@@ -76,20 +77,37 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
         }
     }
 
-    const { fields, append, remove } = useFieldArray({
+    const { fields, append, remove } = useFieldArray<any>({
         control,
         name: "emails",
     });
 
-    const onSubmit = (data: AddTaskFormInput) => {
-        console.log("Task Data =====>", data);
+    const onSubmit = async (data: AddTaskFormInput) => {
+        const formatData = {
+            ...data,
+            clientId
+        }
+        console.log("------>>", formatData);
+        const res = await fetch("/api/tasks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formatData),
+        })
+
+        if (res.ok) {
+            toast.success("Task created successfully!")
+            onOpenChange(false);
+            reset()
+        } else {
+            toast.error("Failed to create task.")
+        }
         return;
     };
 
     useEffect(() => {
         fetchUsers();
     }, []);
-
+    console.log(errors);
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
@@ -134,6 +152,9 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
                                     </Select>
                                 )}
                             />
+                            {errors.providedBy && (
+                                <p className="text-sm text-red-500">{errors.providedBy.message}</p>
+                            )}
                         </div>
                         <div>
                             <Label className="mb-2">Task Status</Label>
@@ -291,6 +312,9 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
                                     </Select>
                                 )}
                             />
+                              {errors.solvedBy && (
+                                <p className="text-sm text-red-500">{errors.solvedBy.message}</p>
+                            )}
                         </div>
 
                         <div>

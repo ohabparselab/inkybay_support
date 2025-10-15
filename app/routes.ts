@@ -29,6 +29,9 @@ export default [
     
     // chats api routes
     route("api/chats", "./api/chats/index.ts"),
+
+    // tasks api routes
+    route("api/tasks", "./api/tasks/index.ts"),
     
     // 404 route
     route("*", "./routes/404.tsx"),

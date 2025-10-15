@@ -30,6 +30,8 @@ model User {
 
     modulePermissions UserModulePermission[]
     Chat              Chat[]
+    providedTasks     Task[]    @relation("UserProvidedTasks")
+    solvedTasks       Task[]    @relation("UserSolvedTasks")
 
     @@index([email])
     @@map("users")
@@ -114,6 +116,7 @@ model Client {
     deletedAt     DateTime?
     Chat          Chat[]
     ClientEmail   ClientEmail[]
+    Task          Task[]
 
     @@index([shopDomain, email])
     @@map("clients")
@@ -178,4 +181,29 @@ model ClientEmail {
     client Client @relation(fields: [clientId], references: [id])
 
     @@map("client_emails")
+}
+
+model Task {
+    id            Int       @id @default(autoincrement())
+    clientId      Int
+    providedBy    Int
+    solvedBy      Int?
+    taskDetails   String
+    taskStatus    String?
+    storePassword String?
+    storeAccess   String?
+    taskAddedDate DateTime?
+    reply         String?
+    comments      String?
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @updatedAt
+    isDeleted     Boolean   @default(false)
+    deletedAt     DateTime?
+
+    // Relations
+    client         Client @relation(fields: [clientId], references: [id])
+    providedByUser User   @relation("UserProvidedTasks", fields: [providedBy], references: [id])
+    solvedByUser   User?  @relation("UserSolvedTasks", fields: [solvedBy], references: [id])
+
+    @@map("tasks")
 }
