@@ -1,21 +1,16 @@
 
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { addChatSchema, type AddChatFormInput } from "~/lib/validations";
+import { CalendarIcon, ListRestart, Plus, Star, X } from "lucide-react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import { CalendarIcon, ListRestart, Plus, Star, X } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import {
     Select,
@@ -24,8 +19,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { useEffect, useState } from "react";
-import { addChatSchema, type AddChatFormInput } from "~/lib/validations";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface AddChatModalProps {
     clientId: number;
@@ -81,7 +82,6 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
     const onSubmit = async (data: AddChatFormInput) => {
 
         const formData = new FormData();
-        console.log("===data====>>", data)
         // Append all primitive fields
         formData.append("clientId", clientId ? String(clientId) : "");
         formData.append("clientQuery", data.clientQuery ? String(data.clientQuery) : "");
@@ -108,7 +108,6 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
             formData.append("clientEmails[]", email);
         });
 
-        console.log("===formData====>>", formData);
         // Send the request
         const res = await fetch("/api/chats", {
             method: "POST",
@@ -116,10 +115,14 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
         });
 
         const result = await res.json();
-        console.log("Response =====>", result);
+        if (res.ok) {
+            toast.success('New chat added successfully.');
+            onOpenChange(false);
+            reset();
+        } else {
+            toast.error('Something is wrong, please again.');
+        }
 
-        // onOpenChange(false);
-        // reset();
     };
 
     console.log("Errors========>>:", errors);

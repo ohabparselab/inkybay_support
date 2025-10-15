@@ -24,7 +24,6 @@ export function AddStatusModal({ open, onOpenChange, setStatuses }: any) {
 
             if (res.ok) {
                 const data = await res.json();
-                console.log("====data==>>", data)
                 setStatuses((prev: any) => [...prev, { id: data.status.id, name: data.status.name }]);
                 setNewStatus("");
                 setError("");
