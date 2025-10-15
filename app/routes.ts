@@ -33,6 +33,10 @@ export default [
     // tasks api routes
     route("api/tasks", "./api/tasks/index.ts"),
     
+    //inkybay search api
+    route("/api/inkybay/:kind", "./api/api.inkybay.$kind.tsx"),
+
+    
     // 404 route
     route("*", "./routes/404.tsx"),
 ] satisfies RouteConfig;

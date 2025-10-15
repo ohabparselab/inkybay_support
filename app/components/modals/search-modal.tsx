@@ -1,45 +1,55 @@
-import { Search } from "lucide-react";
 import { Dialog, DialogContent } from "../ui/dialog";
-import { Input } from "../ui/input";
-import { Spinner } from "../ui/spinner";
 import { useEffect, useState } from "react";
+import { useFetcher } from "react-router";
+import { Spinner } from "../ui/spinner";
+import { Search } from "lucide-react";
+import { Input } from "../ui/input";
 
 interface SearchModalProps {
-    open: boolean,
+    open: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
 export function SearchModal({ open, onOpenChange }: SearchModalProps) {
+    const searchFetcher = useFetcher<{ status: number; data: any }>();
+
     const [searchQuery, setSearchQuery] = useState("");
     const [results, setResults] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
 
-    // Fetch search results
+    // Fetch search results when query changes
     useEffect(() => {
         if (!searchQuery) {
             setResults([]);
             return;
         }
 
-        const fetchResults = async () => {
-            setLoading(true);
-            try {
-                const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
-                const data = await res.json();
-                setResults(data.results || []);
-            } catch (err) {
-                console.error("Search failed:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
+        const timeout = setTimeout(() => {
+            const fd = new FormData();
+            fd.set("srckey", searchQuery);
+            searchFetcher.submit(fd, {
+                method: "post",
+                action: "/api/inkybay/search",
+            });
+        }, 300); // debounce
 
-        const timeout = setTimeout(fetchResults, 300); // debounce 300ms
         return () => clearTimeout(timeout);
     }, [searchQuery]);
+
+    // Update results when fetcher returns data
+    useEffect(() => {
+        if (searchFetcher.data?.status === 200) {
+            // assuming backend returns { data: [...] }
+            setResults(searchFetcher.data.data || []);
+        } else if (searchFetcher.data?.status && searchFetcher.data.status !== 200) {
+            setResults([]);
+        }
+    }, [searchFetcher.data]);
+
+    const loading = searchFetcher.state !== "idle";
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="!max-w-3xl w-full -mt-30 mx-auto bg-white rounded-lg shadow-lg">
+            <DialogContent className="!max-w-3xl w-full mx-auto bg-white rounded-lg shadow-lg">
                 {/* Modal Header */}
                 <div className="sticky top-0 w-full bg-white py-5 border-b border-gray-200">
                     <div className="relative w-full mx-auto">
@@ -67,16 +77,37 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                         results.map((item) => (
                             <div
                                 key={item.id}
-                                className="p-2 border-b last:border-b-0 cursor-pointer hover:bg-gray-50"
+                                className="group p-4 mb-2 border rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer bg-white hover:bg-gray-50"
                             >
-                                {item.name}
+                                <div className="flex items-start justify-between">
+                                    {/* Left side: Shop info */}
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-blue-600 group-hover:underline truncate">
+                                            {item.shop_name || "Unknown Shop"}
+                                        </h3>
+                                        <p className="text-sm text-blue-600 group-hover:underline truncate">{item.url}</p>
+                                    </div>
+
+                                    {/* Right side: ID badge */}
+                                    <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-md">
+                                        ID: {item.id}
+                                    </span>
+                                </div>
+
+                                {/* Client info */}
+                                <div className="mt-2 text-sm text-gray-700">
+                                    <span className="font-medium text-gray-600">Client Email:</span>{" "}
+                                    {item.client_email || "N/A"}
+                                </div>
                             </div>
                         ))
                     ) : (
-                        <div className="text-center text-gray-400 py-10">No results found</div>
+                        <div className="text-center text-gray-400 py-10">
+                            No results found
+                        </div>
                     )}
                 </div>
             </DialogContent>
         </Dialog>
-    )
+    );
 }

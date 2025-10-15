@@ -60,10 +60,6 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
         setStatuses(data.statuses);
     };
 
-    useEffect(() => {
-        fetchStatuses();
-    }, []);
-
     const fetchUsers = async () => {
         try {
             setLoadingUsers(true);
@@ -87,7 +83,6 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
             ...data,
             clientId
         }
-        console.log("------>>", formatData);
         const res = await fetch("/api/tasks", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -101,11 +96,11 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
         } else {
             toast.error("Failed to create task.")
         }
-        return;
     };
 
     useEffect(() => {
         fetchUsers();
+        fetchStatuses();
     }, []);
     console.log(errors);
     return (
@@ -312,7 +307,7 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
                                     </Select>
                                 )}
                             />
-                              {errors.solvedBy && (
+                            {errors.solvedBy && (
                                 <p className="text-sm text-red-500">{errors.solvedBy.message}</p>
                             )}
                         </div>
