@@ -75,7 +75,11 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                         </div>
                     ) : results.length > 0 ? (
                         results.map((item) => (
-                            <Link to={`/shop-details/${item.url}`}>
+                            <Link to={`shop-details?shopUrl=${item.url}`} onClick={()=> {
+                                onOpenChange(false);
+                                setSearchQuery("");
+                                setResults([]);
+                            }}>
                                 <div
                                     key={item.id}
                                     className="group p-4 mb-2 border rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer bg-white hover:bg-gray-50"
