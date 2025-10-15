@@ -40,7 +40,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         method,
         headers: {
             "Content-Type": "application/json",
-            authKey: 'inkybay',
+            authKey: `${process.env.INKYBAY_API_KEY}`,
             authTime: String(authTime),
             signature,
         },
