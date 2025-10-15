@@ -8,15 +8,19 @@ import { prisma } from "~/lib/prisma.server";
 import { lazy, Suspense, useState } from "react";
 
 const ClientViewModal = lazy(() =>
-  import('~/components/modals/client-view-modal').then(module => ({ default: module.ClientViewModal }))
+    import('~/components/modals/client-view-modal').then(module => ({ default: module.ClientViewModal }))
 );
 
 const AddChatModal = lazy(() =>
-  import('~/components/modals/add-chat-modal').then(module => ({ default: module.AddChatModal }))
+    import('~/components/modals/add-chat-modal').then(module => ({ default: module.AddChatModal }))
 );
 
 const AddTaskModal = lazy(() =>
-  import('~/components/modals/add-task-modal').then(module => ({ default: module.AddTaskModal }))
+    import('~/components/modals/add-task-modal').then(module => ({ default: module.AddTaskModal }))
+);
+
+const AddMeetingModal = lazy(() =>
+    import('~/components/modals/add-meeting-modal').then(module => ({ default: module.AddMeetingModal }))
 );
 
 
@@ -84,6 +88,7 @@ export default function ClientsList() {
     const [clientViewDetailsModalOpen, setClientViewDetailsModalOpen] = useState(false);
     const [chatModalOpen, setChatModalOpen] = useState(false);
     const [taskModalOpen, setTaskModalOpen] = useState(false);
+    const [meetingModalOpen, setMeetingModalOpen] = useState(false);
 
 
     const handlePageChange = (newPage: number) => {
@@ -179,8 +184,8 @@ export default function ClientsList() {
                                                     <DropdownMenuItem onClick={() => setClientViewDetailsModalOpen(true)}><Eye /> View Details</DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => setChatModalOpen(true)}><Plus /> Add Chats</DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => setTaskModalOpen(true)}><Plus /> Add Tasks</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => {}}><Plus /> Add Marketing Funnels</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => {}}><Plus /> Add Meetings</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => { setMeetingModalOpen(true) }}><Plus /> Add Meetings</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => { }}><Plus /> Add Marketing Funnels</DropdownMenuItem>
                                                     {/* <DropdownMenuSeparator />
                                                     <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem> */}
                                                 </DropdownMenuContent>
@@ -197,7 +202,12 @@ export default function ClientsList() {
                                             )}
                                             {taskModalOpen && (
                                                 <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
-                                                    <AddTaskModal clientId={client.id as any} open={taskModalOpen} onOpenChange={setTaskModalOpen} />
+                                                    <AddTaskModal clientId={client.id} open={taskModalOpen} onOpenChange={setTaskModalOpen} />
+                                                </Suspense>
+                                            )}
+                                            {meetingModalOpen && (
+                                                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
+                                                    <AddMeetingModal clientId={client.id} open={meetingModalOpen} onOpenChange={setMeetingModalOpen} />
                                                 </Suspense>
                                             )}
                                         </TableCell>

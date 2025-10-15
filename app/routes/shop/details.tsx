@@ -199,18 +199,40 @@ export default function ShopDetailsPage() {
                                     className="flex-1 text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Chats
+                                    <Badge
+                                        variant="secondary"
+                                        className="bg-blue-500 text-white dark:bg-blue-600"
+                                    >{2}</Badge>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="tasks"
                                     className="flex-1 text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Tasks
+                                    <Badge
+                                        variant="secondary"
+                                        className="bg-blue-500 text-white dark:bg-blue-600"
+                                    >{11}</Badge>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="meetings"
                                     className="flex-1 text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Meetings
+                                    <Badge
+                                        variant="secondary"
+                                        className="bg-blue-500 text-white dark:bg-blue-600"
+                                    >{23}</Badge>
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="meetings"
+                                    className="flex-1 text-center px-6 py-4 text-lg font-medium"
+                                >
+                                    Marketing Funnels
+                                    <Badge
+                                        variant="secondary"
+                                        className="bg-blue-500 text-white dark:bg-blue-600"
+                                    >{88}</Badge>
                                 </TabsTrigger>
                             </TabsList>
 
