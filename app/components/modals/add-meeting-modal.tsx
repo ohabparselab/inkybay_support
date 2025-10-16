@@ -31,12 +31,11 @@ import { Spinner } from "../ui/spinner";
 
 
 interface AddMeetingModalProps {
-    clientId: number;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
-export function AddMeetingModal({ clientId, open, onOpenChange }: AddMeetingModalProps) {
+export function AddMeetingModal({ open, onOpenChange }: AddMeetingModalProps) {
 
     const [users, setUsers] = useState<any[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);

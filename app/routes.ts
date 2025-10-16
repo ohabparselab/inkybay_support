@@ -24,6 +24,7 @@ export default [
         route("shop-details", "./routes/shop/details.tsx"),
         route("chats", "./routes/chats/list.tsx"),
         route("tasks", "./routes/tasks/list.tsx"),
+        route("meetings", "./routes/meetings/list.tsx"),
     ]),
     // api routes
     route("api/users", "./api/users/index.ts"),
