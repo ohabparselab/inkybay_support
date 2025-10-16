@@ -1,16 +1,18 @@
-import { useEffect, useState } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { CalendarIcon, Plus, X, ListRestart } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { CalendarIcon, Plus, X, ListRestart } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { addMeetingSchema, type AddMeetingInput } from "~/lib/validations";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -25,8 +27,7 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { addMeetingSchema, type AddMeetingInput } from "~/lib/validations";
+import { Spinner } from "../ui/spinner";
 
 
 interface AddMeetingModalProps {
@@ -36,22 +37,21 @@ interface AddMeetingModalProps {
 }
 
 export function AddMeetingModal({ clientId, open, onOpenChange }: AddMeetingModalProps) {
+
     const [users, setUsers] = useState<any[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
+    const [formSubmitLoading, setFormSubmitLoading] = useState(false);
 
     const {
         control,
         register,
         handleSubmit,
         reset,
-        setValue,
-        watch,
         formState: { errors },
     } = useForm<AddMeetingInput>({
         resolver: zodResolver(addMeetingSchema),
         defaultValues: {
             agentId: "",
-            // meetingDateTime: undefined,
             emails: [],
             reviewAsked: false,
             reviewGiven: false,
@@ -83,6 +83,7 @@ export function AddMeetingModal({ clientId, open, onOpenChange }: AddMeetingModa
 
     const onSubmit = async (data: AddMeetingInput) => {
         try {
+            setFormSubmitLoading(true);
             const formData = new FormData();
 
             // Append all fields
@@ -96,29 +97,29 @@ export function AddMeetingModal({ clientId, open, onOpenChange }: AddMeetingModa
                 }
             });
 
-            // formData.append("clientId", String(clientId));
-            // console.log("=====formData=====>>", formData);
-            // return;
             const res = await fetch("/api/meetings", {
                 method: "POST",
-                body: formData, // no JSON headers
+                body: formData,
             });
 
             const result = await res.json();
             if (res.ok) {
                 toast.success("Meeting added successfully.");
+                setFormSubmitLoading(false);
                 onOpenChange(false);
                 reset();
             } else {
+                setFormSubmitLoading(false);
                 toast.error(result.message || "Failed to add meeting.");
             }
         } catch (err) {
+            setFormSubmitLoading(false);
             console.error(err);
             toast.error("Something went wrong while adding meeting.");
         }
     };
-
-    console.log(errors)
+    
+    console.log("=======>>", formSubmitLoading);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -386,7 +387,7 @@ export function AddMeetingModal({ clientId, open, onOpenChange }: AddMeetingModa
                             <ListRestart /> Reset
                         </Button>
                         <Button type="submit">
-                            <Plus /> Add Meeting
+                            {formSubmitLoading ? <Spinner/> : <Plus />} Add Meeting
                         </Button>
                     </DialogFooter>
                 </form>
