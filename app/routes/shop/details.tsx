@@ -301,16 +301,22 @@ export default function ShopDetailsPage() {
 
                             {/* Placeholder Tabs */}
                             <TabsContent value="chats" className="mt-4 text-gray-500 text-sm">
-                                Coming soon...
+                                <div className="text-gray-400 text-center py-4">
+                                    No chats available
+                                </div>
                             </TabsContent>
                             <TabsContent value="tasks" className="mt-4 text-gray-500 text-sm">
-                                Coming soon...
+                                 <div className="text-gray-400 text-center py-4">
+                                    No tasks available
+                                </div>
                             </TabsContent>
                             <TabsContent
                                 value="meetings"
                                 className="mt-4 text-gray-500 text-sm"
                             >
-                                Coming soon...
+                                 <div className="text-gray-400 text-center py-4">
+                                    No meetings available
+                                </div>
                             </TabsContent>
                         </Tabs>
                     </section>
