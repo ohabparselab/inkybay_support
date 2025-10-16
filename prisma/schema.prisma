@@ -149,8 +149,8 @@ model Chat {
     handleBy           Int
     chatDate           DateTime?
     chatTranscript     String?
-    reviewAsked        Boolean
-    reviewStatus       Boolean
+    reviewAsked        Boolean   @default(false)
+    reviewStatus       Boolean   @default(false)
     reviewText         String?
     lastReviewApproach DateTime?
     clientFeedback     String?
@@ -159,16 +159,36 @@ model Chat {
     agentRating        Int?
     agentComments      String?
     otherStoresUrl     String?
-    createdAt          DateTime  @default(now())
-    updatedAt          DateTime  @updatedAt
+    changesMadeByAgent String?
     isDeleted          Boolean   @default(false)
     deletedAt          DateTime?
+    createdAt          DateTime  @default(now())
+    updatedAt          DateTime  @updatedAt
 
-    // relations
-    handleByUser User   @relation(fields: [handleBy], references: [id])
-    client       Client @relation(fields: [clientId], references: [id])
+    handleByUser User      @relation(fields: [handleBy], references: [id])
+    client       Client    @relation(fields: [clientId], references: [id])
+    chatTags     ChatTag[]
 
     @@map("chats")
+}
+
+model Tag {
+    id        Int      @id @default(autoincrement())
+    name      String   @unique
+    createdAt DateTime @default(now())
+
+    chatTags ChatTag[]
+}
+
+model ChatTag {
+    chatId Int
+    tagId  Int
+
+    chat Chat @relation(fields: [chatId], references: [id])
+    tag  Tag  @relation(fields: [tagId], references: [id])
+
+    @@id([chatId, tagId])
+    @@map("chat_tags")
 }
 
 model ClientEmail {
@@ -269,18 +289,20 @@ model MarketingFunnel {
 
     client    Client     @relation(fields: [clientId], references: [id])
     followUps FollowUp[]
+
     @@map("marketing_funnels")
 }
 
 model FollowUp {
-    id                Int      @id @default(autoincrement())
+    id                Int       @id @default(autoincrement())
     marketingFunnelId Int
     followUpDate      DateTime
-    createdAt           DateTime  @default(now())
-    updatedAt           DateTime  @updatedAt
-    isDeleted           Boolean   @default(false)
-    deletedAt           DateTime?
+    createdAt         DateTime  @default(now())
+    updatedAt         DateTime  @updatedAt
+    isDeleted         Boolean   @default(false)
+    deletedAt         DateTime?
 
     marketingFunnel MarketingFunnel @relation(fields: [marketingFunnelId], references: [id])
+
     @@map("follow_ups")
 }
