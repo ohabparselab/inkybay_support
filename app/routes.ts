@@ -22,6 +22,7 @@ export default [
         route("users/profile", "./routes/users/profile.tsx"),
         route("users/change-password", "./routes/users/change-password.tsx"),
         route("shop-details", "./routes/shop/details.tsx"),
+        route("chats", "./routes/chats/list.tsx"),
     ]),
     // api routes
     route("api/users", "./api/users/index.ts"),

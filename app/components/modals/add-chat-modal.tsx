@@ -373,7 +373,7 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
                         <div>
                             <Label className="mb-2">Tags</Label>
                             <TagsInput control={control} name="tags" />
-                            <p className="text-sm">Type tag & press Enter</p>
+                            <p className="text-sm">Press Enter</p>
                         </div>
                         <div>
                             <Label className="mb-2">Changes Made by Agent</Label>
