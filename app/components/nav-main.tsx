@@ -30,6 +30,7 @@ export function NavMain({
         items?: {
             title: string
             url: string
+            icon: string
         }[]
     }[]
 }) {
@@ -84,6 +85,7 @@ export function NavMain({
                                                                 }`}
                                                         >
                                                             <Link to={subItem.url}>
+                                                                {subItem.icon && <subItem.icon />}
                                                                 <span>{subItem.title}</span>
                                                             </Link>
                                                         </SidebarMenuSubButton>

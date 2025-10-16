@@ -18,7 +18,9 @@ import {
     Video,
     MessageCircle,
     Megaphone,
-    List
+    List,
+    LockKeyholeOpen,
+    Component
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -89,10 +91,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         {
                             title: "Permissions",
                             url: "/settings/permissions",
+                            icon: LockKeyholeOpen
                         },
                         {
                             title: "Modules",
                             url: "/settings/modules",
+                            icon: Component
                         }
                     ],
                 },
@@ -111,7 +115,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </Link>
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={data.navMain} />
+                <NavMain items={data.navMain as any} />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={data.user} />
