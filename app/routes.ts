@@ -36,6 +36,9 @@ export default [
 
     // meeting routes
     route("api/meetings", "./api/meetings/index.ts"),
+
+    // marketing funnels routes
+    route("api/marketing-funnels", "./api/marketing-funnels/index.ts"),
     
     //inkybay search api
     route("/api/inkybay/:kind", "./api/api.inkybay.$kind.tsx"),

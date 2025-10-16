@@ -99,25 +99,26 @@ model UserModulePermission {
 }
 
 model Client {
-    id            Int           @id @default(autoincrement())
-    shopDomain    String        @unique
-    email         String?
-    shopName      String
-    accessToken   String
-    planName      String?
-    country       String?
-    currency      String?
-    timezone      String?
-    installedAt   DateTime      @default(now())
-    uninstalledAt DateTime?
-    status        StoreStatus   @default(ACTIVE)
-    createdAt     DateTime      @default(now())
-    updatedAt     DateTime      @updatedAt
-    isDeleted     Boolean       @default(false)
-    deletedAt     DateTime?
-    Chat          Chat[]
-    ClientEmail   ClientEmail[]
-    Task          Task[]
+    id              Int               @id @default(autoincrement())
+    shopDomain      String            @unique
+    email           String?
+    shopName        String
+    accessToken     String
+    planName        String?
+    country         String?
+    currency        String?
+    timezone        String?
+    installedAt     DateTime          @default(now())
+    uninstalledAt   DateTime?
+    status          StoreStatus       @default(ACTIVE)
+    createdAt       DateTime          @default(now())
+    updatedAt       DateTime          @updatedAt
+    isDeleted       Boolean           @default(false)
+    deletedAt       DateTime?
+    Chat            Chat[]
+    ClientEmail     ClientEmail[]
+    Task            Task[]
+    MarketingFunnel MarketingFunnel[]
 
     @@index([shopDomain, email])
     @@map("clients")
@@ -233,19 +234,53 @@ model Meeting {
 
     // Relations
     user User @relation(fields: [agentId], references: [id])
+
     @@map("meetings")
 }
 
 model MeetingEmail {
-    id                Int    @id @default(autoincrement())
-    email             String
-    meetingId         Int
-    createdAt         DateTime  @default(now())
-    updatedAt         DateTime  @updatedAt
-    isDeleted         Boolean   @default(false)
-    deletedAt         DateTime?
+    id        Int       @id @default(autoincrement())
+    email     String
+    meetingId Int
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
 
-    meeting   Meeting @relation(fields: [meetingId], references: [id])
-    @@unique([meetingId, email]) // ✅ prevents duplicate emails per meeting
+    meeting Meeting @relation(fields: [meetingId], references: [id])
+
+    @@unique([meetingId, email]) // prevents duplicate emails per meeting
     @@map("meeting_emails")
+}
+
+model MarketingFunnel {
+    id                  Int       @id @default(autoincrement())
+    clientId            Int
+    installPhase        String
+    typeOfProducts      String
+    otherAppsInstalled  String?
+    customizationType   String?
+    initialFeedback     String?
+    clientSuccessStatus String
+    createdAt           DateTime  @default(now())
+    updatedAt           DateTime  @updatedAt
+    isDeleted           Boolean   @default(false)
+    deletedAt           DateTime?
+
+    client    Client     @relation(fields: [clientId], references: [id])
+    followUps FollowUp[]
+    @@map("marketing_funnels")
+}
+
+model FollowUp {
+    id                Int      @id @default(autoincrement())
+    marketingFunnelId Int
+    followUpDate      DateTime
+    createdAt           DateTime  @default(now())
+    updatedAt           DateTime  @updatedAt
+    isDeleted           Boolean   @default(false)
+    deletedAt           DateTime?
+
+    marketingFunnel MarketingFunnel @relation(fields: [marketingFunnelId], references: [id])
+    @@map("follow_ups")
 }

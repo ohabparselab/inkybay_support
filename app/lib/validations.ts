@@ -206,6 +206,7 @@ export const addMeetingSchema = z.object({
 });
 
 export const addMarketingFunnelSchema = z.object({
+    clientId: z.number().optional(),
     installPhase: z.enum(["install", "uninstall"]),
     emails: z.array(z.string().email("Invalid email")),
     typeOfProducts: z.string().min(1, "Type of products field is required."),

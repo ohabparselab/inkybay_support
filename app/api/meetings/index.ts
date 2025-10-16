@@ -1,10 +1,5 @@
-import { addChatSchema, changePasswordSchema, createUserSchema } from "~/lib/validations"
-import type { LoaderFunctionArgs } from "react-router"
 import { uploadFile } from "~/lib/upload.server"
-import { getUserId } from "~/session.server"
 import { prisma } from "~/lib/prisma.server"
-import { getUser } from "~/lib/user.server"
-import bcrypt from "bcryptjs"
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
 
@@ -47,7 +42,7 @@ export const createMeeting = async (request: Request) => {
         const agentId = formData.get("agentId") ? Number(formData.get("agentId")) : null;
 
         if (!agentId) {
-            return Response.json({ success: false, message: "Agent ID found." }, { status: 400 });
+            return Response.json({ success: false, message: "Agent ID not found." }, { status: 400 });
         }
 
         // Build chat data
