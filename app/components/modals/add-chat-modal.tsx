@@ -27,6 +27,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { TagsInput } from "../ui/tags";
 
 interface AddChatModalProps {
     clientId: number;
@@ -50,6 +51,7 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
         resolver: zodResolver(addChatSchema),
         defaultValues: {
             clientEmails: [],
+            tags: [],
             reviewAsked: false,
             reviewStatus: false,
             handleBy: "",
@@ -97,6 +99,7 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
         formData.append("agentRating", data.agentRating ? String(data.agentRating) : "");
         formData.append("agentComments", data.agentComments || "");
         formData.append("otherStoresUrl", data.otherStoresUrl || "");
+        formData.append("changesMadeByAgent", data.changesMadeByAgent || "");
 
         // Append file
         if (data.chatTranscript[0]) {
@@ -106,6 +109,10 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
         // Append clientEmails array
         data.clientEmails?.forEach((email: string) => {
             formData.append("clientEmails[]", email);
+        });
+
+        data.tags?.forEach((tag: string) => {
+            formData.append("tags[]", tag);
         });
 
         // Send the request
@@ -362,6 +369,17 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
                         </div>
                     </div>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <Label className="mb-2">Tags</Label>
+                            <TagsInput control={control} name="tags" />
+                            <p className="text-sm">Type tag & press Enter</p>
+                        </div>
+                        <div>
+                            <Label className="mb-2">Changes Made by Agent</Label>
+                            <Textarea {...register("changesMadeByAgent")} placeholder="Write changes..." />
+                        </div>
+                    </div>
                     {/* Agent Comments */}
                     <div>
                         <Label className="mb-2">Comments</Label>

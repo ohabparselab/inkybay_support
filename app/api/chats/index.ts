@@ -90,6 +90,7 @@ export const createChat = async (request: Request) => {
             agentRating: formData.get("agentRating") ? Number(formData.get("agentRating")) : null,
             agentComments: formData.get("agentComments")?.toString() || null,
             otherStoresUrl: formData.get("otherStoresUrl")?.toString() || null,
+            changesMadeByAgent: formData.get("changesMadeByAgent")?.toString() || null,
         };
 
         // Handle file upload
@@ -104,7 +105,7 @@ export const createChat = async (request: Request) => {
         if (clientEmails.length > 0) {
             for (const email of clientEmails) {
                 const exists = await prisma.clientEmail.findUnique({
-                    where: { clientId, email } ,
+                    where: { clientId, email },
                 });
                 if (!exists) {
                     await prisma.clientEmail.create({
@@ -122,6 +123,26 @@ export const createChat = async (request: Request) => {
                 client: { connect: { id: clientId } },
             },
         });
+
+        // Handle Tags (formData: tags[])
+        const tags = formData.getAll("tags[]").map(t => t.toString().trim()).filter(Boolean);
+
+        if (tags.length > 0) {
+            for (const tagName of tags) {
+                const tag = await prisma.tag.upsert({
+                    where: { name: tagName },
+                    update: {},
+                    create: { name: tagName },
+                });
+
+                await prisma.chatTag.create({
+                    data: {
+                        chatId: chat.id,
+                        tagId: tag.id,
+                    },
+                });
+            }
+        }
 
         return Response.json({ success: true, message: "Chat created successfully.", chat });
     } catch (error: any) {

@@ -19,7 +19,6 @@ export async function loader() {
 //  MAIN CONTROLLER HANDLER
 export const action = async ({ request }: { request: Request }) => {
     const method = request.method.toUpperCase()
-    console.log("=========>>", method)
     switch (method) {
         // case "GET":
         // return await getAllStatues(request);

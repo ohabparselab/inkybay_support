@@ -153,6 +153,7 @@ export const addChatSchema = z.object({
     handleBy: z.string().min(1, "Please select handle by"),
     chatDate: z.date().optional(),
     clientEmails: z.array(z.string().email("Invalid email")).optional(),
+    tags: z.array(z.string()).optional(),
     chatTranscript: z.any().optional(),
     reviewAsked: z.boolean().optional(),
     reviewStatus: z.boolean().optional(),
@@ -164,6 +165,7 @@ export const addChatSchema = z.object({
     agentRating: z.number().min(0).max(10).optional(),
     agentComments: z.string().optional(),
     otherStoresUrl: z.string().optional(),
+    changesMadeByAgent: z.string().optional(),
 });
 
 export const addTaskSchema = z.object({
