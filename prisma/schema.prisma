@@ -30,8 +30,9 @@ model User {
 
     modulePermissions UserModulePermission[]
     Chat              Chat[]
-    providedTasks     Task[]    @relation("UserProvidedTasks")
-    solvedTasks       Task[]    @relation("UserSolvedTasks")
+    providedTasks     Task[]                 @relation("UserProvidedTasks")
+    solvedTasks       Task[]                 @relation("UserSolvedTasks")
+    Meeting           Meeting[]
 
     @@index([email])
     @@map("users")
@@ -206,4 +207,45 @@ model Task {
     solvedByUser   User?  @relation("UserSolvedTasks", fields: [solvedBy], references: [id])
 
     @@map("tasks")
+}
+
+model Meeting {
+    id                Int       @id @default(autoincrement())
+    agentId           Int
+    storeUrl          String
+    isExternalMeeting Boolean?  @default(false)
+    meetingDetails    String?
+    meetingDateTime   DateTime
+    reviewAsked       Boolean?  @default(false)
+    reviewGiven       Boolean?  @default(false)
+    reviewDate        DateTime?
+    reviewsInfo       String?
+    joiningStatus     Boolean?  @default(false)
+    recordedVideo     String?
+    meetingNotes      String?
+    createdAt         DateTime  @default(now())
+    updatedAt         DateTime  @updatedAt
+    isDeleted         Boolean   @default(false)
+    deletedAt         DateTime?
+
+    // Each meeting can have multiple associated emails
+    emails MeetingEmail[]
+
+    // Relations
+    user User @relation(fields: [agentId], references: [id])
+    @@map("meetings")
+}
+
+model MeetingEmail {
+    id                Int    @id @default(autoincrement())
+    email             String
+    meetingId         Int
+    createdAt         DateTime  @default(now())
+    updatedAt         DateTime  @updatedAt
+    isDeleted         Boolean   @default(false)
+    deletedAt         DateTime?
+
+    meeting   Meeting @relation(fields: [meetingId], references: [id])
+    @@unique([meetingId, email]) // ✅ prevents duplicate emails per meeting
+    @@map("meeting_emails")
 }

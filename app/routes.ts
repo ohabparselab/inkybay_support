@@ -33,6 +33,9 @@ export default [
 
     // tasks api routes
     route("api/tasks", "./api/tasks/index.ts"),
+
+    // meeting routes
+    route("api/meetings", "./api/meetings/index.ts"),
     
     //inkybay search api
     route("/api/inkybay/:kind", "./api/api.inkybay.$kind.tsx"),

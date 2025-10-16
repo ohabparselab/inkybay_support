@@ -48,7 +48,7 @@ export default function ShopDetailsPage() {
                     </div>
                 ) : (
                     <CardHeader>
-                        <CardTitle className="text-xl text-blue-700">
+                        <CardTitle className="text-xl">
                             {shopify['shop_name']}
                         </CardTitle>
                         <a

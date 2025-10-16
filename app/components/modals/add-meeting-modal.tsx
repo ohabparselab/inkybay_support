@@ -26,25 +26,8 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { addMeetingSchema, type AddMeetingInput } from "~/lib/validations";
 
-// Example validation schema (adjust as needed)
-import { z } from "zod";
-const addMeetingSchema = z.object({
-    storeUrl: z.string().min(1, "Store URL is required"),
-    isExternalMeeting: z.boolean().optional(),
-    meetingDetails: z.string().optional(),
-    agentId: z.string().min(1, "Agent is required"),
-    meetingDate: z.date(),
-    reviewAsked: z.boolean().default(false),
-    reviewGiven: z.boolean().default(false),
-    reviewDate: z.date().optional(),
-    reviewsInfo: z.string().optional(),
-    emails: z.array(z.string().email("Invalid email")).optional(),
-    joiningStatus: z.boolean().default(false),
-    recordedVideo: z.string().optional(),
-    meetingNotes: z.string().optional(),
-});
-export type AddMeetingInput = z.infer<typeof addMeetingSchema>;
 
 interface AddMeetingModalProps {
     clientId: number;
@@ -67,6 +50,8 @@ export function AddMeetingModal({ clientId, open, onOpenChange }: AddMeetingModa
     } = useForm<AddMeetingInput>({
         resolver: zodResolver(addMeetingSchema),
         defaultValues: {
+            agentId: "",
+            // meetingDateTime: undefined,
             emails: [],
             reviewAsked: false,
             reviewGiven: false,
@@ -97,20 +82,43 @@ export function AddMeetingModal({ clientId, open, onOpenChange }: AddMeetingModa
     }, []);
 
     const onSubmit = async (data: AddMeetingInput) => {
-        const res = await fetch("/api/meetings", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...data, clientId }),
-        });
-        const result = await res.json();
-        if (res.ok) {
-            toast.success("Meeting added successfully.");
-            onOpenChange(false);
-            reset();
-        } else {
-            toast.error(result.message || "Failed to add meeting.");
+        try {
+            const formData = new FormData();
+
+            // Append all fields
+            Object.entries(data).forEach(([key, value]) => {
+                if (value instanceof Date) {
+                    formData.append(key, value.toISOString());
+                } else if (Array.isArray(value)) {
+                    value.forEach((v) => formData.append(`${key}[]`, v));
+                } else if (value !== undefined && value !== null) {
+                    formData.append(key, value as any);
+                }
+            });
+
+            // formData.append("clientId", String(clientId));
+            // console.log("=====formData=====>>", formData);
+            // return;
+            const res = await fetch("/api/meetings", {
+                method: "POST",
+                body: formData, // no JSON headers
+            });
+
+            const result = await res.json();
+            if (res.ok) {
+                toast.success("Meeting added successfully.");
+                onOpenChange(false);
+                reset();
+            } else {
+                toast.error(result.message || "Failed to add meeting.");
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Something went wrong while adding meeting.");
         }
     };
+
+    console.log(errors)
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -146,6 +154,7 @@ export function AddMeetingModal({ clientId, open, onOpenChange }: AddMeetingModa
                     <div>
                         <Label className="mb-2">Meeting Details</Label>
                         <Textarea className="h-[10vh]" {...register("meetingDetails")} placeholder="Describe the meeting..." />
+                        {errors.meetingDetails && <p className="text-sm text-red-500">{errors.meetingDetails.message}</p>}
                     </div>
 
                     {/* Agent + Meeting Date */}
@@ -174,29 +183,85 @@ export function AddMeetingModal({ clientId, open, onOpenChange }: AddMeetingModa
                                     </Select>
                                 )}
                             />
+                            {errors.agentId && <p className="text-sm text-red-500">{errors.agentId.message}</p>}
                         </div>
                         <div>
                             <Label className="mb-2">Meeting Date & Time</Label>
                             <Controller
                                 control={control}
-                                name="meetingDate"
-                                render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline" className="w-full justify-start">
-                                                {field.value ? format(field.value, "PPP") : "Pick date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
-                                        </PopoverContent>
-                                    </Popover>
-                                )}
+                                name="meetingDateTime"
+                                render={({ field }) => {
+                                    const value = field.value ? new Date(field.value) : undefined;
+                                    return (
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant="outline" className="w-full justify-start">
+                                                    {value ? format(value, "PPP p") : "Pick date & time"}
+                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+
+                                            <PopoverContent align="start" className="p-4 w-auto">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={value}
+                                                    onSelect={(date) => {
+                                                        if (!date) return;
+                                                        const current = value ?? new Date();
+                                                        // Preserve existing time when changing date
+                                                        date.setHours(current.getHours(), current.getMinutes());
+                                                        field.onChange(date);
+                                                    }}
+                                                />
+
+                                                {/* Full hour & minute dropdowns */}
+                                                <div className="flex gap-2 mt-4 items-center">
+                                                    <select
+                                                        className="border rounded px-2 py-1 text-sm"
+                                                        value={value ? value.getHours() : ""}
+                                                        onChange={(e) => {
+                                                            const hours = parseInt(e.target.value, 10);
+                                                            const updated = value ? new Date(value) : new Date();
+                                                            updated.setHours(hours);
+                                                            field.onChange(updated);
+                                                        }}
+                                                    >
+                                                        <option value="">HH</option>
+                                                        {[...Array(24)].map((_, i) => (
+                                                            <option key={i} value={i}>
+                                                                {i.toString().padStart(2, "0")}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+
+                                                    <span className="text-gray-500">:</span>
+
+                                                    <select
+                                                        className="border rounded px-2 py-1 text-sm"
+                                                        value={value ? value.getMinutes() : ""}
+                                                        onChange={(e) => {
+                                                            const minutes = parseInt(e.target.value, 10);
+                                                            const updated = value ? new Date(value) : new Date();
+                                                            updated.setMinutes(minutes);
+                                                            field.onChange(updated);
+                                                        }}
+                                                    >
+                                                        <option value="">MM</option>
+                                                        {[...Array(60)].map((_, i) => (
+                                                            <option key={i} value={i}>
+                                                                {i.toString().padStart(2, "0")}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    );
+                                }}
                             />
+                            {errors.meetingDateTime && <p className="text-sm text-red-500">{errors.meetingDateTime.message}</p>}
                         </div>
                     </div>
-
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
                             <div className="flex items-center gap-2">
@@ -285,15 +350,32 @@ export function AddMeetingModal({ clientId, open, onOpenChange }: AddMeetingModa
                     </div>
 
                     {/* Recorded Video + Notes */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                         <div>
-                            <Label className="mb-2">Recorded Video (URL)</Label>
-                            <Input {...register("recordedVideo")} placeholder="https://video-link.com" />
+                            <Label className="mb-2">Recorded Video (Upload)</Label>
+                            <Controller
+                                control={control}
+                                name="recordedVideo"
+                                render={({ field }) => (
+                                    <Input
+                                        type="file"
+                                        accept="video/*"
+                                        onChange={(e) => field.onChange(e.target.files?.[0])}
+                                    />
+                                )}
+                            />
+                            {/* {errors.recordedVideo && (
+                                <p className="text-sm text-red-500">{errors.recordedVideo.message}</p>
+                            )} */}
                         </div>
                         <div>
-                            <Label className="mb-2">Meeting Notes</Label>
-                            <Textarea {...register("meetingNotes")} placeholder="Notes from meeting..." />
+                            <Label className="mb-2">Reviews Info</Label>
+                            <Textarea {...register("reviewsInfo")} placeholder="Reviews info..." />
                         </div>
+                    </div>
+                    <div>
+                        <Label className="mb-2">Meeting Notes</Label>
+                        <Textarea {...register("meetingNotes")} placeholder="Notes from meeting..." />
                     </div>
 
                     <DialogFooter className="flex !justify-center w-full mt-6">

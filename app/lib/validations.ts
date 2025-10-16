@@ -184,6 +184,28 @@ export const createStatusSchema = z.object({
     name: z.string().min(1, "Status filed is required."),
 })
 
+export const addMeetingSchema = z.object({
+    storeUrl: z.string().min(1, "Store URL is required"),
+    isExternalMeeting: z.boolean().optional(),
+    meetingDetails: z.string().min(1, "Meeting details is required"),
+    agentId: z.string().min(1, "Please select agent."),
+    meetingDateTime: z.date().optional(),
+    reviewAsked: z.boolean(),
+    reviewGiven: z.boolean(),
+    reviewDate: z.date().optional(),
+    reviewsInfo: z.string().optional(),
+    emails: z.array(z.string().email("Invalid email")).optional(),
+    joiningStatus: z.boolean(),
+    recordedVideo: z
+        .any()
+        .refine((file) => file instanceof File || file === undefined, {
+            message: "Recorded video must be a file",
+        })
+        .optional(),
+    meetingNotes: z.string().optional(),
+});
+
+export type AddMeetingInput = z.infer<typeof addMeetingSchema>;
 export type AddStatusInput = z.infer<typeof createStatusSchema>;
 export type AddTaskFormInput = z.infer<typeof addTaskSchema>;
 export type AddChatFormInput = z.infer<typeof addChatSchema>;
