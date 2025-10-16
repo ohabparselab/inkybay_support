@@ -22,6 +22,9 @@ const AddTaskModal = lazy(() =>
 const AddMeetingModal = lazy(() =>
     import('~/components/modals/add-meeting-modal').then(module => ({ default: module.AddMeetingModal }))
 );
+const AddMarketingFunnelModal = lazy(() =>
+    import('~/components/modals/add-marketing-funnel').then(module => ({ default: module.AddMarketingFunnelModal }))
+);
 
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -89,7 +92,7 @@ export default function ClientsList() {
     const [chatModalOpen, setChatModalOpen] = useState(false);
     const [taskModalOpen, setTaskModalOpen] = useState(false);
     const [meetingModalOpen, setMeetingModalOpen] = useState(false);
-
+    const [marketingFunnelModalOpen, setMarketingFunnelModalOpen] = useState(false);
 
     const handlePageChange = (newPage: number) => {
         const params = new URLSearchParams(window.location.search);
@@ -184,8 +187,8 @@ export default function ClientsList() {
                                                     <DropdownMenuItem onClick={() => setClientViewDetailsModalOpen(true)}><Eye /> View Details</DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => setChatModalOpen(true)}><Plus /> Add Chats</DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => setTaskModalOpen(true)}><Plus /> Add Tasks</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => { setMeetingModalOpen(true) }}><Plus /> Add Meetings</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => { }}><Plus /> Add Marketing Funnels</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => setMeetingModalOpen(true) }><Plus /> Add Meetings</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => setMarketingFunnelModalOpen(true)}><Plus /> Add Marketing Funnels</DropdownMenuItem>
                                                     {/* <DropdownMenuSeparator />
                                                     <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem> */}
                                                 </DropdownMenuContent>
@@ -208,6 +211,11 @@ export default function ClientsList() {
                                             {meetingModalOpen && (
                                                 <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
                                                     <AddMeetingModal clientId={client.id} open={meetingModalOpen} onOpenChange={setMeetingModalOpen} />
+                                                </Suspense>
+                                            )}
+                                            {marketingFunnelModalOpen && (
+                                                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
+                                                    <AddMarketingFunnelModal clientId={client.id} open={marketingFunnelModalOpen} onOpenChange={setMarketingFunnelModalOpen} />
                                                 </Suspense>
                                             )}
                                         </TableCell>

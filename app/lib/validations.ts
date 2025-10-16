@@ -205,6 +205,18 @@ export const addMeetingSchema = z.object({
     meetingNotes: z.string().optional(),
 });
 
+export const addMarketingFunnelSchema = z.object({
+    installPhase: z.enum(["install", "uninstall"]),
+    emails: z.array(z.string().email("Invalid email")),
+    typeOfProducts: z.string().min(1, "Type of products field is required."),
+    otherAppsInstalled: z.string().optional(),
+    customizationType: z.string().optional(),
+    initialFeedback: z.string().optional(),
+    followUps: z.array(z.date()).optional(),
+    clientSuccessStatus: z.enum(["yes", "no"]),
+});
+
+export type AddMarketingFunnelInput = z.infer<typeof addMarketingFunnelSchema>;
 export type AddMeetingInput = z.infer<typeof addMeetingSchema>;
 export type AddStatusInput = z.infer<typeof createStatusSchema>;
 export type AddTaskFormInput = z.infer<typeof addTaskSchema>;
