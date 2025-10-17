@@ -220,8 +220,35 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                             </Button>
                         </div>
                         <div>
-                            <Label className="mb-2">Chat Transcript</Label>
-                            <Input type="file" {...register("chatTranscript")} />
+                            <Label className="mb-2">Chat Transcript
+                                <div className="flex gap-2 ">
+                                    {chat.chatTranscript ? (
+                                        <>
+                                            <a
+                                                href={chat.chatTranscript}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:underline"
+                                            >
+                                                View
+                                            </a>
+                                            <a
+                                                href={chat.chatTranscript}
+                                                download
+                                                className="bg-blue-100 text-blue-700 px-2 rounded hover:bg-blue-200 text-xs"
+                                            >
+                                                Download
+                                            </a>
+                                        </>
+                                    ) : (
+                                        <span className="text-gray-500">N/A</span>
+                                    )}
+                                </div>
+                            </Label>
+                            <Input
+                                type="file"
+                                {...register("chatTranscript")}
+                            />
                         </div>
                     </div>
 
