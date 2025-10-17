@@ -39,6 +39,7 @@ export default [
     
     // chats api routes
     route("api/chats", "./api/chats/index.ts"),
+    route("api/chats/get-chats-by-shop", "./api/chats/get-chats-by-shop.ts"),
 
     // tasks api routes
     route("api/tasks", "./api/tasks/index.ts"),

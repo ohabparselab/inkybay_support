@@ -14,6 +14,7 @@ export default function ShopDetailsPage() {
 
     const infoFetcher = useFetcher<{ status: number; data: any }>();
     const historyFetcher = useFetcher<{ status: number; data: any }>();
+    const chatsFetcher = useFetcher<{ status: number; data: any }>();
 
     useEffect(() => {
         if (!shopUrl) return;
@@ -25,6 +26,16 @@ export default function ShopDetailsPage() {
         const fd2 = new FormData();
         fd2.set("shop", shopUrl);
         historyFetcher.submit(fd2, { method: "post", action: "/api/inkybay/history" });
+
+        if (infoFetcher.state !== "idle" && infoFetcher.data?.data) {
+            const shop = infoFetcher.data?.data
+            const fd3 = new FormData();
+            fd3.set("shopName", shop.shopify.shop_name);
+            fd3.set("shopEmail", shop.shopify.client_email);
+            fd3.set("shopUrl", shop.rul);
+            chatsFetcher.submit(fd3, { method: "post", action: "/api/chats/get-chats-by-shop" });
+        }
+
     }, [shopUrl]);
 
     const loadingInfo = infoFetcher.state !== "idle";
@@ -37,6 +48,9 @@ export default function ShopDetailsPage() {
     const shopify = shop.shopify || {};
     const history = historyData.history || [];
     const totalHistory = history.length;
+
+    const loadingChats = chatsFetcher.state !== "idle";
+    const chats = chatsFetcher.data?.data || [];
 
     return (
         <div className="w-full">
@@ -198,7 +212,14 @@ export default function ShopDetailsPage() {
                                     value="chats"
                                     className="flex-1 text-center px-6 py-4 text-lg font-medium"
                                 >
-                                    Chats
+                                    Chats {loadingChats ? (
+                                        <Spinner />
+                                    ) : (
+                                        <Badge
+                                            variant="secondary"
+                                            className="bg-blue-500 text-white dark:bg-blue-600"
+                                        >{chats.length}</Badge>
+                                    )}
                                     <Badge
                                         variant="secondary"
                                         className="bg-blue-500 text-white dark:bg-blue-600"
@@ -239,7 +260,6 @@ export default function ShopDetailsPage() {
 
                             {/* History Tab */}
                             <TabsContent value="history" className="mt-3">
-
                                 <div className="mb-5 p-3 border rounded">
                                     <h4 className="pb-2">Uses Details</h4>
                                     {loadingHistory ? (
@@ -301,12 +321,40 @@ export default function ShopDetailsPage() {
 
                             {/* Placeholder Tabs */}
                             <TabsContent value="chats" className="mt-4 text-gray-500 text-sm">
-                                <div className="text-gray-400 text-center py-4">
-                                    No chats available
-                                </div>
+                                {loadingChats ? (
+                                    <div className="flex justify-center py-5">
+                                        <Spinner />
+                                    </div>
+                                ) : chats.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {chats.map((chat: any, idx: number) => (
+                                            <div
+                                                key={idx}
+                                                className="p-3 border rounded-md hover:bg-gray-50 transition"
+                                            >
+                                                <p className="text-sm font-semibold text-gray-800">
+                                                    {chat.clientQuery}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    Handled By: {chat.handleByUser?.name || "N/A"}
+                                                </p>
+                                                <p className="text-xs text-gray-400 mt-1">
+                                                    {new Date(chat.createdAt).toLocaleString()}
+                                                </p>
+                                                {chat.reviewText && (
+                                                    <p className="text-xs mt-1 text-gray-600 italic">
+                                                        “{chat.reviewText}”
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-gray-400 text-center py-15">No chats available</div>
+                                )}
                             </TabsContent>
                             <TabsContent value="tasks" className="mt-4 text-gray-500 text-sm">
-                                 <div className="text-gray-400 text-center py-4">
+                                <div className="text-gray-400 text-center py-4">
                                     No tasks available
                                 </div>
                             </TabsContent>
@@ -314,7 +362,7 @@ export default function ShopDetailsPage() {
                                 value="meetings"
                                 className="mt-4 text-gray-500 text-sm"
                             >
-                                 <div className="text-gray-400 text-center py-4">
+                                <div className="text-gray-400 text-center py-4">
                                     No meetings available
                                 </div>
                             </TabsContent>
