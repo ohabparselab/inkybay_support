@@ -25,6 +25,7 @@ import { Input } from "~/components/ui/input";
 import { Link, useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
 import { prisma } from "~/lib/prisma.server";
 import { lazy, Suspense, useState } from "react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 const AddChatModal = lazy(() =>
     import("~/components/modals/add-chat-modal").then((m) => ({
@@ -33,20 +34,23 @@ const AddChatModal = lazy(() =>
 );
 
 export async function loader({ request }: LoaderFunctionArgs) {
-
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page") || 1);
     const limit = Number(url.searchParams.get("limit") || 10);
-    const search = url.searchParams.get("search") || "";
+    const search = (url.searchParams.get("search") || "").trim();
 
     const skip = (page - 1) * limit;
+
+    const searchLower = search.toLowerCase();
 
     const where = search
         ? {
             OR: [
-                { client: { shopDomain: { contains: search } } },
-                { clientQuery: { contains: search } },
-                { handleByUser: { fullName: { contains: search } } },
+                { client: { shopDomain: { contains: searchLower } } },
+                { client: { shopName: { contains: searchLower } } },
+                { client: { email: { contains: searchLower } } },
+                { clientQuery: { contains: searchLower } },
+                { handleByUser: { fullName: { contains: searchLower } } },
             ],
         }
         : {};
@@ -79,6 +83,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         },
     };
 }
+
 
 export default function ChatsListPage() {
 
@@ -141,7 +146,7 @@ export default function ChatsListPage() {
                             <TableRow>
                                 <TableHead>ID</TableHead>
                                 <TableHead>Client Query</TableHead>
-                                <TableHead>Agent</TableHead>
+                                <TableHead>Handle By</TableHead>
                                 <TableHead>Tags</TableHead>
                                 <TableHead>Review Asked?</TableHead>
                                 <TableHead>Client Feedback</TableHead>
@@ -155,8 +160,19 @@ export default function ChatsListPage() {
                                     <TableRow key={chat.id}>
                                         <TableCell>{index + 1}</TableCell>
 
-                                        <TableCell className="max-w-xs truncate">
-                                            {chat.clientQuery}
+                                        <TableCell className="max-w-[20px] truncate">
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span className="block truncate cursor-pointer">
+                                                            {chat.clientQuery || "-"}
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p className="max-w-sm break-words">{chat.clientQuery}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
                                         </TableCell>
                                         <TableCell>{chat.handleByUser?.fullName ?? "—"}</TableCell>
                                         <TableCell className="flex flex-wrap gap-1">

@@ -26,17 +26,21 @@ export default function ShopDetailsPage() {
         const fd2 = new FormData();
         fd2.set("shop", shopUrl);
         historyFetcher.submit(fd2, { method: "post", action: "/api/inkybay/history" });
+    }, [shopUrl]);
 
-        if (infoFetcher.state !== "idle" && infoFetcher.data?.data) {
-            const shop = infoFetcher.data?.data
+    useEffect(() => {
+        // Only run when infoFetcher finishes
+        if (infoFetcher.state === "idle" && infoFetcher.data?.data) {
+            const shop = infoFetcher.data.data;
             const fd3 = new FormData();
-            fd3.set("shopName", shop.shopify.shop_name);
-            fd3.set("shopEmail", shop.shopify.client_email);
-            fd3.set("shopUrl", shop.rul);
+
+            fd3.set("shopName", shop.shopify?.shop_name);
+            fd3.set("shopEmail", shop.shopify?.client_email);
+            fd3.set("shopUrl", shop.url);
+
             chatsFetcher.submit(fd3, { method: "post", action: "/api/chats/get-chats-by-shop" });
         }
-
-    }, [shopUrl]);
+    }, [infoFetcher.state, infoFetcher.data]);
 
     const loadingInfo = infoFetcher.state !== "idle";
     const loadingHistory = historyFetcher.state !== "idle";
@@ -220,10 +224,6 @@ export default function ShopDetailsPage() {
                                             className="bg-blue-500 text-white dark:bg-blue-600"
                                         >{chats.length}</Badge>
                                     )}
-                                    <Badge
-                                        variant="secondary"
-                                        className="bg-blue-500 text-white dark:bg-blue-600"
-                                    >{2}</Badge>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="tasks"

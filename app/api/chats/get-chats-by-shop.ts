@@ -6,17 +6,14 @@ export async function action({ request }: { request: Request }) {
     try {
         const formData = await request.formData();
 
-        // if (!shopUrl) {
-        //     return Response.json({ status: 400, message: "Missing shop URL" });
-        // }
         const shopInfoParams = {
             shopName: formData.get('shopName') as string,
             shopEmail: formData.get('shopEmail') as string,
             shopUrl: formData.get('shopUrl') as string,
         }
-
+        console.log("======formData=========>>", formData);
         const clientId = await getClientIdByShopInfo(shopInfoParams)
-        
+
         if (!clientId) {
             return Response.json({ status: 404, message: "Client not found" });
         }
