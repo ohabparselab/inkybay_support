@@ -33,7 +33,14 @@ const AddChatModal = lazy(() =>
     }))
 );
 
+const ViewChatDetailsModal = lazy(() =>
+    import("~/components/modals/view-chat-modal").then((m) => ({
+        default: m.ViewChatDetailsModal,
+    }))
+);
+
 export async function loader({ request }: LoaderFunctionArgs) {
+
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page") || 1);
     const limit = Number(url.searchParams.get("limit") || 10);
@@ -93,10 +100,8 @@ export default function ChatsListPage() {
     const navigate = useNavigate();
 
     const [chatModalOpen, setChatModalOpen] = useState(false);
-    const [viewModal, setViewModal] = useState<{
-        open: boolean;
-        chatId?: number;
-    }>({ open: false });
+    const [viewChatModal, setViewChatModal] = useState(false);
+    const [selectedChat, setSelectedChat] = useState<any>(null);
 
     const handlePageChange = (newPage: number) => {
         const params = new URLSearchParams(window.location.search);
@@ -145,6 +150,7 @@ export default function ChatsListPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
+                                <TableHead>Shop Name</TableHead>
                                 <TableHead>Client Query</TableHead>
                                 <TableHead>Handle By</TableHead>
                                 <TableHead>Tags</TableHead>
@@ -159,7 +165,7 @@ export default function ChatsListPage() {
                                 chats.map((chat, index) => (
                                     <TableRow key={chat.id}>
                                         <TableCell>{index + 1}</TableCell>
-
+                                        <TableCell>{chat.client.shopName}</TableCell>
                                         <TableCell className="max-w-[20px] truncate">
                                             <TooltipProvider>
                                                 <Tooltip>
@@ -176,17 +182,34 @@ export default function ChatsListPage() {
                                         </TableCell>
                                         <TableCell>{chat.handleByUser?.fullName ?? "—"}</TableCell>
                                         <TableCell className="flex flex-wrap gap-1">
-                                            {chat.chatTags.map((ct) => (
-                                                <span
-                                                    key={ct.tag.name}
-                                                    className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs"
-                                                >
-                                                    {ct.tag.name}
-                                                </span>
-                                            ))}
+                                            {chat.chatTags && chat.chatTags.length > 0 ? (
+                                                chat.chatTags.map((ct) => (
+                                                    <span
+                                                        key={ct.tag.name}
+                                                        className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs"
+                                                    >
+                                                        {ct.tag.name}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="text-gray-500">N/A</span>
+                                            )}
                                         </TableCell>
                                         <TableCell>{chat.reviewAsked == true ? 'Yes' : 'No'}</TableCell>
-                                        <TableCell>{chat.clientFeedback ? chat.clientFeedback : 'N/A'}</TableCell>
+                                        <TableCell className="max-w-[20px] truncate">
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span className="block truncate cursor-pointer">
+                                                            {chat.clientFeedback || "N/A"}
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p className="max-w-sm break-words">{chat.clientFeedback}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </TableCell>
                                         <TableCell>
                                             {new Date(chat.createdAt).toLocaleDateString()}
                                         </TableCell>
@@ -203,9 +226,10 @@ export default function ChatsListPage() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem
-                                                        onClick={() =>
-                                                            setViewModal({ open: true, chatId: chat.id })
-                                                        }
+                                                        onClick={() => {
+                                                            setSelectedChat(chat);
+                                                            setViewChatModal(true)
+                                                        }}
                                                     >
                                                         <Eye /> View Details
                                                     </DropdownMenuItem>
@@ -267,6 +291,11 @@ export default function ChatsListPage() {
             {chatModalOpen && (
                 <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
                     <AddChatModal clientId={clientId} open={chatModalOpen} onOpenChange={setChatModalOpen} />
+                </Suspense>
+            )}
+            {viewChatModal && (
+                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
+                    <ViewChatDetailsModal chat={selectedChat} open={viewChatModal} onOpenChange={setViewChatModal} />
                 </Suspense>
             )}
         </div>
