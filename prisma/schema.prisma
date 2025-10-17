@@ -125,27 +125,27 @@ model Status {
 }
 
 model Chat {
-    id                 Int       @id @default(autoincrement())
+    id                 Int          @id @default(autoincrement())
     clientId           Int
-    clientQuery        String
+    clientQuery        String       @db.Text
     handleBy           Int
     chatDate           DateTime?
-    chatTranscript     String?
-    reviewAsked        Boolean   @default(false)
-    reviewStatus       Boolean   @default(false)
-    reviewText         String?
+    chatTranscript     String?      @db.Text
+    reviewAsked        Boolean      @default(false)
+    reviewStatus       Boolean      @default(false)
+    reviewText         String?      @db.Text
     lastReviewApproach DateTime?
-    clientFeedback     String?
-    storeDetails       String?
-    featureRequest     String?
+    clientFeedback     String?      @db.Text
+    storeDetails       String?      @db.Text
+    featureRequest     String?      @db.Text
     agentRating        Int?
-    agentComments      String?
-    otherStoresUrl     String?
-    changesMadeByAgent String?
-    isDeleted          Boolean   @default(false)
+    agentComments      String?      @db.Text
+    otherStoresUrl     String?      @db.Text
+    changesMadeByAgent String?      @db.Text
+    isDeleted          Boolean      @default(false)
     deletedAt          DateTime?
-    createdAt          DateTime  @default(now())
-    updatedAt          DateTime  @updatedAt
+    createdAt          DateTime     @default(now())
+    updatedAt          DateTime     @updatedAt
 
     handleByUser User      @relation(fields: [handleBy], references: [id])
     client       Client    @relation(fields: [clientId], references: [id])
@@ -192,13 +192,13 @@ model Task {
     clientId      Int
     providedBy    Int
     solvedBy      Int?
-    taskDetails   String
+    taskDetails   String    @db.Text
     taskStatus    String?
     storePassword String?
     storeAccess   String?
     taskAddedDate DateTime?
-    reply         String?
-    comments      String?
+    reply         String?   @db.Text
+    comments      String?   @db.Text
     createdAt     DateTime  @default(now())
     updatedAt     DateTime  @updatedAt
     isDeleted     Boolean   @default(false)
@@ -215,17 +215,17 @@ model Task {
 model Meeting {
     id                Int       @id @default(autoincrement())
     agentId           Int
-    storeUrl          String
+    storeUrl          String    @db.Text
     isExternalMeeting Boolean?  @default(false)
-    meetingDetails    String?
+    meetingDetails    String?   @db.Text
     meetingDateTime   DateTime
     reviewAsked       Boolean?  @default(false)
     reviewGiven       Boolean?  @default(false)
     reviewDate        DateTime?
-    reviewsInfo       String?
+    reviewsInfo       String?   @db.Text
     joiningStatus     Boolean?  @default(false)
-    recordedVideo     String?
-    meetingNotes      String?
+    recordedVideo     String?   @db.Text
+    meetingNotes      String?   @db.Text
     createdAt         DateTime  @default(now())
     updatedAt         DateTime  @updatedAt
     isDeleted         Boolean   @default(false)
@@ -262,7 +262,7 @@ model MarketingFunnel {
     typeOfProducts      String
     otherAppsInstalled  String?
     customizationType   String?
-    initialFeedback     String?
+    initialFeedback     String?   @db.Text
     clientSuccessStatus String
     createdAt           DateTime  @default(now())
     updatedAt           DateTime  @updatedAt
