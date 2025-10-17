@@ -101,20 +101,8 @@ model UserModulePermission {
 model Client {
     id              Int               @id @default(autoincrement())
     shopDomain      String            @unique
-    email           String?
-    shopName        String
-    accessToken     String
-    planName        String?
-    country         String?
-    currency        String?
-    timezone        String?
-    installedAt     DateTime          @default(now())
-    uninstalledAt   DateTime?
-    status          StoreStatus       @default(ACTIVE)
-    createdAt       DateTime          @default(now())
-    updatedAt       DateTime          @updatedAt
-    isDeleted       Boolean           @default(false)
-    deletedAt       DateTime?
+    email           String
+    shopName        String?
     Chat            Chat[]
     ClientEmail     ClientEmail[]
     Task            Task[]
@@ -122,12 +110,6 @@ model Client {
 
     @@index([shopDomain, email])
     @@map("clients")
-}
-
-enum StoreStatus {
-    ACTIVE
-    UNINSTALLED
-    SUSPENDED
 }
 
 model Status {
