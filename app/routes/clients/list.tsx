@@ -51,21 +51,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
             where,
             skip,
             take: limit,
-            orderBy: { createdAt: "desc" },
+            orderBy: { id: "desc" },
             select: {
                 id: true,
                 shopDomain: true,
                 email: true,
-                shopName: true,
-                accessToken: true,
-                planName: true,
-                country: true,
-                currency: true,
-                timezone: true,
-                installedAt: true,
-                uninstalledAt: true,
-                status: true,
-                createdAt: true,
+                shopName: true
             },
         }),
         prisma.client.count({ where }),
@@ -146,10 +137,6 @@ export default function ClientsList() {
                                 <TableHead>Store URL</TableHead>
                                 <TableHead>Email</TableHead>
                                 <TableHead>Store</TableHead>
-                                <TableHead>Country</TableHead>
-                                <TableHead>Plan</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Created At</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -165,12 +152,6 @@ export default function ClientsList() {
                                         </TableCell>
                                         <TableCell>{client.email}</TableCell>
                                         <TableCell>{client.shopName}</TableCell>
-                                        <TableCell>{client.country}</TableCell>
-                                        <TableCell>{client.planName}</TableCell>
-                                        <TableCell>{client.status}</TableCell>
-                                        <TableCell>
-                                            {new Date(client.createdAt).toLocaleDateString()}
-                                        </TableCell>
                                         <TableCell>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -210,7 +191,7 @@ export default function ClientsList() {
                                             )}
                                             {meetingModalOpen && (
                                                 <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
-                                                    <AddMeetingModal clientId={client.id} open={meetingModalOpen} onOpenChange={setMeetingModalOpen} />
+                                                    <AddMeetingModal open={meetingModalOpen} onOpenChange={setMeetingModalOpen} />
                                                 </Suspense>
                                             )}
                                             {marketingFunnelModalOpen && (
