@@ -31,10 +31,11 @@ import { TagsInput } from "../ui/tags";
 interface EditChatModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    refreshPage?: () => void;
     chat: any;
 }
 
-export function EditChatModal({ open, onOpenChange, chat }: EditChatModalProps) {
+export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditChatModalProps) {
 
     const [users, setUsers] = useState<any[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
@@ -161,6 +162,7 @@ export function EditChatModal({ open, onOpenChange, chat }: EditChatModalProps) 
         if (res.ok) {
             toast.success("Chat updated successfully.");
             onOpenChange(false);
+            if (refreshPage) refreshPage();
         } else {
             toast.error("Failed to update chat.");
         }

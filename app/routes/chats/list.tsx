@@ -165,6 +165,10 @@ export default function ChatsListPage() {
         }
     }
 
+    const refreshPage = () => {
+        navigate(window.location.pathname + window.location.search, { replace: true });
+    };
+
     return (
         <div className="px-6 space-y-2">
             <div className="flex items-center justify-between">
@@ -349,23 +353,33 @@ export default function ChatsListPage() {
 
             {/* Modals */}
             {chatModalOpen && (
-                <Suspense fallback={<CenterSpinner/>}>
-                    <AddChatModal clientId={clientId} open={chatModalOpen} onOpenChange={setChatModalOpen} />
+                <Suspense fallback={<CenterSpinner />}>
+                    <AddChatModal
+                        clientId={clientId}
+                        open={chatModalOpen}
+                        onOpenChange={setChatModalOpen}
+                        refreshPage={refreshPage}
+                    />
                 </Suspense>
             )}
             {viewChatModal && (
-                <Suspense fallback={<CenterSpinner/>}>
+                <Suspense fallback={<CenterSpinner />}>
                     <ViewChatDetailsModal chat={selectedChat} open={viewChatModal} onOpenChange={setViewChatModal} />
                 </Suspense>
             )}
             {editChatModal && (
-                <Suspense fallback={<CenterSpinner/>}>
-                    <EditChatModal chat={selectedChat} open={editChatModal} onOpenChange={setEditChatModal} />
+                <Suspense fallback={<CenterSpinner />}>
+                    <EditChatModal
+                        chat={selectedChat}
+                        open={editChatModal}
+                        onOpenChange={setEditChatModal}
+                        refreshPage={refreshPage}
+                    />
                 </Suspense>
             )}
 
             {deleteDialogOpen && (
-                <Suspense fallback={<CenterSpinner/>}>
+                <Suspense fallback={<CenterSpinner />}>
                     <DeleteConfirmDialog
                         open={deleteDialogOpen}
                         onOpenChange={setDeleteDialogOpen}

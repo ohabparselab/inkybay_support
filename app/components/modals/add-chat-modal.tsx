@@ -33,9 +33,10 @@ interface AddChatModalProps {
     clientId: number;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    refreshPage?: () => void;
 }
 
-export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps) {
+export function AddChatModal({ clientId, open, onOpenChange, refreshPage }: AddChatModalProps) {
 
     const [users, setUsers] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
@@ -120,12 +121,11 @@ export function AddChatModal({ clientId, open, onOpenChange }: AddChatModalProps
             method: "POST",
             body: formData,
         });
-
-        const result = await res.json();
         if (res.ok) {
             toast.success('New chat added successfully.');
             onOpenChange(false);
             reset();
+            if(refreshPage) refreshPage();
         } else {
             toast.error('Something is wrong, please again.');
         }
