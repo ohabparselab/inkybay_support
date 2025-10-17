@@ -2,6 +2,7 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import {
@@ -20,13 +21,16 @@ import {
     PenBox,
     Plus,
     Search,
+    Trash2,
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
+import { CenterSpinner } from "~/components/ui/center-spinner";
+import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Link, useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
 import { prisma } from "~/lib/prisma.server";
-import { lazy, Suspense, useState } from "react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { toast } from "sonner";
 
 const AddChatModal = lazy(() =>
     import("~/components/modals/add-chat-modal").then((m) => ({
@@ -43,6 +47,12 @@ const ViewChatDetailsModal = lazy(() =>
 const EditChatModal = lazy(() =>
     import("~/components/modals/edit-chat-modal").then((m) => ({
         default: m.EditChatModal,
+    }))
+);
+
+const DeleteConfirmDialog = lazy(() =>
+    import("~/components/ui/confirm-dialog").then((m) => ({
+        default: m.DeleteConfirmDialog,
     }))
 );
 
@@ -117,6 +127,8 @@ export default function ChatsListPage() {
     const [viewChatModal, setViewChatModal] = useState(false);
     const [editChatModal, setEditChatModal] = useState(false);
     const [selectedChat, setSelectedChat] = useState<any>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [chatToDelete, setChatToDelete] = useState<any>(null);
 
     const handlePageChange = (newPage: number) => {
         const params = new URLSearchParams(window.location.search);
@@ -137,6 +149,21 @@ export default function ChatsListPage() {
         clearTimeout((window as any)._searchTimeout);
         (window as any)._searchTimeout = setTimeout(() => handleSearch(value), 400);
     };
+
+    const handleChatDelete = async () => {
+        if (!chatToDelete) return;
+
+        try {
+            const res = await fetch(`/api/chats/${chatToDelete.id}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) toast.error("Failed to delete chat");
+            toast.success("Chat deleted successfully.");
+            navigate(0);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to delete chat.");
+        }
+    }
 
     return (
         <div className="px-6 space-y-2">
@@ -233,7 +260,7 @@ export default function ChatsListPage() {
                                                 <DropdownMenuTrigger asChild>
                                                     <Button
                                                         variant="ghost"
-                                                        className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+                                                        className="data-[state=open]:bg-muted text-muted-foreground flex size-8 cursor-pointer"
                                                         size="icon"
                                                     >
                                                         <Ellipsis />
@@ -264,6 +291,16 @@ export default function ChatsListPage() {
                                                         }}
                                                     >
                                                         <PenBox /> Edit Chat
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        variant="destructive"
+                                                        onClick={() => {
+                                                            setChatToDelete(chat);
+                                                            setDeleteDialogOpen(true);
+                                                        }}
+                                                    >
+                                                        <Trash2 /> Delete
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -312,18 +349,30 @@ export default function ChatsListPage() {
 
             {/* Modals */}
             {chatModalOpen && (
-                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
+                <Suspense fallback={<CenterSpinner/>}>
                     <AddChatModal clientId={clientId} open={chatModalOpen} onOpenChange={setChatModalOpen} />
                 </Suspense>
             )}
             {viewChatModal && (
-                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
+                <Suspense fallback={<CenterSpinner/>}>
                     <ViewChatDetailsModal chat={selectedChat} open={viewChatModal} onOpenChange={setViewChatModal} />
                 </Suspense>
             )}
             {editChatModal && (
-                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
+                <Suspense fallback={<CenterSpinner/>}>
                     <EditChatModal chat={selectedChat} open={editChatModal} onOpenChange={setEditChatModal} />
+                </Suspense>
+            )}
+
+            {deleteDialogOpen && (
+                <Suspense fallback={<CenterSpinner/>}>
+                    <DeleteConfirmDialog
+                        open={deleteDialogOpen}
+                        onOpenChange={setDeleteDialogOpen}
+                        title="Delete Chat?"
+                        description="Are you sure you want to permanently delete this chat? This action cannot be undone."
+                        onConfirm={async () => handleChatDelete()}
+                    />
                 </Suspense>
             )}
         </div>
