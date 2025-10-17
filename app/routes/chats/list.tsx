@@ -17,6 +17,7 @@ import {
     ChevronRight,
     Ellipsis,
     Eye,
+    PenBox,
     Plus,
     Search,
 } from "lucide-react";
@@ -36,6 +37,12 @@ const AddChatModal = lazy(() =>
 const ViewChatDetailsModal = lazy(() =>
     import("~/components/modals/view-chat-modal").then((m) => ({
         default: m.ViewChatDetailsModal,
+    }))
+);
+
+const EditChatModal = lazy(() =>
+    import("~/components/modals/edit-chat-modal").then((m) => ({
+        default: m.EditChatModal,
     }))
 );
 
@@ -69,7 +76,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
             take: limit,
             orderBy: { createdAt: "desc" },
             include: {
-                client: { select: { id: true, shopDomain: true, shopName: true } },
+                client: {
+                    select: {
+                        id: true, shopDomain: true, shopName: true,
+                        ClientEmail: {
+                            select: { id: true, email: true },
+                        },
+                    },
+                },
                 handleByUser: { select: { id: true, fullName: true, email: true } },
                 chatTags: {
                     include: { tag: { select: { name: true } } },
@@ -101,6 +115,7 @@ export default function ChatsListPage() {
 
     const [chatModalOpen, setChatModalOpen] = useState(false);
     const [viewChatModal, setViewChatModal] = useState(false);
+    const [editChatModal, setEditChatModal] = useState(false);
     const [selectedChat, setSelectedChat] = useState<any>(null);
 
     const handlePageChange = (newPage: number) => {
@@ -242,6 +257,14 @@ export default function ChatsListPage() {
                                                     >
                                                         <Plus /> Add Chat
                                                     </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            setSelectedChat(chat);
+                                                            setEditChatModal(true)
+                                                        }}
+                                                    >
+                                                        <PenBox /> Edit Chat
+                                                    </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
@@ -296,6 +319,11 @@ export default function ChatsListPage() {
             {viewChatModal && (
                 <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
                     <ViewChatDetailsModal chat={selectedChat} open={viewChatModal} onOpenChange={setViewChatModal} />
+                </Suspense>
+            )}
+            {editChatModal && (
+                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
+                    <EditChatModal chat={selectedChat} open={editChatModal} onOpenChange={setEditChatModal} />
                 </Suspense>
             )}
         </div>
