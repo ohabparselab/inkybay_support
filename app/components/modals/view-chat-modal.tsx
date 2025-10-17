@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Separator } from "../ui/separator";
+import { Star } from "lucide-react";
 
 interface ViewChatDetailsModalProps {
     open: boolean;
@@ -33,40 +34,54 @@ export function ViewChatDetailsModal({ open, onOpenChange, chat }: ViewChatDetai
                         <p><strong>Chat Date:</strong> {formatDate(chat.chatDate)}</p>
                         <p><strong>Handled By:</strong> {chat.handleByUser?.fullName || "-"}</p>
                         <p className="break-words">
-                           
-                            {chat.chatTranscript ? (
-                                <div className="flex gap-2 mt-1">
-                                     <strong>Chat Transcript:</strong>{" "}
-                                    {/* View Button */}
-                                    <a
-                                        href={chat.chatTranscript}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 hover:underline"
-                                    >
-                                       View
-                                    </a>
+                            <div className="flex gap-2 mt-1">
+                                <strong>Chat Transcript:</strong>{" "}
+                                {chat.chatTranscript ? (
+                                    <>
+                                        {/* View Button */}
+                                        <a
+                                            href={chat.chatTranscript}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline"
+                                        >
+                                            View
+                                        </a>
 
-                                    {/* Download Button */}
-                                    <a
-                                        href={chat.chatTranscript}
-                                        download
-                                        className="bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 text-xs"
-                                    >
-                                        Download
-                                    </a>
-                                </div>
-                            ) : (
-                                <span className="text-gray-500">N/A</span>
-                            )}
+                                        {/* Download Button */}
+                                        <a
+                                            href={chat.chatTranscript}
+                                            download
+                                            className="bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 text-xs"
+                                        >
+                                            Download
+                                        </a>
+                                    </>
+                                ) : (
+                                    <span className="text-gray-500">N/A</span>
+                                )}
+                            </div>
                         </p>
 
                         <p><strong>Review Asked:</strong> {chat?.reviewAsked ? "Yes" : 'No'}</p>
                         <p><strong>Review Status:</strong> {chat?.reviewStatus ? "Yes" : 'No'}</p>
-                        <p><strong>Agent Rating:</strong> {chat?.agentRating || "N/A"}</p>
+                        <p>
+                            <div className="flex">
+                                <strong>Agent Rating: </strong>
+                                {chat?.agentRating ? (
+                                    [...Array(chat?.agentRating)].map((_, i) => (
+                                        <Star
+                                            key={i}
+                                            className={`h-6 w-6 text-yellow-500 fill-yellow-500`}
+                                        />
+                                    ))
+                                ) : ' N/A'}
+                            </div>
+                            {/* {chat?.agentRating || "N/A"} */}
+                        </p>
                         <p><strong>Other Store Url:</strong> {chat?.otherStoresUrl || "N/A"}</p>
                         <p><strong>Last Review Approach:</strong> {formatDate(chat.chatDate) || "N/A"}</p>
-                        <p><strong>Tags:</strong>
+                        <p><strong>Tags: </strong>
                             {chat.chatTags && chat.chatTags.length > 0 ? (
                                 <>
                                     {chat.chatTags.map((ct: any, i: number) => (
@@ -79,9 +94,9 @@ export function ViewChatDetailsModal({ open, onOpenChange, chat }: ViewChatDetai
                                 <span className="text-gray-500">N/A</span>
                             )}
                         </p>
-                        <p><strong>Store Details:</strong> {chat?.storeDetails || "N/A"}</p>
                         <p><strong>Created At:</strong> {formatDate(chat.createdAt)}</p>
                         <p><strong>Updated At:</strong> {formatDate(chat.updatedAt)}</p>
+                        <p><strong>Store Details:</strong> {chat?.storeDetails || "N/A"}</p>
                         <p><strong>Review Text:</strong> {chat?.reviewText || "N/A"}</p>
                         <p><strong>Client Query:</strong> {chat.clientQuery || "-"}</p>
                         <p><strong>Client Feedback:</strong> {chat?.clientFeedback || "N/A"}</p>
@@ -90,14 +105,14 @@ export function ViewChatDetailsModal({ open, onOpenChange, chat }: ViewChatDetai
                         <p><strong>Changes Made By Agent:</strong> {chat?.changesMadeByAgent || "N/A"}</p>
 
                     </div>
-                    <Separator />
+                    {/* <Separator />
                     <section>
                         <h3 className="text-base font-semibold mb-3">Shop Details</h3>
                         <p className="text-gray-500 italic">Coming soon...</p>
-                    </section>
+                    </section> */}
                 </section>
                 <DialogFooter className="p-6 border-t">
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+                    <Button variant="destructive" onClick={() => onOpenChange(false)}>Close</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
