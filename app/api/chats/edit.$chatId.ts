@@ -68,12 +68,13 @@ export const updateChat = async (chatId: number, request: Request) => {
             include: { client: true },
         });
 
-        // 🔹 Sync client emails
+        // Sync client emails
         const clientEmails = formData.getAll("clientEmails[]").map((e) => e.toString().trim()).filter(Boolean);
 
         if (clientEmails.length > 0 && updatedChat.clientId) {
+            // Fetch existing emails for the client
             const existingEmails = await prisma.clientEmail.findMany({
-                where: { clientId: updatedChat.clientId, isDeleted: false },
+                where: { clientId: updatedChat.clientId },
             });
 
             const existingSet = new Set(existingEmails.map((e) => e.email));
@@ -82,22 +83,24 @@ export const updateChat = async (chatId: number, request: Request) => {
             // ➕ Add new emails
             for (const email of clientEmails) {
                 if (!existingSet.has(email)) {
-                    await prisma.clientEmail.create({ data: { clientId: updatedChat.clientId, email } });
+                    await prisma.clientEmail.create({
+                        data: { clientId: updatedChat.clientId, email },
+                    });
                 }
             }
 
-            // Soft delete removed emails
+            // Hard delete removed emails
             for (const existing of existingEmails) {
                 if (!newSet.has(existing.email)) {
-                    await prisma.clientEmail.update({
+                    await prisma.clientEmail.delete({
                         where: { id: existing.id },
-                        data: { isDeleted: true, deletedAt: new Date() },
                     });
                 }
             }
         }
 
-        // 🔹 Sync tags
+
+        // Sync tags
         const tags = formData.getAll("tags[]").map((t) => t.toString().trim()).filter(Boolean);
 
         if (tags.length > 0) {
