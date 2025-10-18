@@ -42,13 +42,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const limit = Number(url.searchParams.get("limit") || 10);
     const search = url.searchParams.get("search") || "";
     const skip = (page - 1) * limit;
+    const searchLower = search.toLowerCase();
 
     const where = search
         ? {
             OR: [
-                { storeUrl: { contains: search, mode: "insensitive" } },
-                { meetingDetails: { contains: search, mode: "insensitive" } },
-                { user: { fullName: { contains: search, mode: "insensitive" } } },
+                { storeUrl: { contains: searchLower } },
+                { meetingDetails: { contains: searchLower } },
+                { user: { fullName: { contains: searchLower } } },
             ],
         }
         : {};

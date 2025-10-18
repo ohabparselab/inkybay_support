@@ -2,6 +2,7 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import {
@@ -12,30 +13,45 @@ import {
     TableHeader,
     TableRow,
 } from "~/components/ui/table";
-import { ChevronLeft, ChevronRight, Ellipsis, Eye, Plus, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
+import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
+import { CenterSpinner } from "~/components/ui/center-spinner";
+import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
 import { prisma } from "~/lib/prisma.server";
-import { lazy, Suspense, useState } from "react";
+import { toast } from "sonner";
+import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 
 const AddMarketingFunnelModal = lazy(() =>
-    import("@/components/modals/add-marketing-funnel").then((m) => ({ default: m.AddMarketingFunnelModal }))
+    import("~/components/modals/add-marketing-funnel-modal").then((m) => ({ default: m.AddMarketingFunnelModal }))
+);
+
+const ViewMarketingFunnelDetailsModal = lazy(() =>
+    import("~/components/modals/view-marketing-funnel-modal").then((m) => ({ default: m.ViewMarketingFunnelDetailsModal }))
+);
+
+const EditMarketingFunnelModal = lazy(() =>
+    import("~/components/modals/edit-marketing-funnel-modal").then((m) => ({ default: m.EditMarketingFunnelModal }))
 );
 
 export async function loader({ request }: LoaderFunctionArgs) {
+
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page") || 1);
     const limit = Number(url.searchParams.get("limit") || 10);
     const search = url.searchParams.get("search") || "";
     const skip = (page - 1) * limit;
+    const searchLower = search.toLowerCase();
 
     const where = search
         ? {
             OR: [
-                { client: { shopName: { contains: search, mode: "insensitive" } } },
-                { installPhase: { contains: search, mode: "insensitive" } },
-                { typeOfProducts: { contains: search, mode: "insensitive" } },
+                { client: { shopDomain: { contains: searchLower } } },
+                { client: { shopName: { contains: searchLower } } },
+                { client: { email: { contains: searchLower } } },
+                { installPhase: { contains: searchLower } },
+                { typeOfProducts: { contains: searchLower } },
             ],
         }
         : {};
@@ -47,7 +63,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
             take: limit,
             orderBy: { createdAt: "desc" },
             include: {
-                client: { select: { id: true, shopName: true, email: true } },
+                client: {
+                    select: {
+                        id: true, shopDomain: true, shopName: true,
+                        clientEmail: {
+                            select: { id: true, email: true },
+                        },
+                    },
+                },
                 followUps: true,
             },
         }),
@@ -71,7 +94,11 @@ export default function MarketingFunnelListPage() {
     const { funnels, meta } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
-    const [modalOpen, setModalOpen] = useState(false);
+    const [addMarketingModalOpen, setAddMarketingModalOpen] = useState(false);
+    const [selectedMarketingFunnel, setSelectedMarketingFunnel] = useState<any | null>(null);
+    const [viewMarketingFunnelModalOpen, setViewMarketingFunnelModalOpen] = useState(false);
+    const [editMarketingFunnelModalOpen, setEditMarketingFunnelModalOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const navigate = useNavigate();
 
     const handlePageChange = (newPage: number) => {
@@ -90,6 +117,25 @@ export default function MarketingFunnelListPage() {
             params.set("page", "1");
             navigate(`?${params.toString()}`);
         }, 400);
+    };
+
+    const handleDelete = async () => {
+        if (!selectedMarketingFunnel) return;
+
+        try {
+            const res = await fetch(`/api/marketing-funnels/${selectedMarketingFunnel.id}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) toast.error("Failed to delete task");
+            toast.success("Task deleted successfully.");
+            navigate(0);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to delete task.");
+        }
+    }
+
+    const refreshPage = () => {
+        navigate(window.location.pathname + window.location.search, { replace: true });
     };
 
     return (
@@ -119,6 +165,7 @@ export default function MarketingFunnelListPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
+                                <TableHead>Shop Name</TableHead>
                                 <TableHead>Install Phase</TableHead>
                                 <TableHead>Type of Products</TableHead>
                                 <TableHead>Client Success</TableHead>
@@ -133,11 +180,12 @@ export default function MarketingFunnelListPage() {
                                 funnels.map((funnel, idx) => (
                                     <TableRow key={funnel.id}>
                                         <TableCell>{idx + 1}</TableCell>
+                                        <TableCell>{funnel.client.shopName}</TableCell>
                                         <TableCell>{funnel.installPhase}</TableCell>
-                                        <TableCell>{funnel.typeOfProducts}</TableCell>
-                                        <TableCell>{funnel.clientSuccessStatus}</TableCell>
-                                        <TableCell>{funnel.customizationType}</TableCell>
-                                        <TableCell>{funnel.initialFeedback}</TableCell>
+                                        <TableCell>{funnel.typeOfProducts ?? 'N/A'}</TableCell>
+                                        <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No' }</TableCell>
+                                        <TableCell>{funnel.customizationType ?? 'N/A'}</TableCell>
+                                        <TableCell>{funnel.initialFeedback ?? 'N/A'}</TableCell>
                                         <TableCell>{new Date(funnel.createdAt).toLocaleDateString()}</TableCell>
                                         <TableCell>
                                             <DropdownMenu>
@@ -147,20 +195,37 @@ export default function MarketingFunnelListPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem
-                                                        onClick={() => {
-                                                            // open view details modal
-                                                        }}
-                                                    >
+                                                    <DropdownMenuItem onClick={() => {
+                                                        setSelectedMarketingFunnel(funnel);
+                                                        setViewMarketingFunnelModalOpen(true);
+                                                    }}>
                                                         <Eye /> View Details
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => {
                                                             setSelectedClientId(funnel.clientId);
-                                                            setModalOpen(true);
+                                                            setAddMarketingModalOpen(true);
                                                         }}
                                                     >
                                                         <Plus /> Add Marketing Funnel
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            setSelectedMarketingFunnel(funnel);
+                                                            setEditMarketingFunnelModalOpen(true);
+                                                        }}
+                                                    >
+                                                        <PenBox /> Edit Task
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        variant="destructive"
+                                                        onClick={() => {
+                                                            setSelectedMarketingFunnel(funnel);
+                                                            setDeleteDialogOpen(true);
+                                                        }}
+                                                    >
+                                                        <Trash2 /> Delete
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -205,12 +270,47 @@ export default function MarketingFunnelListPage() {
             </div>
 
             {/* Add Marketing Funnel Modal */}
-            {modalOpen && selectedClientId && (
-                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
+            {addMarketingModalOpen && selectedClientId && (
+                <Suspense fallback={<CenterSpinner />}>
                     <AddMarketingFunnelModal
                         clientId={selectedClientId}
-                        open={modalOpen}
-                        onOpenChange={setModalOpen}
+                        open={addMarketingModalOpen}
+                        onOpenChange={setAddMarketingModalOpen}
+                        refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+
+            {/* View Marketing Funnel Modal */}
+            {viewMarketingFunnelModalOpen && selectedMarketingFunnel && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <ViewMarketingFunnelDetailsModal
+                        funnel={selectedMarketingFunnel}
+                        open={viewMarketingFunnelModalOpen}
+                        onOpenChange={setViewMarketingFunnelModalOpen}
+                    />
+                </Suspense>
+            )}
+
+            {/* Edit Marketing Funnel Modal */}
+            {editMarketingFunnelModalOpen && selectedClientId && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <EditMarketingFunnelModal
+                        funnel={selectedMarketingFunnel}
+                        open={editMarketingFunnelModalOpen}
+                        onOpenChange={setEditMarketingFunnelModalOpen}
+                        refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+            {deleteDialogOpen && selectedMarketingFunnel && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <DeleteConfirmDialog
+                        open={deleteDialogOpen}
+                        onOpenChange={setDeleteDialogOpen}
+                        title="Delete Marketing Funnel?"
+                        description="Are you sure you want to permanently delete this chat? This action cannot be undone."
+                        onConfirm={async () => handleDelete()}
                     />
                 </Suspense>
             )}
