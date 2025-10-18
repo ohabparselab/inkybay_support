@@ -215,7 +215,7 @@ export default function MarketingFunnelListPage() {
                                                             setEditMarketingFunnelModalOpen(true);
                                                         }}
                                                     >
-                                                        <PenBox /> Edit Task
+                                                        <PenBox /> Edit Marketing Funnel
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
                                                     <DropdownMenuItem
@@ -293,7 +293,7 @@ export default function MarketingFunnelListPage() {
             )}
 
             {/* Edit Marketing Funnel Modal */}
-            {editMarketingFunnelModalOpen && selectedClientId && (
+            {editMarketingFunnelModalOpen && selectedMarketingFunnel && (
                 <Suspense fallback={<CenterSpinner />}>
                     <EditMarketingFunnelModal
                         funnel={selectedMarketingFunnel}
