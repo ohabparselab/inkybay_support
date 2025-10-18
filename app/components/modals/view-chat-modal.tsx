@@ -5,11 +5,13 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import { ShopDetails } from "@/components/shop-details";
+import { ShopHistory } from "@/components/shop-history";
+import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
-import { Separator } from "../ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
+import { format } from "date-fns";
 
 interface ViewChatDetailsModalProps {
     open: boolean;
@@ -105,11 +107,10 @@ export function ViewChatDetailsModal({ open, onOpenChange, chat }: ViewChatDetai
                         <p><strong>Changes Made By Agent:</strong> {chat?.changesMadeByAgent || "N/A"}</p>
 
                     </div>
-                    {/* <Separator />
-                    <section>
-                        <h3 className="text-base font-semibold mb-3">Shop Details</h3>
-                        <p className="text-gray-500 italic">Coming soon...</p>
-                    </section> */}
+                    <Separator />
+                    <ShopDetails shopUrl={chat.client.shopDomain} />
+                    <Separator />
+                    <ShopHistory shopUrl={chat.client.shopDomain}/>
                 </section>
                 <DialogFooter className="p-6 border-t">
                     <Button variant="destructive" onClick={() => onOpenChange(false)}>Close</Button>

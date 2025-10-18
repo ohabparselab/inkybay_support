@@ -1,11 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ShopDetails } from "~/components/shop-details";
 import { useFetcher, useLocation } from "react-router";
-import { Spinner } from "~/components/ui/spinner";
-import { useEffect } from "react";
 import { Separator } from "~/components/ui/separator";
+import { Spinner } from "~/components/ui/spinner";
 import { Badge } from "~/components/ui/badge";
 import { ExternalLink } from "lucide-react";
+import { useEffect } from "react";
+import { ShopHistory } from "~/components/shop-history";
 
 export default function ShopDetailsPage() {
 
@@ -124,75 +126,7 @@ export default function ShopDetailsPage() {
                     <Separator />
 
                     {/* Shopify Details */}
-                    <section>
-                        <h2 className="text-lg font-semibold mb-3">Shopify Details</h2>
-                        {loadingInfo ? (
-                            <div className="flex justify-center py-10">
-                                <Spinner />
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-3 gap-y-1 text-sm text-gray-700">
-                                <p>
-                                    <span className="font-bold">Shop ID:</span>{" "}
-                                    {shopify.id}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Shop Name:</span>{" "}
-                                    {shopify['shop_name']}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Plan:</span> {shopify['plan']}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Free User:</span> {shopify.free_user ? 'Yes' : 'No'}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Frozen:</span> {shopify['frozen'] ? 'Yes' : 'No'}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Client Name:</span>{" "}
-                                    {shopify.client_name}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Email:</span>{" "}
-                                    {shopify.client_email}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Phone:</span>{" "}
-                                    {shopify.client_phone}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Country:</span>{" "}
-                                    {shopify.client_country_name}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Country  Code:</span>{" "}
-                                    {shopify.client_country_code}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Address:</span>{" "}
-                                    {`${shopify.client_address1} ${shopify.client_address2}`}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Zip Code:</span>{" "}
-                                    {shopify.client_zip}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Province:</span>{" "}
-                                    {shopify.client_province}
-                                </p>
-                                <p>
-                                    <span className="font-bold">City:</span>{" "}
-                                    {shopify.client_city}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Currency:</span>{" "}
-                                    {shopify.client_currency}
-                                </p>
-                            </div>
-                        )}
-
-                    </section>
+                    <ShopDetails shopUrl={shopUrl}/>
                     <Separator />
 
                     {/* Tabs Section */}
@@ -257,66 +191,9 @@ export default function ShopDetailsPage() {
                                 </TabsTrigger>
                             </TabsList>
 
-
                             {/* History Tab */}
                             <TabsContent value="history" className="mt-3">
-                                <div className="mb-5 p-3 border rounded">
-                                    <h4 className="pb-2">Uses Details</h4>
-                                    {loadingHistory ? (
-                                        <div className="flex justify-center py-5">
-                                            <Spinner />
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-col gap-y-1 text-sm text-gray-700 ">
-                                            <p>
-                                                <span className="font-bold">Use Second:</span>{" "}
-                                                {historyData.inkybay_used_second}
-                                            </p>
-                                            <p>
-                                                <span className="font-bold">Use Days:</span>{" "}
-                                                {historyData.inkybay_used_days}
-                                            </p>
-                                            <p>
-                                                <span className="font-bold">Use Months:</span>{" "}
-                                                {historyData.inkybay_used_months}
-                                            </p>
-                                            <p>
-                                                <span className="font-bold">Use Years:</span>{" "}
-                                                {historyData.inkybay_used_years}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                </div>
-
-                                {loadingHistory ? (
-                                    <div className="flex justify-center py-15">
-                                        <Spinner />
-                                    </div>
-                                ) : (
-                                    <>
-                                        {history.length > 0 ? (
-                                            <div className="space-y-2">
-                                                {history.map((item: any, idx: number) => (
-                                                    <div
-                                                        key={idx}
-                                                        className="p-3 border rounded-md hover:bg-gray-50 transition"
-                                                    >
-                                                        <p className="text-sm font-medium text-gray-800">
-                                                            {item.event}
-                                                        </p>
-                                                        <p className="text-xs text-gray-500">{item.description}</p>
-                                                        <p className="text-xs text-gray-400 mt-1">{item.time}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="text-gray-400 text-center py-4">
-                                                No history available
-                                            </div>
-                                        )}
-                                    </>
-                                )}
+                               <ShopHistory shopUrl={shopUrl}/>
                             </TabsContent>
 
                             {/* Placeholder Tabs */}
