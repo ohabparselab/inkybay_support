@@ -1,22 +1,31 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFetcher, useLocation, useNavigate } from "react-router";
+import { AddChatModal } from "~/components/modals/add-chat-modal";
+import { CenterSpinner } from "~/components/ui/center-spinner";
 import { ShopDetails } from "~/components/shop-details";
-import { useFetcher, useLocation } from "react-router";
-import { Separator } from "~/components/ui/separator";
-import { Spinner } from "~/components/ui/spinner";
-import { Badge } from "~/components/ui/badge";
-import { ExternalLink } from "lucide-react";
-import { useEffect } from "react";
 import { ShopHistory } from "~/components/shop-history";
+import { Separator } from "~/components/ui/separator";
+import { Suspense, useEffect, useState } from "react";
+import { Spinner } from "~/components/ui/spinner";
+import { ExternalLink, Plus } from "lucide-react";
+import { Button } from "~/components/ui/button";
+import { Badge } from "~/components/ui/badge";
+import { ChatsList } from "~/components/chats-list";
 
 export default function ShopDetailsPage() {
 
     const location = useLocation();
+    const navigate = useNavigate();
     const shopUrl = new URLSearchParams(location.search).get("shopUrl") || "";
+    const [clientId, setClientId] = useState<number>(0);
 
     const infoFetcher = useFetcher<{ status: number; data: any }>();
     const historyFetcher = useFetcher<{ status: number; data: any }>();
+    const clientFetcher = useFetcher<{ status: number; data: any }>();
     const chatsFetcher = useFetcher<{ status: number; data: any }>();
+
+    const [chatModalOpen, setChatModalOpen] = useState(false);
 
     useEffect(() => {
         if (!shopUrl) return;
@@ -40,9 +49,20 @@ export default function ShopDetailsPage() {
             fd3.set("shopEmail", shop.shopify?.client_email);
             fd3.set("shopUrl", shop.url);
 
-            chatsFetcher.submit(fd3, { method: "post", action: "/api/chats/get-chats-by-shop" });
+            clientFetcher.submit(fd3, { method: "post", action: "/api/clients" });
         }
     }, [infoFetcher.state, infoFetcher.data]);
+
+    useEffect(() => {
+        // Only run when
+        if (clientFetcher.state === "idle" && clientFetcher.data?.data) {
+            const client = clientFetcher.data.data;
+            setClientId(client.id);
+            const cf = new FormData();
+            cf.set("clientId", client.id);
+            chatsFetcher.submit(cf, { method: "post", action: "/api/chats/get-chats-by-client-id" });
+        }
+    }, [clientFetcher.state, clientFetcher.data]);
 
     const loadingInfo = infoFetcher.state !== "idle";
     const loadingHistory = historyFetcher.state !== "idle";
@@ -57,6 +77,13 @@ export default function ShopDetailsPage() {
 
     const loadingChats = chatsFetcher.state !== "idle";
     const chats = chatsFetcher.data?.data || [];
+
+    const refreshPage = () => {
+        navigate(0);
+    };
+
+    console.log("====clientID====>>", clientId)
+    console.log("====chats====>>", chats)
 
     return (
         <div className="w-full">
@@ -122,11 +149,10 @@ export default function ShopDetailsPage() {
                             </div>
                         )}
                     </section>
-
                     <Separator />
 
                     {/* Shopify Details */}
-                    <ShopDetails shopUrl={shopUrl}/>
+                    <ShopDetails shopUrl={shopUrl} />
                     <Separator />
 
                     {/* Tabs Section */}
@@ -170,6 +196,16 @@ export default function ShopDetailsPage() {
                                     >{11}</Badge>
                                 </TabsTrigger>
                                 <TabsTrigger
+                                    value="marketingFunnels"
+                                    className="flex-1 text-center px-6 py-4 text-lg font-medium"
+                                >
+                                    Marketing Funnels
+                                    <Badge
+                                        variant="secondary"
+                                        className="bg-blue-500 text-white dark:bg-blue-600"
+                                    >{88}</Badge>
+                                </TabsTrigger>
+                                <TabsTrigger
                                     value="meetings"
                                     className="flex-1 text-center px-6 py-4 text-lg font-medium"
                                 >
@@ -179,21 +215,12 @@ export default function ShopDetailsPage() {
                                         className="bg-blue-500 text-white dark:bg-blue-600"
                                     >{23}</Badge>
                                 </TabsTrigger>
-                                <TabsTrigger
-                                    value="meetings"
-                                    className="flex-1 text-center px-6 py-4 text-lg font-medium"
-                                >
-                                    Marketing Funnels
-                                    <Badge
-                                        variant="secondary"
-                                        className="bg-blue-500 text-white dark:bg-blue-600"
-                                    >{88}</Badge>
-                                </TabsTrigger>
+
                             </TabsList>
 
                             {/* History Tab */}
                             <TabsContent value="history" className="mt-3">
-                               <ShopHistory shopUrl={shopUrl}/>
+                                <ShopHistory shopUrl={shopUrl} />
                             </TabsContent>
 
                             {/* Placeholder Tabs */}
@@ -203,43 +230,41 @@ export default function ShopDetailsPage() {
                                         <Spinner />
                                     </div>
                                 ) : chats.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {chats.map((chat: any, idx: number) => (
-                                            <div
-                                                key={idx}
-                                                className="p-3 border rounded-md hover:bg-gray-50 transition"
-                                            >
-                                                <p className="text-sm font-semibold text-gray-800">
-                                                    {chat.clientQuery}
-                                                </p>
-                                                <p className="text-xs text-gray-500">
-                                                    Handled By: {chat.handleByUser?.name || "N/A"}
-                                                </p>
-                                                <p className="text-xs text-gray-400 mt-1">
-                                                    {new Date(chat.createdAt).toLocaleString()}
-                                                </p>
-                                                {chat.reviewText && (
-                                                    <p className="text-xs mt-1 text-gray-600 italic">
-                                                        “{chat.reviewText}”
-                                                    </p>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <ChatsList chats={chats}/>
                                 ) : (
-                                    <div className="text-gray-400 text-center py-15">No chats available</div>
+                                    <div className="text-gray-400 text-center py-15">
+                                        <span>
+                                            No chats available
+                                        </span>
+                                        <Button
+                                            className="ml-5"
+                                            onClick={() => {
+                                                setChatModalOpen(true)
+                                            }}
+                                        >
+                                            <Plus /> Add New Chat
+                                        </Button>
+                                    </div>
                                 )}
                             </TabsContent>
                             <TabsContent value="tasks" className="mt-4 text-gray-500 text-sm">
-                                <div className="text-gray-400 text-center py-4">
+                                <div className="text-gray-400 text-center py-15">
                                     No tasks available
+                                </div>
+                            </TabsContent>
+                            <TabsContent
+                                value="marketingFunnels"
+                                className="mt-4 text-gray-500 text-sm"
+                            >
+                                <div className="text-gray-400 text-center py-15">
+                                    No marketing funnels available
                                 </div>
                             </TabsContent>
                             <TabsContent
                                 value="meetings"
                                 className="mt-4 text-gray-500 text-sm"
                             >
-                                <div className="text-gray-400 text-center py-4">
+                                <div className="text-gray-400 text-center py-15">
                                     No meetings available
                                 </div>
                             </TabsContent>
@@ -247,6 +272,18 @@ export default function ShopDetailsPage() {
                     </section>
                 </CardContent>
             </Card>
+
+            {/* Modals */}
+            {chatModalOpen && clientId && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <AddChatModal
+                        clientId={clientId}
+                        open={chatModalOpen}
+                        onOpenChange={setChatModalOpen}
+                        refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
         </div>
     );
 }

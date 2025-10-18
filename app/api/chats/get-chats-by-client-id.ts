@@ -1,18 +1,10 @@
 
-import { getClientIdByShopInfo } from "~/lib/client.server";
 import { prisma } from "~/lib/prisma.server";
 
 export async function action({ request }: { request: Request }) {
     try {
         const formData = await request.formData();
-
-        const shopInfoParams = {
-            shopName: formData.get('shopName') as string,
-            shopEmail: formData.get('shopEmail') as string,
-            shopUrl: formData.get('shopUrl') as string,
-        }
-
-        const clientId = await getClientIdByShopInfo(shopInfoParams)
+        const clientId = Number(formData.get('clientId'));
 
         if (!clientId) {
             return Response.json({ status: 404, message: "Client not found" });
@@ -24,10 +16,21 @@ export async function action({ request }: { request: Request }) {
                 clientId: clientId,
                 isDeleted: false,
             },
-            include: {
-                handleByUser: { select: { id: true, fullName: true, email: true } },
-            },
             orderBy: { createdAt: "desc" },
+            include: {
+                client: {
+                    select: {
+                        id: true, shopDomain: true, shopName: true,
+                        clientEmail: {
+                            select: { id: true, email: true },
+                        },
+                    },
+                },
+                handleByUser: { select: { id: true, fullName: true, email: true } },
+                chatTags: {
+                    include: { tag: { select: { name: true } } },
+                },
+            }
         });
 
         return Response.json({ status: 200, data: chats });
