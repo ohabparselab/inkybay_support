@@ -20,6 +20,8 @@ import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-route
 import { prisma } from "~/lib/prisma.server";
 import { lazy, Suspense, useState } from "react";
 import { CenterSpinner } from "~/components/ui/center-spinner";
+import { toast } from "sonner";
+import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 
 const AddMeetingModal = lazy(() =>
     import("~/components/modals/add-meeting-modal").then((m) => ({ default: m.AddMeetingModal }))
@@ -27,6 +29,10 @@ const AddMeetingModal = lazy(() =>
 
 const ViewMeetingDetailsModal = lazy(() =>
     import("~/components/modals/view-meeting-modal").then((m) => ({ default: m.ViewMeetingDetailsModal }))
+);
+
+const EditMeetingModal = lazy(() =>
+    import("~/components/modals/edit-meeting-modal").then((m) => ({ default: m.EditMeetingModal }))
 );
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -73,6 +79,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
 }
 
+
 export default function MeetingListPage() {
 
     const { meetings, meta } = useLoaderData<typeof loader>();
@@ -100,6 +107,25 @@ export default function MeetingListPage() {
             params.set("page", "1");
             navigate(`?${params.toString()}`);
         }, 400);
+    };
+
+    const handleDelete = async () => {
+        if (!selectedMeeting) return;
+
+        try {
+            const res = await fetch(`/api/meetings/${selectedMeeting.id}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) toast.error("Failed to delete task");
+            toast.success("Task deleted successfully.");
+            navigate(0);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to delete task.");
+        }
+    }
+
+    const refreshPage = () => {
+        navigate(window.location.pathname + window.location.search, { replace: true });
     };
 
     return (
@@ -240,6 +266,7 @@ export default function MeetingListPage() {
                     <AddMeetingModal
                         open={meetingModalOpen}
                         onOpenChange={setMeetingModalOpen}
+                        refreshPage={refreshPage}
                     />
                 </Suspense>
             )}
@@ -255,6 +282,28 @@ export default function MeetingListPage() {
                 </Suspense>
             )}
 
+            {/* Edit Meeting Modal */}
+            {editMeetingModalOpen && selectedMeeting && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <EditMeetingModal
+                        meeting={selectedMeeting}
+                        open={editMeetingModalOpen}
+                        onOpenChange={setEditMeetingModalOpen}
+                        refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+            {deleteDialogOpen && selectedMeeting && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <DeleteConfirmDialog
+                        open={deleteDialogOpen}
+                        onOpenChange={setDeleteDialogOpen}
+                        title="Delete Meeting?"
+                        description="Are you sure you want to permanently delete this chat? This action cannot be undone."
+                        onConfirm={async () => handleDelete()}
+                    />
+                </Suspense>
+            )}
         </div>
     );
 }

@@ -67,6 +67,23 @@ export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMee
                     <Separator />
 
                     <section>
+                        <h3 className="text-base font-semibold mb-2"> Emails</h3>
+                        {meeting.emails && meeting.emails.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                                {meeting.emails.map((emailObj: any, i: number) => (
+                                    <Badge key={i} variant="secondary" className="text-xs">
+                                        {emailObj.email}
+                                    </Badge>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500">No associated emails.</p>
+                        )}
+                    </section>
+
+                    <Separator />
+
+                    <section>
                         <h3 className="text-base font-semibold mb-2">Meeting Details</h3>
                         <p className="text-gray-700 whitespace-pre-line">
                             {meeting.meetingDetails || "N/A"}
@@ -75,7 +92,7 @@ export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMee
 
                     <Separator />
 
-                     <section>
+                    <section>
                         <h3 className="text-base font-semibold mb-2">Meeting Notes</h3>
                         <p className="text-gray-700 whitespace-pre-line">
                             {meeting.meetingNotes || "N/A"}
@@ -91,22 +108,6 @@ export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMee
                         </p>
                     </section>
 
-                    <Separator />
-
-                    <section>
-                        <h3 className="text-base font-semibold mb-2">Clients Emails</h3>
-                        {meeting.emails && meeting.emails.length > 0 ? (
-                            <div className="flex flex-wrap gap-2">
-                                {meeting.emails.map((emailObj: any, i: number) => (
-                                    <Badge key={i} variant="secondary" className="text-xs">
-                                        {emailObj.email}
-                                    </Badge>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-gray-500">No associated emails.</p>
-                        )}
-                    </section>
                 </section>
 
                 <DialogFooter className="p-6 border-t">
