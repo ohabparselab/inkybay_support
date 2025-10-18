@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { CenterSpinner } from "../ui/center-spinner";
 
 const AddStatusModal = lazy(() =>
     import('~/components/modals/add-status-modal').then(module => ({ default: module.AddStatusModal }))
@@ -189,6 +190,9 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
                                     <Plus className="h-4 w-4 mr-1" /> Add Status
                                 </Button>
                             </div>
+                            {errors.taskStatus && (
+                                <p className="text-sm text-red-500">{errors.taskStatus.message}</p>
+                            )}
 
                         </div>
                     </div>
@@ -351,7 +355,7 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
                 </form>
             </DialogContent>
             {addStatusModalOpen && (
-                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
+                <Suspense fallback={<CenterSpinner/>}>
                     <AddStatusModal setStatuses={setStatuses} open={addStatusModalOpen} onOpenChange={setAddStatusModalOpen} />
                 </Suspense>
             )}

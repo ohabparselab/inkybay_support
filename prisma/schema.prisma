@@ -29,10 +29,10 @@ model User {
     deletedAt DateTime?
 
     modulePermissions UserModulePermission[]
-    Chat              Chat[]
+    chat              Chat[]
     providedTasks     Task[]                 @relation("UserProvidedTasks")
     solvedTasks       Task[]                 @relation("UserSolvedTasks")
-    Meeting           Meeting[]
+    meeting           Meeting[]
 
     @@index([email])
     @@map("users")
@@ -103,49 +103,37 @@ model Client {
     shopDomain      String            @unique
     email           String
     shopName        String?
-    Chat            Chat[]
-    ClientEmail     ClientEmail[]
-    Task            Task[]
-    MarketingFunnel MarketingFunnel[]
+    chat            Chat[]
+    clientEmail     ClientEmail[]
+    task            Task[]
+    marketingFunnel MarketingFunnel[]
 
     @@index([shopDomain, email])
     @@map("clients")
 }
 
-model Status {
-    id        Int       @id @default(autoincrement())
-    name      String
-    slug      String    @unique
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
-    isDeleted Boolean   @default(false)
-    deletedAt DateTime?
-
-    @@map("statuses")
-}
-
 model Chat {
-    id                 Int          @id @default(autoincrement())
+    id                 Int       @id @default(autoincrement())
     clientId           Int
-    clientQuery        String       @db.Text
+    clientQuery        String    @db.Text
     handleBy           Int
     chatDate           DateTime?
-    chatTranscript     String?      @db.Text
-    reviewAsked        Boolean      @default(false)
-    reviewStatus       Boolean      @default(false)
-    reviewText         String?      @db.Text
+    chatTranscript     String?   @db.Text
+    reviewAsked        Boolean   @default(false)
+    reviewStatus       Boolean   @default(false)
+    reviewText         String?   @db.Text
     lastReviewApproach DateTime?
-    clientFeedback     String?      @db.Text
-    storeDetails       String?      @db.Text
-    featureRequest     String?      @db.Text
+    clientFeedback     String?   @db.Text
+    storeDetails       String?   @db.Text
+    featureRequest     String?   @db.Text
     agentRating        Int?
-    agentComments      String?      @db.Text
-    otherStoresUrl     String?      @db.Text
-    changesMadeByAgent String?      @db.Text
-    isDeleted          Boolean      @default(false)
+    agentComments      String?   @db.Text
+    otherStoresUrl     String?   @db.Text
+    changesMadeByAgent String?   @db.Text
+    isDeleted          Boolean   @default(false)
     deletedAt          DateTime?
-    createdAt          DateTime     @default(now())
-    updatedAt          DateTime     @updatedAt
+    createdAt          DateTime  @default(now())
+    updatedAt          DateTime  @updatedAt
 
     handleByUser User      @relation(fields: [handleBy], references: [id])
     client       Client    @relation(fields: [clientId], references: [id])
@@ -193,7 +181,7 @@ model Task {
     providedBy    Int
     solvedBy      Int?
     taskDetails   String    @db.Text
-    taskStatus    String?
+    statusId      Int?
     storePassword String?
     storeAccess   String?
     taskAddedDate DateTime?
@@ -205,11 +193,25 @@ model Task {
     deletedAt     DateTime?
 
     // Relations
-    client         Client @relation(fields: [clientId], references: [id])
-    providedByUser User   @relation("UserProvidedTasks", fields: [providedBy], references: [id])
-    solvedByUser   User?  @relation("UserSolvedTasks", fields: [solvedBy], references: [id])
+    client         Client  @relation(fields: [clientId], references: [id])
+    providedByUser User    @relation("UserProvidedTasks", fields: [providedBy], references: [id])
+    solvedByUser   User?   @relation("UserSolvedTasks", fields: [solvedBy], references: [id])
+    status         Status? @relation(fields: [statusId], references: [id])
 
     @@map("tasks")
+}
+
+model Status {
+    id        Int       @id @default(autoincrement())
+    name      String
+    slug      String    @unique
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    isDeleted Boolean   @default(false)
+    deletedAt DateTime?
+    task      Task[]
+
+    @@map("statuses")
 }
 
 model Meeting {

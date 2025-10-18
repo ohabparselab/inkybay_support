@@ -48,6 +48,7 @@ const createTask = async (request: Request) => {
 
         const providedBy = value.providedBy ? Number(value.providedBy) : null;
         const solvedBy = value.solvedBy ? Number(value.solvedBy) : null;
+        const statusId = value.taskStatus ? Number(value.taskStatus) : null;
 
         // Validate required foreign keys
         if (!value.clientId) {
@@ -58,10 +59,13 @@ const createTask = async (request: Request) => {
             return Response.json({ success: false, message: "Please select Provided By (User)." }, { status: 400 });
         }
 
+        if (!statusId) {
+            return Response.json({ success: false, message: "Please select status." }, { status: 400 });
+        }
+
         // Build clean taskData
         const taskData: any = {
             taskDetails: value.taskDetails,
-            taskStatus: value.taskStatus,
             storePassword: value.storePassword,
             storeAccess: value.storeAccess,
             taskAddedDate: value.taskAddedDate ? new Date(value.taskAddedDate) : null,
@@ -70,6 +74,7 @@ const createTask = async (request: Request) => {
             // relations below
             client: { connect: { id: Number(value.clientId) } },
             providedByUser: { connect: { id: providedBy } },
+            status: { connect: { id: statusId } },
         };
 
         // Connect solvedBy only if provided

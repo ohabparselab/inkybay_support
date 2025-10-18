@@ -51,7 +51,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
         resolver: zodResolver(addChatSchema),
         defaultValues: {
             clientQuery: chat?.clientQuery || "",
-            clientEmails: chat?.client.ClientEmail?.map((e: any) => e.email) || [],
+            clientEmails: chat?.client.clientEmail?.map((e: any) => e.email) || [],
             tags: chat?.chatTags?.map((t: any) => t.tag.name) || [],
             reviewAsked: chat?.reviewAsked || false,
             reviewStatus: chat?.reviewStatus || false,
@@ -105,7 +105,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
         if (chat) {
             reset({
                 clientQuery: chat.clientQuery || "",
-                clientEmails: chat?.client.ClientEmail?.map((e: any) => e.email) || [],
+                clientEmails: chat?.client.clientEmail?.map((e: any) => e.email) || [],
                 tags: chat.chatTags?.map((t: any) => t.tag.name) || [],
                 reviewAsked: chat.reviewAsked || false,
                 reviewStatus: chat.reviewStatus || false,

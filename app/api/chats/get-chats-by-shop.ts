@@ -11,7 +11,7 @@ export async function action({ request }: { request: Request }) {
             shopEmail: formData.get('shopEmail') as string,
             shopUrl: formData.get('shopUrl') as string,
         }
-        console.log("======formData=========>>", formData);
+
         const clientId = await getClientIdByShopInfo(shopInfoParams)
 
         if (!clientId) {

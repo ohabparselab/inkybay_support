@@ -18,6 +18,7 @@ import { Input } from "~/components/ui/input";
 import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
 import { prisma } from "~/lib/prisma.server";
 import { lazy, Suspense, useState } from "react";
+import { CenterSpinner } from "~/components/ui/center-spinner";
 
 const AddTaskModal = lazy(() =>
     import("~/components/modals/add-task-modal").then((m) => ({ default: m.AddTaskModal }))
@@ -51,6 +52,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 client: { select: { id: true, shopName: true, shopDomain: true } },
                 providedByUser: { select: { id: true, fullName: true } },
                 solvedByUser: { select: { id: true, fullName: true } },
+                status: { select: { id: true, name: true } },
             },
         }),
         prisma.task.count({ where }),
@@ -138,7 +140,7 @@ export default function TasksListPage() {
                                         <TableCell>{task.client?.shopName ?? "—"}</TableCell>
                                         <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
                                         <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
-                                        <TableCell>{task.taskStatus ?? "—"}</TableCell>
+                                        <TableCell>{task.status?.name ?? "—"}</TableCell>
                                         <TableCell>
                                             {task.taskAddedDate
                                                 ? new Date(task.taskAddedDate).toLocaleDateString()
@@ -207,7 +209,7 @@ export default function TasksListPage() {
 
             {/* Add Task Modal */}
             {taskModalOpen && selectedClientId && (
-                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
+                <Suspense fallback={<CenterSpinner/>}>
                     <AddTaskModal clientId={selectedClientId} open={taskModalOpen} onOpenChange={setTaskModalOpen} />
                 </Suspense>
             )}
