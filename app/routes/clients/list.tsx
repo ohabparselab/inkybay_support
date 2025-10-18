@@ -23,7 +23,7 @@ const AddMeetingModal = lazy(() =>
     import('~/components/modals/add-meeting-modal').then(module => ({ default: module.AddMeetingModal }))
 );
 const AddMarketingFunnelModal = lazy(() =>
-    import('~/components/modals/add-marketing-funnel').then(module => ({ default: module.AddMarketingFunnelModal }))
+    import('~/components/modals/add-marketing-funnel-modal').then(module => ({ default: module.AddMarketingFunnelModal }))
 );
 
 
