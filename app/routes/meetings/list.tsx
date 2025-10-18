@@ -2,6 +2,7 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import {
@@ -12,18 +13,24 @@ import {
     TableHeader,
     TableRow,
 } from "~/components/ui/table";
-import { ChevronLeft, ChevronRight, Ellipsis, Eye, Plus, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
 import { prisma } from "~/lib/prisma.server";
 import { lazy, Suspense, useState } from "react";
+import { CenterSpinner } from "~/components/ui/center-spinner";
 
 const AddMeetingModal = lazy(() =>
     import("~/components/modals/add-meeting-modal").then((m) => ({ default: m.AddMeetingModal }))
 );
 
+const ViewMeetingDetailsModal = lazy(() =>
+    import("~/components/modals/view-meeting-modal").then((m) => ({ default: m.ViewMeetingDetailsModal }))
+);
+
 export async function loader({ request }: LoaderFunctionArgs) {
+
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page") || 1);
     const limit = Number(url.searchParams.get("limit") || 10);
@@ -71,6 +78,10 @@ export default function MeetingListPage() {
     const { meetings, meta } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
     const [meetingModalOpen, setMeetingModalOpen] = useState(false);
+    const [viewMeetingModalOpen, setViewMeetingModalOpen] = useState(false);
+    const [editMeetingModalOpen, setEditMeetingModalOpen] = useState(false);
+    const [selectedMeeting, setSelectedMeeting] = useState<any | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const navigate = useNavigate();
 
     const handlePageChange = (newPage: number) => {
@@ -157,8 +168,29 @@ export default function MeetingListPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => { }}>
+                                                    <DropdownMenuItem onClick={() => {
+                                                        setSelectedMeeting(meeting);
+                                                        setViewMeetingModalOpen(true);
+                                                    }}>
                                                         <Eye /> View Details
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            setSelectedMeeting(meeting);
+                                                            setEditMeetingModalOpen(true);
+                                                        }}
+                                                    >
+                                                        <PenBox /> Edit Task
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        variant="destructive"
+                                                        onClick={() => {
+                                                            setSelectedMeeting(meeting);
+                                                            setDeleteDialogOpen(true);
+                                                        }}
+                                                    >
+                                                        <Trash2 /> Delete
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -204,13 +236,25 @@ export default function MeetingListPage() {
 
             {/* Add Meeting Modal */}
             {meetingModalOpen && (
-                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
+                <Suspense fallback={<CenterSpinner />}>
                     <AddMeetingModal
                         open={meetingModalOpen}
                         onOpenChange={setMeetingModalOpen}
                     />
                 </Suspense>
             )}
+
+            {/* View Meeting Modal */}
+            {viewMeetingModalOpen && selectedMeeting && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <ViewMeetingDetailsModal
+                        meeting={selectedMeeting}
+                        open={viewMeetingModalOpen}
+                        onOpenChange={setViewMeetingModalOpen}
+                    />
+                </Suspense>
+            )}
+
         </div>
     );
 }
