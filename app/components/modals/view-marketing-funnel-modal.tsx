@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
+import { ShopDetails } from "@/components/shop-details";
+import { ShopHistory } from "@/components/shop-history";
 
 interface ViewMarketingFunnelDetailsModalProps {
     open: boolean;
@@ -26,6 +28,8 @@ export function ViewMarketingFunnelDetailsModal({
 
     const formatDateTime = (date?: Date | string | null) => date ? format(new Date(date), "PPPp") : "-";
     const formatDate = (date?: Date | string | null) => date ? format(new Date(date), "PPP") : "-";
+
+    console.log(funnel.client.clientEmail);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -72,22 +76,47 @@ export function ViewMarketingFunnelDetailsModal({
 
                     <Separator />
                     <section>
-                        <h3 className="text-base font-semibold mb-3">Follow Ups</h3>
-                        {funnel.followUps && funnel.followUps.length > 0 ? (
-                            <ul className="list-disc ml-6 text-sm space-y-1">
-                                {funnel.followUps.map((fu: any, index: number) => (
-                                    <li key={index}>
-                                        Follow-up Date:{" "}
-                                        <span className="font-medium">
-                                            {formatDate(fu.followUpDate)}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="text-gray-500 italic">No follow-ups recorded.</p>
-                        )}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <h3 className="text-base font-semibold mb-3">Follow Ups</h3>
+                                {funnel.followUps && funnel.followUps.length > 0 ? (
+                                    <ul className="list-disc ml-6 text-sm space-y-1">
+                                        {funnel.followUps.map((fu: any, index: number) => (
+                                            <li key={index}>
+                                                Follow-up Date:{" "}
+                                                <span className="font-medium">
+                                                    {formatDate(fu.followUpDate)}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-gray-500 italic">No follow-ups recorded.</p>
+                                )}
+                            </div>
+                            <div>
+                                <h3 className="text-base font-semibold mb-3">Client Emails</h3>
+                                {funnel?.client?.clientEmail && funnel?.client.clientEmail?.length > 0 ? (
+                                    <ul className="list-decimal ml-6 text-sm space-y-1">
+                                        {funnel.client.clientEmail.map((e: any, index: number) => (
+                                            <li key={index}>
+                                                Mail:{" "}
+                                                <span className="font-medium">
+                                                    {e.email}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-gray-500 italic">No follow-ups recorded.</p>
+                                )}
+                            </div>
+                        </div>
                     </section>
+                    <Separator />
+                    <ShopDetails shopUrl={funnel.client.shopDomain} />
+                    <Separator />
+                    <ShopHistory shopUrl={funnel.client.shopDomain} />
                 </section>
 
                 <DialogFooter className="p-6 border-t">

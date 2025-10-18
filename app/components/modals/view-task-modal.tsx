@@ -5,6 +5,8 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { ShopDetails } from "@/components/shop-details";
+import { ShopHistory } from "@/components/shop-history";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +55,10 @@ export function ViewTaskDetailsModal({ open, onOpenChange, task }: ViewTaskDetai
                         <p><strong>Task Details:</strong> {task.taskDetails || "-"}</p>
                         <p><strong>Comments:</strong> {task.comments || "N/A"}</p>
                     </div>
+                    <Separator />
+                    <ShopDetails shopUrl={task.client.shopDomain} />
+                    <Separator />
+                    <ShopHistory shopUrl={task.client.shopDomain} />
                 </section>
 
                 <DialogFooter className="p-6 border-t">
