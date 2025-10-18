@@ -2,6 +2,7 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import {
@@ -12,13 +13,15 @@ import {
     TableHeader,
     TableRow,
 } from "~/components/ui/table";
-import { ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
+import { toast } from "sonner";
+import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 
 const AddTaskModal = lazy(() =>
     import("~/components/modals/add-task-modal").then((m) => ({ default: m.AddTaskModal }))
@@ -97,6 +100,8 @@ export default function TasksListPage() {
     const [selectedTask, setSelectedTask] = useState<any | null>(null);
     const [viewTaskModalOpen, setViewTaskModalOpen] = useState(false);
     const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
     const navigate = useNavigate();
 
     const handlePageChange = (newPage: number) => {
@@ -116,6 +121,21 @@ export default function TasksListPage() {
             navigate(`?${params.toString()}`);
         }, 400);
     };
+
+    const handleDelete = async () => {
+        if (!selectedTask) return;
+
+        try {
+            const res = await fetch(`/api/tasks/${selectedTask.id}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) toast.error("Failed to delete task");
+            toast.success("Task deleted successfully.");
+            navigate(0);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to delete task.");
+        }
+    }
 
     const refreshPage = () => {
         navigate(window.location.pathname + window.location.search, { replace: true });
@@ -206,6 +226,16 @@ export default function TasksListPage() {
                                                     >
                                                         <PenBox /> Edit Task
                                                     </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        variant="destructive"
+                                                        onClick={() => {
+                                                            setSelectedTask(task);
+                                                            setDeleteDialogOpen(true);
+                                                        }}
+                                                    >
+                                                        <Trash2 /> Delete
+                                                    </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
@@ -273,6 +303,17 @@ export default function TasksListPage() {
                         open={editTaskModalOpen}
                         onOpenChange={setEditTaskModalOpen}
                         refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+            {deleteDialogOpen && selectedTask && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <DeleteConfirmDialog
+                        open={deleteDialogOpen}
+                        onOpenChange={setDeleteDialogOpen}
+                        title="Delete Task?"
+                        description="Are you sure you want to permanently delete this chat? This action cannot be undone."
+                        onConfirm={async () => handleDelete()}
                     />
                 </Suspense>
             )}

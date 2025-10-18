@@ -362,12 +362,12 @@ export default function ChatsListPage() {
                     />
                 </Suspense>
             )}
-            {viewChatModal && (
+            {viewChatModal && selectedChat && (
                 <Suspense fallback={<CenterSpinner />}>
                     <ViewChatDetailsModal chat={selectedChat} open={viewChatModal} onOpenChange={setViewChatModal} />
                 </Suspense>
             )}
-            {editChatModal && (
+            {editChatModal && selectedChat && (
                 <Suspense fallback={<CenterSpinner />}>
                     <EditChatModal
                         chat={selectedChat}
@@ -378,7 +378,7 @@ export default function ChatsListPage() {
                 </Suspense>
             )}
 
-            {deleteDialogOpen && (
+            {deleteDialogOpen && selectedChat && (
                 <Suspense fallback={<CenterSpinner />}>
                     <DeleteConfirmDialog
                         open={deleteDialogOpen}
