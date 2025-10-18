@@ -89,7 +89,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 client: {
                     select: {
                         id: true, shopDomain: true, shopName: true,
-                        ClientEmail: {
+                        clientEmail: {
                             select: { id: true, email: true },
                         },
                     },

@@ -13,15 +13,19 @@ import {
     TableRow,
 } from "~/components/ui/table";
 import { ChevronLeft, ChevronRight, Ellipsis, Eye, Plus, Search } from "lucide-react";
+import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
+import { CenterSpinner } from "~/components/ui/center-spinner";
+import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
 import { prisma } from "~/lib/prisma.server";
-import { lazy, Suspense, useState } from "react";
-import { CenterSpinner } from "~/components/ui/center-spinner";
 
 const AddTaskModal = lazy(() =>
     import("~/components/modals/add-task-modal").then((m) => ({ default: m.AddTaskModal }))
+);
+
+const VieTaskDetailsModal = lazy(() =>
+    import("~/components/modals/view-task-modal").then((m) => ({ default: m.ViewTaskDetailsModal }))
 );
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -30,14 +34,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const limit = Number(url.searchParams.get("limit") || 10);
     const search = url.searchParams.get("search") || "";
     const skip = (page - 1) * limit;
+    const searchLower = search.toLowerCase();
+
 
     const where = search
         ? {
             OR: [
-                { taskDetails: { contains: search, mode: "insensitive" } },
-                { taskStatus: { contains: search, mode: "insensitive" } },
-                { client: { shopName: { contains: search, mode: "insensitive" } } },
-                { providedByUser: { fullName: { contains: search, mode: "insensitive" } } },
+                { client: { shopDomain: { contains: searchLower } } },
+                { client: { shopName: { contains: searchLower } } },
+                { client: { email: { contains: searchLower } } },
+                { taskDetails: { contains: searchLower } },
+                { providedByUser: { fullName: { contains: searchLower } } },
             ],
         }
         : {};
@@ -49,7 +56,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
             take: limit,
             orderBy: { createdAt: "desc" },
             include: {
-                client: { select: { id: true, shopName: true, shopDomain: true } },
+                client: {
+                    select: {
+                        id: true, shopDomain: true, shopName: true,
+                        clientEmail: {
+                            select: { id: true, email: true },
+                        },
+                    },
+                },
                 providedByUser: { select: { id: true, fullName: true } },
                 solvedByUser: { select: { id: true, fullName: true } },
                 status: { select: { id: true, name: true } },
@@ -71,10 +85,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function TasksListPage() {
+
     const { tasks, meta } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
     const [taskModalOpen, setTaskModalOpen] = useState(false);
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+    const [selectedTask, setSelectedTask] = useState<any | null>(null);
+    const [viewTaskModalOpen, setViewTaskModalOpen] = useState(false);
     const navigate = useNavigate();
 
     const handlePageChange = (newPage: number) => {
@@ -122,6 +139,7 @@ export default function TasksListPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
+                                <TableHead>Shop Name</TableHead>
                                 <TableHead>Task Details</TableHead>
                                 <TableHead>Client</TableHead>
                                 <TableHead>Provided By</TableHead>
@@ -136,7 +154,8 @@ export default function TasksListPage() {
                                 tasks.map((task, idx) => (
                                     <TableRow key={task.id}>
                                         <TableCell>{idx + 1}</TableCell>
-                                        <TableCell className="max-w-xs truncate">{task.taskDetails}</TableCell>
+                                        <TableCell>{task.client.shopName}</TableCell>
+                                        <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell>
                                         <TableCell>{task.client?.shopName ?? "—"}</TableCell>
                                         <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
                                         <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
@@ -154,7 +173,10 @@ export default function TasksListPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => { }}>
+                                                    <DropdownMenuItem onClick={() => {
+                                                        setSelectedTask(task);
+                                                        setViewTaskModalOpen(true);
+                                                    }}>
                                                         <Eye /> View Details
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
@@ -209,8 +231,14 @@ export default function TasksListPage() {
 
             {/* Add Task Modal */}
             {taskModalOpen && selectedClientId && (
-                <Suspense fallback={<CenterSpinner/>}>
+                <Suspense fallback={<CenterSpinner />}>
                     <AddTaskModal clientId={selectedClientId} open={taskModalOpen} onOpenChange={setTaskModalOpen} />
+                </Suspense>
+            )}
+            {/* View Task Modal */}
+            {viewTaskModalOpen && selectedTask && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <VieTaskDetailsModal task={selectedTask} open={viewTaskModalOpen} onOpenChange={setViewTaskModalOpen} />
                 </Suspense>
             )}
         </div>
