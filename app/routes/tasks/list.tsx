@@ -12,7 +12,7 @@ import {
     TableHeader,
     TableRow,
 } from "~/components/ui/table";
-import { ChevronLeft, ChevronRight, Ellipsis, Eye, Plus, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search } from "lucide-react";
 import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { lazy, Suspense, useState } from "react";
@@ -24,8 +24,12 @@ const AddTaskModal = lazy(() =>
     import("~/components/modals/add-task-modal").then((m) => ({ default: m.AddTaskModal }))
 );
 
-const VieTaskDetailsModal = lazy(() =>
+const ViewTaskDetailsModal = lazy(() =>
     import("~/components/modals/view-task-modal").then((m) => ({ default: m.ViewTaskDetailsModal }))
+);
+
+const EditTaskModal = lazy(() =>
+    import("~/components/modals/edit-task-modal").then((m) => ({ default: m.EditTaskModal }))
 );
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -92,6 +96,7 @@ export default function TasksListPage() {
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
     const [selectedTask, setSelectedTask] = useState<any | null>(null);
     const [viewTaskModalOpen, setViewTaskModalOpen] = useState(false);
+    const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
     const navigate = useNavigate();
 
     const handlePageChange = (newPage: number) => {
@@ -110,6 +115,10 @@ export default function TasksListPage() {
             params.set("page", "1");
             navigate(`?${params.toString()}`);
         }, 400);
+    };
+
+    const refreshPage = () => {
+        navigate(window.location.pathname + window.location.search, { replace: true });
     };
 
     return (
@@ -144,6 +153,7 @@ export default function TasksListPage() {
                                 <TableHead>Client</TableHead>
                                 <TableHead>Provided By</TableHead>
                                 <TableHead>Solved By</TableHead>
+                                <TableHead>Store Access</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Task Added</TableHead>
                                 <TableHead>Actions</TableHead>
@@ -159,6 +169,7 @@ export default function TasksListPage() {
                                         <TableCell>{task.client?.shopName ?? "—"}</TableCell>
                                         <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
                                         <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
+                                        <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>
                                         <TableCell>{task.status?.name ?? "—"}</TableCell>
                                         <TableCell>
                                             {task.taskAddedDate
@@ -186,6 +197,14 @@ export default function TasksListPage() {
                                                         }}
                                                     >
                                                         <Plus /> Add Task
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            setSelectedTask(task);
+                                                            setEditTaskModalOpen(true);
+                                                        }}
+                                                    >
+                                                        <PenBox /> Edit Task
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -235,10 +254,26 @@ export default function TasksListPage() {
                     <AddTaskModal clientId={selectedClientId} open={taskModalOpen} onOpenChange={setTaskModalOpen} />
                 </Suspense>
             )}
+
             {/* View Task Modal */}
             {viewTaskModalOpen && selectedTask && (
                 <Suspense fallback={<CenterSpinner />}>
-                    <VieTaskDetailsModal task={selectedTask} open={viewTaskModalOpen} onOpenChange={setViewTaskModalOpen} />
+                    <ViewTaskDetailsModal
+                        task={selectedTask}
+                        open={viewTaskModalOpen}
+                        onOpenChange={setViewTaskModalOpen}
+                    />
+                </Suspense>
+            )}
+            {/* Edit Task Modal */}
+            {editTaskModalOpen && selectedTask && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <EditTaskModal
+                        task={selectedTask}
+                        open={editTaskModalOpen}
+                        onOpenChange={setEditTaskModalOpen}
+                        refreshPage={refreshPage}
+                    />
                 </Suspense>
             )}
         </div>

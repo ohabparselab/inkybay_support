@@ -44,6 +44,7 @@ export default [
 
     // tasks api routes
     route("api/tasks", "./api/tasks/index.ts"),
+    route("api/tasks/:taskId", "./api/tasks/edit.$taskId.ts"),
 
     // meeting routes
     route("api/meetings", "./api/meetings/index.ts"),

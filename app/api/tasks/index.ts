@@ -97,12 +97,7 @@ const createTask = async (request: Request) => {
 
         // Create the task with relationships
         const task = await prisma.task.create({
-            data: taskData,
-            include: {
-                providedByUser: true,
-                solvedByUser: true,
-                client: true,
-            },
+            data: taskData
         });
 
         return Response.json({
