@@ -1,6 +1,4 @@
-import { uploadFile } from "~/lib/upload.server"
 import { prisma } from "~/lib/prisma.server"
-import { addMarketingFunnelSchema } from "~/lib/validations"
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
 

@@ -40,18 +40,19 @@ export default [
     // chats api routes
     route("api/chats", "./api/chats/index.ts"),
     route("api/chats/get-chats-by-shop", "./api/chats/get-chats-by-shop.ts"),
-    route("api/chats/:chatId", "./api/chats/edit.$chatId.ts"),
+    route("api/chats/:chatId", "./api/chats/$chatId.ts"),
 
     // tasks api routes
     route("api/tasks", "./api/tasks/index.ts"),
-    route("api/tasks/:taskId", "./api/tasks/edit.$taskId.ts"),
+    route("api/tasks/:taskId", "./api/tasks/$taskId.ts"),
 
     // meeting routes
     route("api/meetings", "./api/meetings/index.ts"),
-    route("api/meetings/:meetingId", "./api/meetings/edit.$meetingId.ts"),
+    route("api/meetings/:meetingId", "./api/meetings/$meetingId.ts"),
 
     // marketing funnels routes
     route("api/marketing-funnels", "./api/marketing-funnels/index.ts"),
+    route("api/marketing-funnels/:mfId", "./api/marketing-funnels/$mfId.ts"),
     
     //inkybay search api
     route("/api/inkybay/:kind", "./api/api.inkybay.$kind.tsx"),
