@@ -238,14 +238,15 @@ export default function MarketingFunnelListPage() {
                             )}
                         </TableBody>
                     </Table>
+                    {/* Pagination */}
+                    <PaginationBar
+                        meta={meta}
+                        onPageChange={handlePageChange}
+                        onLimitChange={handleLimitChange}
+                    />
                 </div>
 
-                {/* Pagination */}
-                <PaginationBar
-                    meta={meta}
-                    onPageChange={handlePageChange}
-                    onLimitChange={handleLimitChange}
-                />
+
             </div>
 
             {/* Add Marketing Funnel Modal */}

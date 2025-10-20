@@ -122,14 +122,15 @@ export function DataTable({ data, meta, onPageChange, onSearch, handleLimitChang
                         )}
                     </TableBody>
                 </Table>
+                {/* 🔢 Pagination */}
+                <PaginationBar
+                    meta={meta}
+                    onPageChange={onPageChange}
+                    onLimitChange={handleLimitChange}
+                />
             </div>
 
-            {/* 🔢 Pagination */}
-            <PaginationBar
-                meta={meta}
-                onPageChange={onPageChange}
-                onLimitChange={handleLimitChange}
-            />
+
         </div>
     );
 }

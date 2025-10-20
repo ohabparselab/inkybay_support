@@ -260,14 +260,15 @@ export default function TasksListPage() {
                             )}
                         </TableBody>
                     </Table>
+                    {/* Pagination */}
+                    <PaginationBar
+                        meta={meta}
+                        onPageChange={handlePageChange}
+                        onLimitChange={handleLimitChange}
+                    />
                 </div>
 
-                {/* Pagination */}
-                <PaginationBar
-                    meta={meta}
-                    onPageChange={handlePageChange}
-                    onLimitChange={handleLimitChange}
-                />
+
             </div>
 
             {/* Add Task Modal */}

@@ -230,14 +230,15 @@ export default function MeetingListPage() {
                             )}
                         </TableBody>
                     </Table>
+                    {/* Pagination */}
+                    <PaginationBar
+                        meta={meta}
+                        onPageChange={handlePageChange}
+                        onLimitChange={handleLimitChange}
+                    />
                 </div>
 
-                {/* Pagination */}
-                <PaginationBar
-                    meta={meta}
-                    onPageChange={handlePageChange}
-                    onLimitChange={handleLimitChange}
-                />
+
             </div>
 
             {/* Add Meeting Modal */}

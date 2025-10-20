@@ -221,14 +221,13 @@ export default function ClientsList() {
                             )}
                         </TableBody>
                     </Table>
+                    {/* 🔢 Pagination */}
+                    <PaginationBar
+                        meta={meta}
+                        onPageChange={handlePageChange}
+                        onLimitChange={handleLimitChange}
+                    />
                 </div>
-
-                {/* 🔢 Pagination */}
-                <PaginationBar
-                    meta={meta}
-                    onPageChange={handlePageChange}
-                    onLimitChange={handleLimitChange}
-                />
             </div>
         </div>
     );
