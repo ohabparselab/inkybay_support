@@ -217,18 +217,34 @@ export default function ShopDetailsPage() {
                     </div>
                 ) : (
                     <CardHeader>
-                        <CardTitle className="text-xl">
-                            {shopify['shop_name']}
-                        </CardTitle>
-                        <a
-                            href={`https://${shop.url}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex text-blue-600 items-center gap-1 hover:underline"
-                        >
-                            {shop.url}
-                            <ExternalLink className="w-4 h-4" />
-                        </a>
+                        <div className="flex flex-row w-full">
+                            <div className="w-1/2">
+                                <CardTitle className="text-xl">{shopify['shop_name']}</CardTitle>
+                                <a
+                                    href={`https://${shop.url}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex text-blue-600 items-center gap-1 hover:underline"
+                                >
+                                    {shop.url}
+                                    <ExternalLink className="w-4 h-4" />
+                                </a>
+                            </div>
+                            <div className="w-1/2 flex flex-row justify-center items-center gap-3">
+                                <Button onClick={() => { setClientId(clientId); setChatModalOpen(true); }}>
+                                    <Plus /> Add Chat
+                                </Button>
+                                <Button onClick={() => { setClientId(clientId); setTaskModalOpen(true); }}>
+                                    <Plus /> Add Task
+                                </Button>
+                                <Button onClick={() => { setClientId(clientId); setAddMarketingModalOpen(true); }}>
+                                    <Plus /> Add Marketing Funnel
+                                </Button>
+                                <Button onClick={() => { setClientId(clientId); setMeetingModalOpen(true); }}>
+                                    <Plus /> Add Meeting
+                                </Button>
+                            </div>
+                        </div>
                     </CardHeader>
                 )}
                 <Separator />
@@ -775,7 +791,7 @@ export default function ShopDetailsPage() {
                                         <Button
                                             className="ml-5"
                                             onClick={() => {
-                                                setChatModalOpen(true);
+                                                setMeetingModalOpen(true);
                                             }}
                                         >
                                             <Plus /> Add Meeting

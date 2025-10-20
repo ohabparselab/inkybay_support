@@ -45,9 +45,11 @@ export const createMeeting = async (request: Request) => {
             return Response.json({ success: false, message: "Agent ID not found." }, { status: 400 });
         }
 
+        const storeUrl = formData.get("storeUrl")?.toString() ?? ""
+
         // Build chat data
         const meetingData: any = {
-            storeUrl: formData.get("storeUrl")?.toString() ?? "",
+            storeUrl: storeUrl.trim(),
             isExternalMeeting: formData.get("isExternalMeeting") === "true",
             meetingDetails: formData.get("meetingDetails")?.toString() ?? null,
             meetingDateTime: new Date(formData.get("meetingDateTime") as string),

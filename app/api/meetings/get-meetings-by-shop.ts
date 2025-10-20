@@ -13,7 +13,7 @@ export async function action({ request }: { request: Request }) {
         // Fetch meetings for that client
         const meetings = await prisma.meeting.findMany({
             where: {
-                storeUrl: shopUrl,
+                storeUrl: { contains: shopUrl},
                 isDeleted: false,
             },
             orderBy: { createdAt: "desc" },

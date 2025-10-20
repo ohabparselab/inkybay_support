@@ -59,7 +59,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             where,
             skip,
             take: limit,
-            orderBy: { meetingDateTime: "desc" },
+            orderBy: { id: "desc" },
             include: {
                 user: { select: { id: true, fullName: true, email: true } },
                 emails: { select: { email: true } },
