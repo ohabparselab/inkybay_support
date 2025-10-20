@@ -28,6 +28,8 @@ type ProfileFormValues = {
     avatar?: FileList;
 };
 
+export const meta = () => [{ title: "User Profile | InkyBay" }];
+
 export default function ProfilePage() {
     const { currentUser } = useLoaderData<{ currentUser: User }>();
     const [preview, setPreview] = useState(currentUser.avatar || "");

@@ -13,9 +13,9 @@ import {
     TableRow,
 } from "~/components/ui/table";
 import { Ellipsis, Eye, Edit } from "lucide-react";
+import { useState, lazy, Suspense } from "react";
 import { Button } from "~/components/ui/button";
 import { prisma } from "~/lib/prisma.server";
-import { useState, lazy, Suspense } from "react";
 import { useLoaderData } from "react-router";
 
 // const EditPermissionModal = lazy(() =>
@@ -23,6 +23,8 @@ import { useLoaderData } from "react-router";
 //     default: m.EditPermissionModal,
 //   }))
 // ));
+
+export const meta = () => [{ title: "Settings Permissions | InkyBay" }];
 
 export async function loader() {
     const permissions = await prisma.permission.findMany({

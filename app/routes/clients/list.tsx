@@ -1,11 +1,11 @@
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Link, useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
 import { ChevronLeft, ChevronRight, Ellipsis, Eye, Plus, Search } from "lucide-react";
+import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
-import { lazy, Suspense, useState } from "react";
 
 const ClientViewModal = lazy(() =>
     import('~/components/modals/client-view-modal').then(module => ({ default: module.ClientViewModal }))
@@ -73,6 +73,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
         },
     };
 }
+
+export const meta = () => [{ title: "Clients | InkyBay" }];
 
 export default function ClientsList() {
 

@@ -22,6 +22,8 @@ export async function loader() {
     return { modules, permissions }
 }
 
+export const meta = () => [{ title: "Create User | InkyBay" }];
+
 export default function CreateUser() {
     const { modules, permissions } = useLoaderData<typeof loader>()
 

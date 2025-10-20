@@ -1,37 +1,13 @@
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "~/components/ui/table";
-import {
-    ChevronLeft,
-    ChevronRight,
-    Ellipsis,
-    Eye,
-    PenBox,
-    Plus,
-    Search,
-    Trash2,
-} from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+
 import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { CenterSpinner } from "~/components/ui/center-spinner";
+import { ChatsTable } from "~/components/tables/chats-table";
 import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
-import { ChatsTable } from "~/components/tables/chats-table";
 
 const AddChatModal = lazy(() =>
     import("~/components/modals/add-chat-modal").then((m) => ({
@@ -116,6 +92,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
 }
 
+export const meta = () => [{ title: "Chats | InkyBay" }];
 
 export default function ChatsListPage() {
 

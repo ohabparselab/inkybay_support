@@ -59,6 +59,9 @@ const StatCard = ({
   );
 };
 
+
+export const meta = () => [{ title: "Dashboard | InkyBay" }];
+
 export default function DashboardPage (){
   const stats: StatCardProps[] = [
     {

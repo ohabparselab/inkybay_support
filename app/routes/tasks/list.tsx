@@ -15,13 +15,13 @@ import {
 } from "~/components/ui/table";
 import { ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
+import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
-import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 
 const AddTaskModal = lazy(() =>
     import("~/components/modals/add-task-modal").then((m) => ({ default: m.AddTaskModal }))
@@ -90,6 +90,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
         },
     };
 }
+
+export const meta = () => [{ title: "Tasks | InkyBay" }];
 
 export default function TasksListPage() {
 

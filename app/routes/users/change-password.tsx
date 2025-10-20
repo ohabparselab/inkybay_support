@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+export const meta = () => [{ title: "User Changes password | InkyBay" }];
+
 export default function ChangePasswordPage() {
     const { register, handleSubmit, formState: { errors }, reset } = useForm<ChangePasswordInput>({
         resolver: zodResolver(changePasswordSchema),

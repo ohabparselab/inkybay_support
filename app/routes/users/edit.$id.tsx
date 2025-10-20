@@ -37,6 +37,8 @@ export async function loader({ params }: { params: { id: string } }) {
     return { user, modules, permissions, userPermMap }
 }
 
+export const meta = () => [{ title: "Edit user | InkyBay" }];
+
 export default function EditUser() {
     const { user, modules, permissions, userPermMap } = useLoaderData<typeof loader>()
     const { id } = useParams()

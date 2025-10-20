@@ -1,27 +1,14 @@
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "~/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger} from "~/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "~/components/ui/table";
 import { ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
+import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
+import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
+import { CenterSpinner } from "~/components/ui/center-spinner";
+import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
 import { prisma } from "~/lib/prisma.server";
-import { lazy, Suspense, useState } from "react";
-import { CenterSpinner } from "~/components/ui/center-spinner";
 import { toast } from "sonner";
-import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 
 const AddMeetingModal = lazy(() =>
     import("~/components/modals/add-meeting-modal").then((m) => ({ default: m.AddMeetingModal }))
@@ -34,6 +21,8 @@ const ViewMeetingDetailsModal = lazy(() =>
 const EditMeetingModal = lazy(() =>
     import("~/components/modals/edit-meeting-modal").then((m) => ({ default: m.EditMeetingModal }))
 );
+
+export const meta = () => [{ title: "Meetings | InkyBay" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
 

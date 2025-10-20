@@ -1,8 +1,8 @@
 import { Link, useLoaderData, useNavigate } from "react-router";
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { DataTable } from "@/components/tables/user-data-table";
-import { prisma } from "~/lib/prisma.server";
 import { Button } from "~/components/ui/button";
+import { prisma } from "~/lib/prisma.server";
 import { Plus } from "lucide-react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -51,6 +51,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
         },
     });
 }
+
+export const meta = () => [{ title: "Users List | InkyBay" }];
 
 export default function UsersList() {
     const { users, meta } = useLoaderData<typeof loader>();

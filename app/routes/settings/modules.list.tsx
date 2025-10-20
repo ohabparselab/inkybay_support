@@ -1,21 +1,9 @@
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "~/components/ui/table";
-import { Ellipsis, Edit } from "lucide-react";
-import { Button } from "~/components/ui/button";
-import { prisma } from "~/lib/prisma.server";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { useState, lazy, Suspense } from "react";
+import { Button } from "~/components/ui/button";
+import { Ellipsis, Edit } from "lucide-react";
+import { prisma } from "~/lib/prisma.server";
 import { useLoaderData } from "react-router";
 
 // const EditModuleModal = lazy(() =>
@@ -31,6 +19,8 @@ export async function loader() {
 
     return { modules };
 }
+
+export const meta = () => [{ title: "Settings | InkyBay" }];
 
 export default function ModuleListPage() {
 

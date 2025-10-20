@@ -32,6 +32,7 @@ const ViewMeetingDetailsModal = lazy(() => import("~/components/modals/view-meet
 const EditMeetingModal = lazy(() => import("~/components/modals/edit-meeting-modal").then((m) => ({ default: m.EditMeetingModal })));
 const AddMeetingModal = lazy(() => import("~/components/modals/add-meeting-modal").then((m) => ({ default: m.AddMeetingModal })));
 
+export const meta = () => [{ title: "Shop Details | InkyBay" }];
 
 export default function ShopDetailsPage() {
 

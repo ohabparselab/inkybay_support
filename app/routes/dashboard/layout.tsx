@@ -1,15 +1,10 @@
-import { Outlet, redirect } from "react-router";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { lazy, Suspense, useEffect, useState } from "react";
+import type { LoaderFunctionArgs } from "react-router";
 import { AppSidebar } from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
-import {
-    SidebarInset,
-    SidebarProvider,
-    SidebarTrigger,
-} from "@/components/ui/sidebar"
-
-import type { LoaderFunctionArgs } from "react-router";
+import { Outlet, redirect } from "react-router";
 import { getUserId } from "@/session.server";
-import { lazy, Suspense, useEffect, useState } from "react";
 import { Search } from "lucide-react";
 
 const SearchModal = lazy(() =>
