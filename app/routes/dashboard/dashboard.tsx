@@ -13,6 +13,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
+import { DashboardCardsSection } from "~/components/dashboard-cards-section";
 
 type StatCardProps = {
   title: string;
@@ -24,45 +25,10 @@ type StatCardProps = {
   footerSubtitle: string;
 };
 
-const StatCard = ({
-  title,
-  description,
-  value,
-  trend,
-  badgeValue,
-  footerTitle,
-  footerSubtitle,
-}: StatCardProps) => {
-  const TrendIcon = trend === "up" ? TrendingUp : TrendingDown;
-
-  return (
-    <Card className="bg-gradient-to-t from-primary/5 to-card shadow-xs flex flex-col justify-between rounded-xl">
-      <CardHeader className="grid grid-cols-[1fr_auto] gap-2 items-start border-b pb-6">
-        <div>
-          <CardDescription>{description}</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums">
-            {value}
-          </CardTitle>
-        </div>
-        <span className="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium gap-1 text-foreground">
-          <TrendIcon className="size-3" />
-          {badgeValue}
-        </span>
-      </CardHeader>
-      <CardFooter className="flex flex-col items-start gap-1.5 text-sm">
-        <div className="flex gap-2 font-medium">
-          {footerTitle} <TrendIcon className="size-4" />
-        </div>
-        <div className="text-muted-foreground">{footerSubtitle}</div>
-      </CardFooter>
-    </Card>
-  );
-};
-
-
 export const meta = () => [{ title: "Dashboard | InkyBay" }];
 
-export default function DashboardPage (){
+export default function DashboardPage() {
+
   const stats: StatCardProps[] = [
     {
       title: "Tasks",
@@ -103,10 +69,12 @@ export default function DashboardPage (){
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 xl:grid-cols-4 5xl:grid-cols-4">
-      {stats.map((item, i) => (
-        <StatCard key={i} {...item} />
-      ))}
-    </div>
+    <>
+      <DashboardCardsSection />
+      {/* <div className="px-4 lg:px-6">
+        <ChartAreaInteractive />
+      </div>
+      <DataTable data={data} /> */}
+    </>
   );
 };
