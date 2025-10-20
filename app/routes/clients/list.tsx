@@ -31,7 +31,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page") || 1);
-    const limit = Number(url.searchParams.get("limit") || 5);
+    const limit = Number(url.searchParams.get("limit") || 10);
     const search = url.searchParams.get("search") || "";
 
     const skip = (page - 1) * limit;

@@ -8,15 +8,23 @@ import { ShopDetails } from "~/components/shop-details";
 import { ShopHistory } from "~/components/shop-history";
 import { Separator } from "~/components/ui/separator";
 import { Spinner } from "~/components/ui/spinner";
-import { ExternalLink, Plus } from "lucide-react";
+import { Ellipsis, ExternalLink, Eye, PenBox, Plus, Trash2 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { toast } from "sonner";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 
 const ViewChatDetailsModal = lazy(() => import("~/components/modals/view-chat-modal").then((m) => ({ default: m.ViewChatDetailsModal })));
 const DeleteConfirmDialog = lazy(() => import("~/components/ui/confirm-dialog").then((m) => ({ default: m.DeleteConfirmDialog })));
 const EditChatModal = lazy(() => import("~/components/modals/edit-chat-modal").then((m) => ({ default: m.EditChatModal })));
 const AddChatModal = lazy(() => import("~/components/modals/add-chat-modal").then((m) => ({ default: m.AddChatModal })));
+
+const AddTaskModal = lazy(() => import("~/components/modals/add-task-modal").then((m) => ({ default: m.AddTaskModal })));
+const ViewTaskDetailsModal = lazy(() => import("~/components/modals/view-task-modal").then((m) => ({ default: m.ViewTaskDetailsModal })));
+const EditTaskModal = lazy(() => import("~/components/modals/edit-task-modal").then((m) => ({ default: m.EditTaskModal })));
+
+
 
 export default function ShopDetailsPage() {
 
@@ -29,11 +37,21 @@ export default function ShopDetailsPage() {
     const historyFetcher = useFetcher<{ status: number; data: any }>();
     const clientFetcher = useFetcher<{ status: number; data: any }>();
     const chatsFetcher = useFetcher<{ status: number; data: any }>();
+    const tasksFetcher = useFetcher<{ status: number; data: any }>();
+    const marketingFunnelsFetcher = useFetcher<{ status: number; data: any }>();
+
     const [chatModalOpen, setChatModalOpen] = useState(false);
     const [viewChatModal, setViewChatModal] = useState(false)
     const [editChatModal, setEditChatModal] = useState(false)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [selectedChat, setSelectedChat] = useState<any>(null)
+
+    const [taskModalOpen, setTaskModalOpen] = useState(false);
+    const [selectedTask, setSelectedTask] = useState<any | null>(null);
+    const [viewTaskModalOpen, setViewTaskModalOpen] = useState(false);
+    const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
+    const [taskDeleteDialogOpen, setTaskDeleteDialogOpen] = useState(false);
+
 
     useEffect(() => {
         if (!shopUrl) return;
@@ -51,13 +69,13 @@ export default function ShopDetailsPage() {
         // Only run when infoFetcher finishes
         if (infoFetcher.state === "idle" && infoFetcher.data?.data) {
             const shop = infoFetcher.data.data;
-            const fd3 = new FormData();
+            const shopInfoForm = new FormData();
 
-            fd3.set("shopName", shop.shopify?.shop_name);
-            fd3.set("shopEmail", shop.shopify?.client_email);
-            fd3.set("shopUrl", shop.url);
+            shopInfoForm.set("shopName", shop.shopify?.shop_name);
+            shopInfoForm.set("shopEmail", shop.shopify?.client_email);
+            shopInfoForm.set("shopUrl", shop.url);
 
-            clientFetcher.submit(fd3, { method: "post", action: "/api/clients" });
+            clientFetcher.submit(shopInfoForm, { method: "post", action: "/api/clients" });
         }
     }, [infoFetcher.state, infoFetcher.data]);
 
@@ -69,15 +87,16 @@ export default function ShopDetailsPage() {
             const cf = new FormData();
             cf.set("clientId", client.id);
             chatsFetcher.submit(cf, { method: "post", action: "/api/chats/get-chats-by-client-id" });
+            tasksFetcher.submit(cf, { method: "post", action: "/api/tasks/get-tasks-by-client-id" });
+            marketingFunnelsFetcher.submit(cf, { method: "post", action: "/api/marketing-funnels/get-marketing-funnels-by-client-id" });
+
         }
     }, [clientFetcher.state, clientFetcher.data]);
 
     const loadingInfo = infoFetcher.state !== "idle";
     const loadingHistory = historyFetcher.state !== "idle";
-
     const shop = infoFetcher.data?.data || {};
     const historyData = historyFetcher.data?.data || {};
-
     const inkybay = shop.inkybay || {};
     const shopify = shop.shopify || {};
     const history = historyData.history || [];
@@ -86,7 +105,18 @@ export default function ShopDetailsPage() {
     const loadingChats = chatsFetcher.state !== "idle";
     const chats = chatsFetcher.data?.data || [];
 
-    const refreshPage = () => { navigate(0); };
+    const loadingTasks = tasksFetcher.state !== "idle";
+    const tasks = tasksFetcher.data?.data || [];
+
+    const refreshPage = () => {
+        if (!shopUrl || !clientId) return;
+
+        // Re-run chats and tasks fetchers using existing clientId
+        const formData = new FormData();
+        formData.set("clientId", clientId.toString());
+        chatsFetcher.submit(formData, { method: "post", action: "/api/chats/get-chats-by-client-id" });
+        tasksFetcher.submit(formData, { method: "post", action: "/api/tasks/get-tasks-by-client-id" });
+    };
 
     const handleChatDelete = async () => {
 
@@ -101,6 +131,21 @@ export default function ShopDetailsPage() {
             navigate(0);
         } catch (err: any) {
             toast.error(err.message || "Failed to delete chat.");
+        }
+    }
+
+    const handleTaskDelete = async () => {
+        if (!selectedTask) return;
+
+        try {
+            const res = await fetch(`/api/tasks/${selectedTask.id}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) toast.error("Failed to delete task");
+            toast.success("Task deleted successfully.");
+            navigate(0);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to delete task.");
         }
     }
 
@@ -209,10 +254,14 @@ export default function ShopDetailsPage() {
                                     className="flex-1 text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Tasks
-                                    <Badge
-                                        variant="secondary"
-                                        className="bg-blue-500 text-white dark:bg-blue-600"
-                                    >{11}</Badge>
+                                    {loadingTasks ? (
+                                        <Spinner />
+                                    ) : (
+                                        <Badge
+                                            variant="secondary"
+                                            className="bg-blue-500 text-white dark:bg-blue-600"
+                                        >{tasks.length}</Badge>
+                                    )}
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="marketingFunnels"
@@ -242,7 +291,7 @@ export default function ShopDetailsPage() {
                                 <ShopHistory shopUrl={shopUrl} />
                             </TabsContent>
 
-                            {/* Placeholder Tabs */}
+                            {/* chats Tabs */}
                             <TabsContent value="chats" className="mt-4 text-gray-500 text-sm">
                                 {loadingChats ? (
                                     <div className="flex justify-center py-5">
@@ -254,7 +303,8 @@ export default function ShopDetailsPage() {
                                             <div className="relative w-full sm:w-64">
                                                 <Button
                                                     onClick={() => {
-                                                        setChatModalOpen(true)
+                                                        setClientId(clientId);
+                                                        setChatModalOpen(true);
                                                     }}
                                                 >
                                                     <Plus /> Add New Chat
@@ -292,7 +342,7 @@ export default function ShopDetailsPage() {
                                         <Button
                                             className="ml-5"
                                             onClick={() => {
-                                                setChatModalOpen(true)
+                                                setChatModalOpen(true);
                                             }}
                                         >
                                             <Plus /> Add New Chat
@@ -300,10 +350,134 @@ export default function ShopDetailsPage() {
                                     </div>
                                 )}
                             </TabsContent>
+                            {/* task Tabs */}
                             <TabsContent value="tasks" className="mt-4 text-gray-500 text-sm">
-                                <div className="text-gray-400 text-center py-15">
-                                    No tasks available
-                                </div>
+                                {loadingTasks ? (
+                                    <div className="flex justify-center py-5">
+                                        <Spinner />
+                                    </div>
+                                ) : tasks.length > 0 ? (
+                                    <div className="w-full space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="relative w-full sm:w-64">
+                                                <Button
+                                                    onClick={() => {
+                                                        setClientId(clientId);
+                                                        setTaskModalOpen(true);
+                                                    }}
+                                                >
+                                                    <Plus /> Add New Task
+                                                </Button>
+                                            </div>
+                                            <div className="text-sm text-muted-foreground">
+                                                Total: {tasks.length}
+                                            </div>
+                                        </div>
+                                        <div className="rounded-md border bg-card shadow-sm">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>ID</TableHead>
+                                                        <TableHead>Shop Name</TableHead>
+                                                        <TableHead>Task Details</TableHead>
+                                                        <TableHead>Client</TableHead>
+                                                        <TableHead>Provided By</TableHead>
+                                                        <TableHead>Solved By</TableHead>
+                                                        <TableHead>Store Access</TableHead>
+                                                        <TableHead>Status</TableHead>
+                                                        <TableHead>Task Added</TableHead>
+                                                        <TableHead>Actions</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {tasks.length > 0 ? (
+                                                        tasks.map((task: any, idx: number) => (
+                                                            <TableRow key={task.id}>
+                                                                <TableCell>{idx + 1}</TableCell>
+                                                                <TableCell>{task.client.shopName}</TableCell>
+                                                                <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell>
+                                                                <TableCell>{task.client?.shopName ?? "—"}</TableCell>
+                                                                <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
+                                                                <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
+                                                                <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>
+                                                                <TableCell>{task.status?.name ?? "—"}</TableCell>
+                                                                <TableCell>
+                                                                    {task.taskAddedDate
+                                                                        ? new Date(task.taskAddedDate).toLocaleDateString()
+                                                                        : "—"}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <DropdownMenu>
+                                                                        <DropdownMenuTrigger asChild>
+                                                                            <Button variant="ghost" size="icon">
+                                                                                <Ellipsis />
+                                                                            </Button>
+                                                                        </DropdownMenuTrigger>
+                                                                        <DropdownMenuContent align="end">
+                                                                            <DropdownMenuItem onClick={() => {
+                                                                                setSelectedTask(task);
+                                                                                setViewTaskModalOpen(true);
+                                                                            }}>
+                                                                                <Eye /> View Details
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuItem
+                                                                                onClick={() => {
+                                                                                    setClientId(task.clientId);
+                                                                                    setTaskModalOpen(true);
+                                                                                }}
+                                                                            >
+                                                                                <Plus /> Add Task
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuItem
+                                                                                onClick={() => {
+                                                                                    setSelectedTask(task);
+                                                                                    setEditTaskModalOpen(true);
+                                                                                }}
+                                                                            >
+                                                                                <PenBox /> Edit Task
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuSeparator />
+                                                                            <DropdownMenuItem
+                                                                                variant="destructive"
+                                                                                onClick={() => {
+                                                                                    setSelectedTask(task);
+                                                                                    setDeleteDialogOpen(true);
+                                                                                }}
+                                                                            >
+                                                                                <Trash2 /> Delete
+                                                                            </DropdownMenuItem>
+                                                                        </DropdownMenuContent>
+                                                                    </DropdownMenu>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))
+                                                    ) : (
+                                                        <TableRow>
+                                                            <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
+                                                                No tasks available
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-gray-400 text-center py-15">
+                                        <span>
+                                            No tasks available
+                                        </span>
+                                        <Button
+                                            className="ml-5"
+                                            onClick={() => {
+                                                setClientId(clientId);
+                                                setTaskModalOpen(true);
+                                            }}
+                                        >
+                                            <Plus /> Add New Task
+                                        </Button>
+                                    </div>
+                                )}
                             </TabsContent>
                             <TabsContent
                                 value="marketingFunnels"
@@ -326,6 +500,7 @@ export default function ShopDetailsPage() {
                 </CardContent>
             </Card>
 
+            {/* =========chats modals============= */}
             {/* Modals */}
             {chatModalOpen && clientId && (
                 <Suspense fallback={<CenterSpinner />}>
@@ -364,6 +539,50 @@ export default function ShopDetailsPage() {
                     />
                 </Suspense>
             )}
+
+            {/* =========tasks modals============= */}
+
+            {/* Add Task Modal */}
+            {taskModalOpen && clientId && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <AddTaskModal clientId={clientId} open={taskModalOpen} onOpenChange={setTaskModalOpen} />
+                </Suspense>
+            )}
+
+            {/* View Task Modal */}
+            {viewTaskModalOpen && selectedTask && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <ViewTaskDetailsModal
+                        task={selectedTask}
+                        open={viewTaskModalOpen}
+                        onOpenChange={setViewTaskModalOpen}
+                    />
+                </Suspense>
+            )}
+            {/* Edit Task Modal */}
+            {editTaskModalOpen && selectedTask && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <EditTaskModal
+                        task={selectedTask}
+                        open={editTaskModalOpen}
+                        onOpenChange={setEditTaskModalOpen}
+                        refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+            {deleteDialogOpen && selectedTask && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <DeleteConfirmDialog
+                        open={taskDeleteDialogOpen}
+                        onOpenChange={setTaskDeleteDialogOpen}
+                        title="Delete Task?"
+                        description="Are you sure you want to permanently delete this chat? This action cannot be undone."
+                        onConfirm={async () => handleTaskDelete()}
+                    />
+                </Suspense>
+            )}
+
+
         </div>
     );
 }

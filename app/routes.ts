@@ -41,11 +41,12 @@ export default [
     route("api/chats", "./api/chats/index.ts"),
     route("api/chats/get-chats-by-client-id", "./api/chats/get-chats-by-client-id.ts"),
     route("api/chats/:chatId", "./api/chats/$chatId.ts"),
-
+    
     route("api/clients", "./api/clients/index.ts"),
-
+    
     // tasks api routes
     route("api/tasks", "./api/tasks/index.ts"),
+    route("api/tasks/get-tasks-by-client-id", "./api/tasks/get-tasks-by-client-id.ts"),
     route("api/tasks/:taskId", "./api/tasks/$taskId.ts"),
 
     // meeting routes
