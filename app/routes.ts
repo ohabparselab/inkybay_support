@@ -48,13 +48,14 @@ export default [
     route("api/tasks", "./api/tasks/index.ts"),
     route("api/tasks/get-tasks-by-client-id", "./api/tasks/get-tasks-by-client-id.ts"),
     route("api/tasks/:taskId", "./api/tasks/$taskId.ts"),
-
+    
     // meeting routes
     route("api/meetings", "./api/meetings/index.ts"),
     route("api/meetings/:meetingId", "./api/meetings/$meetingId.ts"),
-
+    
     // marketing funnels routes
     route("api/marketing-funnels", "./api/marketing-funnels/index.ts"),
+    route("api/marketing-funnels/get-marketing-funnels-by-client-id", "./api/marketing-funnels/get-marketing-funnels-by-client-id.ts"),
     route("api/marketing-funnels/:mfId", "./api/marketing-funnels/$mfId.ts"),
     
     //inkybay search api

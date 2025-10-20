@@ -24,7 +24,9 @@ const AddTaskModal = lazy(() => import("~/components/modals/add-task-modal").the
 const ViewTaskDetailsModal = lazy(() => import("~/components/modals/view-task-modal").then((m) => ({ default: m.ViewTaskDetailsModal })));
 const EditTaskModal = lazy(() => import("~/components/modals/edit-task-modal").then((m) => ({ default: m.EditTaskModal })));
 
-
+const AddMarketingFunnelModal = lazy(() => import("~/components/modals/add-marketing-funnel-modal").then((m) => ({ default: m.AddMarketingFunnelModal })));
+const ViewMarketingFunnelDetailsModal = lazy(() => import("~/components/modals/view-marketing-funnel-modal").then((m) => ({ default: m.ViewMarketingFunnelDetailsModal })));
+const EditMarketingFunnelModal = lazy(() => import("~/components/modals/edit-marketing-funnel-modal").then((m) => ({ default: m.EditMarketingFunnelModal })));
 
 export default function ShopDetailsPage() {
 
@@ -51,6 +53,12 @@ export default function ShopDetailsPage() {
     const [viewTaskModalOpen, setViewTaskModalOpen] = useState(false);
     const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
     const [taskDeleteDialogOpen, setTaskDeleteDialogOpen] = useState(false);
+
+    const [addMarketingModalOpen, setAddMarketingModalOpen] = useState(false);
+    const [selectedMarketingFunnel, setSelectedMarketingFunnel] = useState<any | null>(null);
+    const [viewMarketingFunnelModalOpen, setViewMarketingFunnelModalOpen] = useState(false);
+    const [editMarketingFunnelModalOpen, setEditMarketingFunnelModalOpen] = useState(false);
+    const [mFunnelDeleteDialogOpen, setMFunnelDeleteDialogOpen] = useState(false);
 
 
     useEffect(() => {
@@ -108,6 +116,11 @@ export default function ShopDetailsPage() {
     const loadingTasks = tasksFetcher.state !== "idle";
     const tasks = tasksFetcher.data?.data || [];
 
+    const loadingMarketingFunnels = marketingFunnelsFetcher.state !== "idle";
+    const marketingFunnels = marketingFunnelsFetcher.data?.data || [];
+
+    console.log("===marketingFunnels==>", marketingFunnels);
+
     const refreshPage = () => {
         if (!shopUrl || !clientId) return;
 
@@ -116,6 +129,7 @@ export default function ShopDetailsPage() {
         formData.set("clientId", clientId.toString());
         chatsFetcher.submit(formData, { method: "post", action: "/api/chats/get-chats-by-client-id" });
         tasksFetcher.submit(formData, { method: "post", action: "/api/tasks/get-tasks-by-client-id" });
+        marketingFunnelsFetcher.submit(formData, { method: "post", action: "/api/marketing-funnels/get-marketing-funnels-by-client-id" });
     };
 
     const handleChatDelete = async () => {
@@ -139,6 +153,21 @@ export default function ShopDetailsPage() {
 
         try {
             const res = await fetch(`/api/tasks/${selectedTask.id}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) toast.error("Failed to delete task");
+            toast.success("Task deleted successfully.");
+            navigate(0);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to delete task.");
+        }
+    }
+
+    const handleMFunnelDelete = async () => {
+        if (!selectedMarketingFunnel) return;
+
+        try {
+            const res = await fetch(`/api/marketing-funnels/${selectedMarketingFunnel.id}`, {
                 method: "DELETE",
             });
             if (!res.ok) toast.error("Failed to delete task");
@@ -268,10 +297,14 @@ export default function ShopDetailsPage() {
                                     className="flex-1 text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Marketing Funnels
-                                    <Badge
-                                        variant="secondary"
-                                        className="bg-blue-500 text-white dark:bg-blue-600"
-                                    >{88}</Badge>
+                                    {loadingMarketingFunnels ? (
+                                        <Spinner />
+                                    ) : (
+                                        <Badge
+                                            variant="secondary"
+                                            className="bg-blue-500 text-white dark:bg-blue-600"
+                                        >{marketingFunnels.length}</Badge>
+                                    )}
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="meetings"
@@ -307,7 +340,7 @@ export default function ShopDetailsPage() {
                                                         setChatModalOpen(true);
                                                     }}
                                                 >
-                                                    <Plus /> Add New Chat
+                                                    <Plus /> Add Chat
                                                 </Button>
                                             </div>
                                             <div className="text-sm text-muted-foreground">
@@ -345,7 +378,7 @@ export default function ShopDetailsPage() {
                                                 setChatModalOpen(true);
                                             }}
                                         >
-                                            <Plus /> Add New Chat
+                                            <Plus /> Add Chat
                                         </Button>
                                     </div>
                                 )}
@@ -366,7 +399,7 @@ export default function ShopDetailsPage() {
                                                         setTaskModalOpen(true);
                                                     }}
                                                 >
-                                                    <Plus /> Add New Task
+                                                    <Plus /> Add Task
                                                 </Button>
                                             </div>
                                             <div className="text-sm text-muted-foreground">
@@ -474,23 +507,135 @@ export default function ShopDetailsPage() {
                                                 setTaskModalOpen(true);
                                             }}
                                         >
-                                            <Plus /> Add New Task
+                                            <Plus /> Add Task
                                         </Button>
                                     </div>
                                 )}
                             </TabsContent>
-                            <TabsContent
-                                value="marketingFunnels"
-                                className="mt-4 text-gray-500 text-sm"
-                            >
-                                <div className="text-gray-400 text-center py-15">
-                                    No marketing funnels available
-                                </div>
+                            <TabsContent value="marketingFunnels" className="mt-4 text-gray-500 text-sm">
+                                {loadingMarketingFunnels ? (
+                                    <div className="flex justify-center py-5">
+                                        <Spinner />
+                                    </div>
+                                ) : marketingFunnels.length > 0 ? (
+                                    <div className="w-full space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="relative w-full sm:w-64">
+                                                <Button
+                                                    onClick={() => {
+                                                        setClientId(clientId);
+                                                        setAddMarketingModalOpen(true);
+                                                    }}
+                                                >
+                                                    <Plus /> Add Marketing Funnel
+                                                </Button>
+                                            </div>
+                                            <div className="text-sm text-muted-foreground">
+                                                Total: {tasks.length}
+                                            </div>
+                                        </div>
+                                        {/* Table */}
+                                        <div className="rounded-md border bg-card shadow-sm">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>ID</TableHead>
+                                                        <TableHead>Shop Name</TableHead>
+                                                        <TableHead>Install Phase</TableHead>
+                                                        <TableHead>Type of Products</TableHead>
+                                                        <TableHead>Client Success</TableHead>
+                                                        <TableHead>Customization Type</TableHead>
+                                                        <TableHead>Initial Feedback</TableHead>
+                                                        <TableHead>Created At</TableHead>
+                                                        <TableHead>Actions</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {marketingFunnels.length > 0 ? (
+                                                        marketingFunnels?.map((funnel: any, idx: number) => (
+                                                            <TableRow key={funnel.id}>
+                                                                <TableCell>{idx + 1}</TableCell>
+                                                                <TableCell>{funnel.client.shopName}</TableCell>
+                                                                <TableCell>{funnel.installPhase}</TableCell>
+                                                                <TableCell>{funnel.typeOfProducts ?? 'N/A'}</TableCell>
+                                                                <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No'}</TableCell>
+                                                                <TableCell>{funnel.customizationType == '' ? 'N/A' : funnel.customizationType}</TableCell>
+                                                                <TableCell>{funnel.initialFeedback  == '' ? 'N/A' : funnel.initialFeedback}</TableCell>
+                                                                <TableCell>{new Date(funnel.createdAt).toLocaleDateString()}</TableCell>
+                                                                <TableCell>
+                                                                    <DropdownMenu>
+                                                                        <DropdownMenuTrigger asChild>
+                                                                            <Button variant="ghost" size="icon">
+                                                                                <Ellipsis />
+                                                                            </Button>
+                                                                        </DropdownMenuTrigger>
+                                                                        <DropdownMenuContent align="end">
+                                                                            <DropdownMenuItem onClick={() => {
+                                                                                setSelectedMarketingFunnel(funnel);
+                                                                                setViewMarketingFunnelModalOpen(true);
+                                                                            }}>
+                                                                                <Eye /> View Details
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuItem
+                                                                                onClick={() => {
+                                                                                    setClientId(funnel.clientId);
+                                                                                    setAddMarketingModalOpen(true);
+                                                                                }}
+                                                                            >
+                                                                                <Plus /> Add Marketing Funnel
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuItem
+                                                                                onClick={() => {
+                                                                                    setSelectedMarketingFunnel(funnel);
+                                                                                    setEditMarketingFunnelModalOpen(true);
+                                                                                }}
+                                                                            >
+                                                                                <PenBox /> Edit Marketing Funnel
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuSeparator />
+                                                                            <DropdownMenuItem
+                                                                                variant="destructive"
+                                                                                onClick={() => {
+                                                                                    setSelectedMarketingFunnel(funnel);
+                                                                                    setDeleteDialogOpen(true);
+                                                                                }}
+                                                                            >
+                                                                                <Trash2 /> Delete
+                                                                            </DropdownMenuItem>
+                                                                        </DropdownMenuContent>
+                                                                    </DropdownMenu>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))
+                                                    ) : (
+                                                        <TableRow>
+                                                            <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
+                                                                No marketing funnels found.
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-gray-400 text-center py-15">
+                                        <span>
+                                            No marketing funnels available
+                                        </span>
+                                        <Button
+                                            className="ml-5"
+                                            onClick={() => {
+                                                setClientId(clientId);
+                                                setAddMarketingModalOpen(true);
+                                            }}
+                                        >
+                                            <Plus /> Add Marketing Funnel
+                                        </Button>
+                                    </div>
+                                )}
                             </TabsContent>
-                            <TabsContent
-                                value="meetings"
-                                className="mt-4 text-gray-500 text-sm"
-                            >
+                            <TabsContent value="meetings" className="mt-4 text-gray-500 text-sm">
                                 <div className="text-gray-400 text-center py-15">
                                     No meetings available
                                 </div>
@@ -541,7 +686,6 @@ export default function ShopDetailsPage() {
             )}
 
             {/* =========tasks modals============= */}
-
             {/* Add Task Modal */}
             {taskModalOpen && clientId && (
                 <Suspense fallback={<CenterSpinner />}>
@@ -570,7 +714,8 @@ export default function ShopDetailsPage() {
                     />
                 </Suspense>
             )}
-            {deleteDialogOpen && selectedTask && (
+
+            {taskDeleteDialogOpen && selectedTask && (
                 <Suspense fallback={<CenterSpinner />}>
                     <DeleteConfirmDialog
                         open={taskDeleteDialogOpen}
@@ -578,6 +723,54 @@ export default function ShopDetailsPage() {
                         title="Delete Task?"
                         description="Are you sure you want to permanently delete this chat? This action cannot be undone."
                         onConfirm={async () => handleTaskDelete()}
+                    />
+                </Suspense>
+            )}
+
+            {/* =========marketingFunnels modals============= */}
+
+            {/* Add Marketing Funnel Modal */}
+            {addMarketingModalOpen && clientId && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <AddMarketingFunnelModal
+                        clientId={clientId}
+                        open={addMarketingModalOpen}
+                        onOpenChange={setAddMarketingModalOpen}
+                        refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+
+            {/* View Marketing Funnel Modal */}
+            {viewMarketingFunnelModalOpen && selectedMarketingFunnel && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <ViewMarketingFunnelDetailsModal
+                        funnel={selectedMarketingFunnel}
+                        open={viewMarketingFunnelModalOpen}
+                        onOpenChange={setViewMarketingFunnelModalOpen}
+                    />
+                </Suspense>
+            )}
+
+            {/* Edit Marketing Funnel Modal */}
+            {editMarketingFunnelModalOpen && selectedMarketingFunnel && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <EditMarketingFunnelModal
+                        funnel={selectedMarketingFunnel}
+                        open={editMarketingFunnelModalOpen}
+                        onOpenChange={setEditMarketingFunnelModalOpen}
+                        refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+            {mFunnelDeleteDialogOpen && selectedMarketingFunnel && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <DeleteConfirmDialog
+                        open={mFunnelDeleteDialogOpen}
+                        onOpenChange={setMFunnelDeleteDialogOpen}
+                        title="Delete Marketing Funnel?"
+                        description="Are you sure you want to permanently delete this chat? This action cannot be undone."
+                        onConfirm={async () => handleMFunnelDelete()}
                     />
                 </Suspense>
             )}

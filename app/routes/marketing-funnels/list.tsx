@@ -183,9 +183,9 @@ export default function MarketingFunnelListPage() {
                                         <TableCell>{funnel.client.shopName}</TableCell>
                                         <TableCell>{funnel.installPhase}</TableCell>
                                         <TableCell>{funnel.typeOfProducts ?? 'N/A'}</TableCell>
-                                        <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No' }</TableCell>
-                                        <TableCell>{funnel.customizationType ?? 'N/A'}</TableCell>
-                                        <TableCell>{funnel.initialFeedback ?? 'N/A'}</TableCell>
+                                        <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No'}</TableCell>
+                                        <TableCell>{funnel.customizationType == '' ? 'N/A' : funnel.customizationType}</TableCell>
+                                        <TableCell>{funnel.initialFeedback == '' ? 'N/A' : funnel.initialFeedback}</TableCell>
                                         <TableCell>{new Date(funnel.createdAt).toLocaleDateString()}</TableCell>
                                         <TableCell>
                                             <DropdownMenu>
