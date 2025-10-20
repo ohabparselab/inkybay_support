@@ -1,37 +1,41 @@
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import { Ellipsis, ExternalLink, Eye, PenBox, Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFetcher, useLocation, useNavigate } from "react-router";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { ChatsTable } from "~/components/tables/chats-table";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { ShopDetails } from "~/components/shop-details";
 import { ShopHistory } from "~/components/shop-history";
+import { useFetcher, useLocation } from "react-router";
 import { Separator } from "~/components/ui/separator";
 import { Spinner } from "~/components/ui/spinner";
-import { Ellipsis, ExternalLink, Eye, PenBox, Plus, Trash2 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { toast } from "sonner";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 
 const ViewChatDetailsModal = lazy(() => import("~/components/modals/view-chat-modal").then((m) => ({ default: m.ViewChatDetailsModal })));
 const DeleteConfirmDialog = lazy(() => import("~/components/ui/confirm-dialog").then((m) => ({ default: m.DeleteConfirmDialog })));
 const EditChatModal = lazy(() => import("~/components/modals/edit-chat-modal").then((m) => ({ default: m.EditChatModal })));
 const AddChatModal = lazy(() => import("~/components/modals/add-chat-modal").then((m) => ({ default: m.AddChatModal })));
 
-const AddTaskModal = lazy(() => import("~/components/modals/add-task-modal").then((m) => ({ default: m.AddTaskModal })));
 const ViewTaskDetailsModal = lazy(() => import("~/components/modals/view-task-modal").then((m) => ({ default: m.ViewTaskDetailsModal })));
 const EditTaskModal = lazy(() => import("~/components/modals/edit-task-modal").then((m) => ({ default: m.EditTaskModal })));
+const AddTaskModal = lazy(() => import("~/components/modals/add-task-modal").then((m) => ({ default: m.AddTaskModal })));
 
-const AddMarketingFunnelModal = lazy(() => import("~/components/modals/add-marketing-funnel-modal").then((m) => ({ default: m.AddMarketingFunnelModal })));
 const ViewMarketingFunnelDetailsModal = lazy(() => import("~/components/modals/view-marketing-funnel-modal").then((m) => ({ default: m.ViewMarketingFunnelDetailsModal })));
 const EditMarketingFunnelModal = lazy(() => import("~/components/modals/edit-marketing-funnel-modal").then((m) => ({ default: m.EditMarketingFunnelModal })));
+const AddMarketingFunnelModal = lazy(() => import("~/components/modals/add-marketing-funnel-modal").then((m) => ({ default: m.AddMarketingFunnelModal })));
+
+const ViewMeetingDetailsModal = lazy(() => import("~/components/modals/view-meeting-modal").then((m) => ({ default: m.ViewMeetingDetailsModal })));
+const EditMeetingModal = lazy(() => import("~/components/modals/edit-meeting-modal").then((m) => ({ default: m.EditMeetingModal })));
+const AddMeetingModal = lazy(() => import("~/components/modals/add-meeting-modal").then((m) => ({ default: m.AddMeetingModal })));
+
 
 export default function ShopDetailsPage() {
 
     const location = useLocation();
-    const navigate = useNavigate();
     const shopUrl = new URLSearchParams(location.search).get("shopUrl") || "";
     const [clientId, setClientId] = useState<number>(0);
 
@@ -41,6 +45,7 @@ export default function ShopDetailsPage() {
     const chatsFetcher = useFetcher<{ status: number; data: any }>();
     const tasksFetcher = useFetcher<{ status: number; data: any }>();
     const marketingFunnelsFetcher = useFetcher<{ status: number; data: any }>();
+    const meetingsFetcher = useFetcher<{ status: number; data: any }>();
 
     const [chatModalOpen, setChatModalOpen] = useState(false);
     const [viewChatModal, setViewChatModal] = useState(false)
@@ -60,18 +65,23 @@ export default function ShopDetailsPage() {
     const [editMarketingFunnelModalOpen, setEditMarketingFunnelModalOpen] = useState(false);
     const [mFunnelDeleteDialogOpen, setMFunnelDeleteDialogOpen] = useState(false);
 
+    const [meetingModalOpen, setMeetingModalOpen] = useState(false);
+    const [viewMeetingModalOpen, setViewMeetingModalOpen] = useState(false);
+    const [editMeetingModalOpen, setEditMeetingModalOpen] = useState(false);
+    const [selectedMeeting, setSelectedMeeting] = useState<any | null>(null);
+    const [meetingDeleteDialogOpen, setMeetingDeleteDialogOpen] = useState(false);
 
     useEffect(() => {
         if (!shopUrl) return;
 
-        const fd1 = new FormData();
-        fd1.set("shop", shopUrl);
-        infoFetcher.submit(fd1, { method: "post", action: "/api/inkybay/info" });
+        const formData = new FormData();
+        formData.set("shop", shopUrl);
 
-        const fd2 = new FormData();
-        fd2.set("shop", shopUrl);
-        historyFetcher.submit(fd2, { method: "post", action: "/api/inkybay/history" });
+        infoFetcher.submit(formData, { method: "post", action: "/api/inkybay/info" });
+        historyFetcher.submit(formData, { method: "post", action: "/api/inkybay/history" });
+        meetingsFetcher.submit(formData, { method: "post", action: "/api/meetings/get-meetings-by-shop" });
     }, [shopUrl]);
+
 
     useEffect(() => {
         // Only run when infoFetcher finishes
@@ -97,7 +107,6 @@ export default function ShopDetailsPage() {
             chatsFetcher.submit(cf, { method: "post", action: "/api/chats/get-chats-by-client-id" });
             tasksFetcher.submit(cf, { method: "post", action: "/api/tasks/get-tasks-by-client-id" });
             marketingFunnelsFetcher.submit(cf, { method: "post", action: "/api/marketing-funnels/get-marketing-funnels-by-client-id" });
-
         }
     }, [clientFetcher.state, clientFetcher.data]);
 
@@ -119,7 +128,8 @@ export default function ShopDetailsPage() {
     const loadingMarketingFunnels = marketingFunnelsFetcher.state !== "idle";
     const marketingFunnels = marketingFunnelsFetcher.data?.data || [];
 
-    console.log("===marketingFunnels==>", marketingFunnels);
+    const loadingMeetings = meetingsFetcher.state !== "idle";
+    const meetings = meetingsFetcher.data?.data || [];
 
     const refreshPage = () => {
         if (!shopUrl || !clientId) return;
@@ -130,6 +140,10 @@ export default function ShopDetailsPage() {
         chatsFetcher.submit(formData, { method: "post", action: "/api/chats/get-chats-by-client-id" });
         tasksFetcher.submit(formData, { method: "post", action: "/api/tasks/get-tasks-by-client-id" });
         marketingFunnelsFetcher.submit(formData, { method: "post", action: "/api/marketing-funnels/get-marketing-funnels-by-client-id" });
+
+        const shopFormData = new FormData();
+        shopFormData.set("shop", shopUrl);
+        meetingsFetcher.submit(shopFormData, { method: "post", action: "/api/meetings/get-meetings-by-shop" });
     };
 
     const handleChatDelete = async () => {
@@ -142,7 +156,7 @@ export default function ShopDetailsPage() {
             });
             if (!res.ok) toast.error("Failed to delete chat");
             toast.success("Chat deleted successfully.");
-            navigate(0);
+            refreshPage();
         } catch (err: any) {
             toast.error(err.message || "Failed to delete chat.");
         }
@@ -157,7 +171,7 @@ export default function ShopDetailsPage() {
             });
             if (!res.ok) toast.error("Failed to delete task");
             toast.success("Task deleted successfully.");
-            navigate(0);
+            refreshPage();
         } catch (err: any) {
             toast.error(err.message || "Failed to delete task.");
         }
@@ -170,11 +184,26 @@ export default function ShopDetailsPage() {
             const res = await fetch(`/api/marketing-funnels/${selectedMarketingFunnel.id}`, {
                 method: "DELETE",
             });
-            if (!res.ok) toast.error("Failed to delete task");
-            toast.success("Task deleted successfully.");
-            navigate(0);
+            if (!res.ok) toast.error("Failed to delete marketing funnel.");
+            toast.success("Marketing funnel deleted successfully.");
+            refreshPage();
         } catch (err: any) {
-            toast.error(err.message || "Failed to delete task.");
+            toast.error(err.message || "Failed to delete marketing funnel.");
+        }
+    }
+
+    const handleMeetingDelete = async () => {
+        if (!selectedMeeting) return;
+
+        try {
+            const res = await fetch(`/api/meetings/${selectedMeeting.id}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) toast.error("Failed to delete meeting");
+            toast.success("Meeting deleted successfully.");
+            refreshPage();
+        } catch (err: any) {
+            toast.error(err.message || "Failed to delete meeting.");
         }
     }
 
@@ -311,10 +340,14 @@ export default function ShopDetailsPage() {
                                     className="flex-1 text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Meetings
-                                    <Badge
-                                        variant="secondary"
-                                        className="bg-blue-500 text-white dark:bg-blue-600"
-                                    >{23}</Badge>
+                                    {loadingMeetings ? (
+                                        <Spinner />
+                                    ) : (
+                                        <Badge
+                                            variant="secondary"
+                                            className="bg-blue-500 text-white dark:bg-blue-600"
+                                        >{meetings.length}</Badge>
+                                    )}
                                 </TabsTrigger>
 
                             </TabsList>
@@ -474,7 +507,7 @@ export default function ShopDetailsPage() {
                                                                                 variant="destructive"
                                                                                 onClick={() => {
                                                                                     setSelectedTask(task);
-                                                                                    setDeleteDialogOpen(true);
+                                                                                    setTaskDeleteDialogOpen(true);
                                                                                 }}
                                                                             >
                                                                                 <Trash2 /> Delete
@@ -560,7 +593,7 @@ export default function ShopDetailsPage() {
                                                                 <TableCell>{funnel.typeOfProducts ?? 'N/A'}</TableCell>
                                                                 <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No'}</TableCell>
                                                                 <TableCell>{funnel.customizationType == '' ? 'N/A' : funnel.customizationType}</TableCell>
-                                                                <TableCell>{funnel.initialFeedback  == '' ? 'N/A' : funnel.initialFeedback}</TableCell>
+                                                                <TableCell>{funnel.initialFeedback == '' ? 'N/A' : funnel.initialFeedback}</TableCell>
                                                                 <TableCell>{new Date(funnel.createdAt).toLocaleDateString()}</TableCell>
                                                                 <TableCell>
                                                                     <DropdownMenu>
@@ -597,7 +630,7 @@ export default function ShopDetailsPage() {
                                                                                 variant="destructive"
                                                                                 onClick={() => {
                                                                                     setSelectedMarketingFunnel(funnel);
-                                                                                    setDeleteDialogOpen(true);
+                                                                                    setMFunnelDeleteDialogOpen(true);
                                                                                 }}
                                                                             >
                                                                                 <Trash2 /> Delete
@@ -636,9 +669,119 @@ export default function ShopDetailsPage() {
                                 )}
                             </TabsContent>
                             <TabsContent value="meetings" className="mt-4 text-gray-500 text-sm">
-                                <div className="text-gray-400 text-center py-15">
-                                    No meetings available
-                                </div>
+                                {loadingMeetings ? (
+                                    <div className="flex justify-center py-5">
+                                        <Spinner />
+                                    </div>
+                                ) : meetings.length > 0 ? (
+                                    <div className="w-full space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="relative w-full sm:w-64">
+                                                <Button
+                                                    onClick={() => {
+                                                        setClientId(clientId);
+                                                        setMeetingModalOpen(true);
+                                                    }}
+                                                >
+                                                    <Plus /> Add Meeting
+                                                </Button>
+                                            </div>
+                                            <div className="text-sm text-muted-foreground">
+                                                Total: {meetings.length}
+                                            </div>
+                                        </div>
+                                        <div className="rounded-md border bg-card shadow-sm">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>ID</TableHead>
+                                                        <TableHead>Store URL</TableHead>
+                                                        <TableHead>Agent</TableHead>
+                                                        <TableHead>Joining Status</TableHead>
+                                                        <TableHead>Meeting Date</TableHead>
+                                                        <TableHead>External?</TableHead>
+                                                        <TableHead>Review Asked?</TableHead>
+                                                        <TableHead>Review Given?</TableHead>
+                                                        <TableHead>Actions</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {meetings.length > 0 ? (
+                                                        meetings.map((meeting: any, idx: number) => (
+                                                            <TableRow key={meeting.id}>
+                                                                <TableCell>{idx + 1}</TableCell>
+                                                                <TableCell className="max-w-xs truncate">{meeting.storeUrl}</TableCell>
+                                                                <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
+                                                                <TableCell className="flex flex-wrap gap-1">
+                                                                    {meeting.joiningStatus ? 'Yes' : 'No'}
+                                                                </TableCell>
+                                                                <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
+                                                                <TableCell>{meeting.isExternalMeeting ? "Yes" : "No"}</TableCell>
+                                                                <TableCell>{meeting.reviewAsked ? "Yes" : "No"}</TableCell>
+                                                                <TableCell>{meeting.reviewGiven ? "Yes" : "No"}</TableCell>
+                                                                <TableCell>
+                                                                    <DropdownMenu>
+                                                                        <DropdownMenuTrigger asChild>
+                                                                            <Button variant="ghost" size="icon">
+                                                                                <Ellipsis />
+                                                                            </Button>
+                                                                        </DropdownMenuTrigger>
+                                                                        <DropdownMenuContent align="end">
+                                                                            <DropdownMenuItem onClick={() => {
+                                                                                setSelectedMeeting(meeting);
+                                                                                setViewMeetingModalOpen(true);
+                                                                            }}>
+                                                                                <Eye /> View Details
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuItem
+                                                                                onClick={() => {
+                                                                                    setSelectedMeeting(meeting);
+                                                                                    setEditMeetingModalOpen(true);
+                                                                                }}
+                                                                            >
+                                                                                <PenBox /> Edit Task
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuSeparator />
+                                                                            <DropdownMenuItem
+                                                                                variant="destructive"
+                                                                                onClick={() => {
+                                                                                    setSelectedMeeting(meeting);
+                                                                                    setMeetingDeleteDialogOpen(true);
+                                                                                }}
+                                                                            >
+                                                                                <Trash2 /> Delete
+                                                                            </DropdownMenuItem>
+                                                                        </DropdownMenuContent>
+                                                                    </DropdownMenu>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))
+                                                    ) : (
+                                                        <TableRow>
+                                                            <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
+                                                                No meetings found.
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-gray-400 text-center py-15">
+                                        <span>
+                                            No meetings available
+                                        </span>
+                                        <Button
+                                            className="ml-5"
+                                            onClick={() => {
+                                                setChatModalOpen(true);
+                                            }}
+                                        >
+                                            <Plus /> Add Meeting
+                                        </Button>
+                                    </div>
+                                )}
                             </TabsContent>
                         </Tabs>
                     </section>
@@ -775,6 +918,50 @@ export default function ShopDetailsPage() {
                 </Suspense>
             )}
 
+            {/* =========meetings modals============= */}
+            {/* Add Meeting Modal */}
+            {meetingModalOpen && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <AddMeetingModal
+                        open={meetingModalOpen}
+                        onOpenChange={setMeetingModalOpen}
+                        refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+            {/* View Meeting Modal */}
+            {viewMeetingModalOpen && selectedMeeting && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <ViewMeetingDetailsModal
+                        meeting={selectedMeeting}
+                        open={viewMeetingModalOpen}
+                        onOpenChange={setViewMeetingModalOpen}
+                    />
+                </Suspense>
+            )}
+
+            {/* Edit Meeting Modal */}
+            {editMeetingModalOpen && selectedMeeting && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <EditMeetingModal
+                        meeting={selectedMeeting}
+                        open={editMeetingModalOpen}
+                        onOpenChange={setEditMeetingModalOpen}
+                        refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+            {meetingDeleteDialogOpen && selectedMeeting && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <DeleteConfirmDialog
+                        open={meetingDeleteDialogOpen}
+                        onOpenChange={setMeetingDeleteDialogOpen}
+                        title="Delete Meeting?"
+                        description="Are you sure you want to permanently delete this chat? This action cannot be undone."
+                        onConfirm={async () => handleMeetingDelete()}
+                    />
+                </Suspense>
+            )}
 
         </div>
     );

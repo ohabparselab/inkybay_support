@@ -117,11 +117,11 @@ export default function MeetingListPage() {
             const res = await fetch(`/api/meetings/${selectedMeeting.id}`, {
                 method: "DELETE",
             });
-            if (!res.ok) toast.error("Failed to delete task");
-            toast.success("Task deleted successfully.");
+            if (!res.ok) toast.error("Failed to delete meeting.");
+            toast.success("Meeting deleted successfully.");
             navigate(0);
         } catch (err: any) {
-            toast.error(err.message || "Failed to delete task.");
+            toast.error(err.message || "Failed to delete meeting.");
         }
     }
 
@@ -207,7 +207,7 @@ export default function MeetingListPage() {
                                                             setEditMeetingModalOpen(true);
                                                         }}
                                                     >
-                                                        <PenBox /> Edit Task
+                                                        <PenBox /> Edit Meeting
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
                                                     <DropdownMenuItem
