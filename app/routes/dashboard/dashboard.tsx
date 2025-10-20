@@ -70,11 +70,11 @@ export default function DashboardPage() {
 
   return (
     <>
-      <DashboardCardsSection />
-      {/* <div className="px-4 lg:px-6">
-        <ChartAreaInteractive />
+      <DashboardCardsSection stats={stats}/>
+      <div className="px-4 lg:px-6">
+        sdfjdsljalf
       </div>
-      <DataTable data={data} /> */}
+      {/* <DataTable data={data} /> */}
     </>
   );
 };

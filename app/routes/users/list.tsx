@@ -55,6 +55,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export const meta = () => [{ title: "Users List | InkyBay" }];
 
 export default function UsersList() {
+
     const { users, meta } = useLoaderData<typeof loader>();
     const navigate = useNavigate();
 

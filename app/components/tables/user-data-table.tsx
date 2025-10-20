@@ -47,7 +47,7 @@ interface DataTableProps {
     meta: Meta;
     onPageChange: (page: number) => void;
     onSearch: (term: string) => void;
-    handleLimitChange?: (limit: number) => void;
+    handleLimitChange: (limit: number) => void;
 }
 
 export function DataTable({ data, meta, onPageChange, onSearch, handleLimitChange }: DataTableProps) {

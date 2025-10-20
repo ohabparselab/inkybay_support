@@ -1,18 +1,9 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { lazy, Suspense, useEffect, useState } from "react";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { DashboardHeader } from "~/components/dashboard-header";
 import type { LoaderFunctionArgs } from "react-router";
 import { AppSidebar } from "@/components/app-sidebar"
-import { Separator } from "@/components/ui/separator"
 import { Outlet, redirect } from "react-router";
 import { getUserId } from "@/session.server";
-import { Search } from "lucide-react";
-import { CenterSpinner } from "~/components/ui/center-spinner";
-import { DashboardHeader } from "~/components/dashboard-header";
-import { DashboardCardsSection } from "~/components/dashboard-cards-section";
-
-const SearchModal = lazy(() =>
-    import('~/components/modals/search-modal').then(module => ({ default: module.SearchModal }))
-);
 
 export async function loader({ request }: LoaderFunctionArgs) {
     const userId = await getUserId(request);
