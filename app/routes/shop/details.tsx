@@ -1,17 +1,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFetcher, useLocation, useNavigate } from "react-router";
-import { AddChatModal } from "~/components/modals/add-chat-modal";
 import { CenterSpinner } from "~/components/ui/center-spinner";
+import { ChatsTable } from "~/components/tables/chats-table";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { ShopDetails } from "~/components/shop-details";
 import { ShopHistory } from "~/components/shop-history";
 import { Separator } from "~/components/ui/separator";
-import { Suspense, useEffect, useState } from "react";
 import { Spinner } from "~/components/ui/spinner";
 import { ExternalLink, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
-import { ChatsList } from "~/components/chats-list";
+import { toast } from "sonner";
+
+const ViewChatDetailsModal = lazy(() => import("~/components/modals/view-chat-modal").then((m) => ({ default: m.ViewChatDetailsModal })));
+const DeleteConfirmDialog = lazy(() => import("~/components/ui/confirm-dialog").then((m) => ({ default: m.DeleteConfirmDialog })));
+const EditChatModal = lazy(() => import("~/components/modals/edit-chat-modal").then((m) => ({ default: m.EditChatModal })));
+const AddChatModal = lazy(() => import("~/components/modals/add-chat-modal").then((m) => ({ default: m.AddChatModal })));
 
 export default function ShopDetailsPage() {
 
@@ -24,8 +29,11 @@ export default function ShopDetailsPage() {
     const historyFetcher = useFetcher<{ status: number; data: any }>();
     const clientFetcher = useFetcher<{ status: number; data: any }>();
     const chatsFetcher = useFetcher<{ status: number; data: any }>();
-
     const [chatModalOpen, setChatModalOpen] = useState(false);
+    const [viewChatModal, setViewChatModal] = useState(false)
+    const [editChatModal, setEditChatModal] = useState(false)
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [selectedChat, setSelectedChat] = useState<any>(null)
 
     useEffect(() => {
         if (!shopUrl) return;
@@ -78,12 +86,23 @@ export default function ShopDetailsPage() {
     const loadingChats = chatsFetcher.state !== "idle";
     const chats = chatsFetcher.data?.data || [];
 
-    const refreshPage = () => {
-        navigate(0);
-    };
+    const refreshPage = () => { navigate(0); };
 
-    console.log("====clientID====>>", clientId)
-    console.log("====chats====>>", chats)
+    const handleChatDelete = async () => {
+
+        if (!selectedChat) return;
+
+        try {
+            const res = await fetch(`/api/chats/${selectedChat.id}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) toast.error("Failed to delete chat");
+            toast.success("Chat deleted successfully.");
+            navigate(0);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to delete chat.");
+        }
+    }
 
     return (
         <div className="w-full">
@@ -230,7 +249,41 @@ export default function ShopDetailsPage() {
                                         <Spinner />
                                     </div>
                                 ) : chats.length > 0 ? (
-                                    <ChatsList chats={chats}/>
+                                    <div className="w-full space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="relative w-full sm:w-64">
+                                                <Button
+                                                    onClick={() => {
+                                                        setChatModalOpen(true)
+                                                    }}
+                                                >
+                                                    <Plus /> Add New Chat
+                                                </Button>
+                                            </div>
+                                            <div className="text-sm text-muted-foreground">
+                                                Total: {chats.length}
+                                            </div>
+                                        </div>
+                                        <ChatsTable
+                                            chats={chats}
+                                            onView={(chat) => {
+                                                setSelectedChat(chat);
+                                                setViewChatModal(true);
+                                            }}
+                                            onAdd={(chat) => {
+                                                setClientId(chat.clientId);
+                                                setChatModalOpen(true);
+                                            }}
+                                            onEdit={(chat) => {
+                                                setSelectedChat(chat);
+                                                setEditChatModal(true);
+                                            }}
+                                            onDelete={(chat) => {
+                                                setSelectedChat(chat);
+                                                setDeleteDialogOpen(true);
+                                            }}
+                                        />
+                                    </div>
                                 ) : (
                                     <div className="text-gray-400 text-center py-15">
                                         <span>
@@ -281,6 +334,33 @@ export default function ShopDetailsPage() {
                         open={chatModalOpen}
                         onOpenChange={setChatModalOpen}
                         refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+            {viewChatModal && selectedChat && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <ViewChatDetailsModal chat={selectedChat} open={viewChatModal} onOpenChange={setViewChatModal} />
+                </Suspense>
+            )}
+            {editChatModal && selectedChat && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <EditChatModal
+                        chat={selectedChat}
+                        open={editChatModal}
+                        onOpenChange={setEditChatModal}
+                        refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+
+            {deleteDialogOpen && selectedChat && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <DeleteConfirmDialog
+                        open={deleteDialogOpen}
+                        onOpenChange={setDeleteDialogOpen}
+                        title="Delete Chat?"
+                        description="Are you sure you want to permanently delete this chat? This action cannot be undone."
+                        onConfirm={async () => handleChatDelete()}
                     />
                 </Suspense>
             )}

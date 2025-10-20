@@ -25,7 +25,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
 
         const timeout = setTimeout(() => {
             const fd = new FormData();
-            fd.set("srckey", searchQuery);
+            fd.set("srckey", searchQuery.trim());
             searchFetcher.submit(fd, {
                 method: "post",
                 action: "/api/inkybay/search",

@@ -1,14 +1,37 @@
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "~/components/ui/table";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { Button } from "~/components/ui/button";
 import { Ellipsis, Eye, PenBox, Plus, Trash2 } from "lucide-react";
-import { Button } from "./ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
-export const ChatsList = (chats: any) => {
+interface ChatsTableProps {
+    chats: any[];
+    onView: (chat: any) => void;
+    onAdd: (chat: any) => void;
+    onEdit: (chat: any) => void;
+    onDelete: (chat: any) => void;
+}
 
-
-    console.log("===chatslist======>>", chats);
-
+export function ChatsTable({
+    chats,
+    onView,
+    onAdd,
+    onEdit,
+    onDelete,
+}: ChatsTableProps) {
     return (
         <div className="rounded-md border bg-card shadow-sm">
             <Table>
@@ -27,7 +50,7 @@ export const ChatsList = (chats: any) => {
                 </TableHeader>
                 <TableBody>
                     {chats.length > 0 ? (
-                        chats.map((chat:any, index:number) => (
+                        chats.map((chat, index) => (
                             <TableRow key={chat.id}>
                                 <TableCell>{index + 1}</TableCell>
                                 <TableCell>{chat.client.shopName}</TableCell>
@@ -40,7 +63,9 @@ export const ChatsList = (chats: any) => {
                                                 </span>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p className="max-w-sm break-words">{chat.clientQuery}</p>
+                                                <p className="max-w-sm break-words">
+                                                    {chat.clientQuery}
+                                                </p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -48,7 +73,7 @@ export const ChatsList = (chats: any) => {
                                 <TableCell>{chat.handleByUser?.fullName ?? "—"}</TableCell>
                                 <TableCell className="flex flex-wrap gap-1">
                                     {chat.chatTags && chat.chatTags.length > 0 ? (
-                                        chat.chatTags.map((ct:any) => (
+                                        chat.chatTags.map((ct: any) => (
                                             <span
                                                 key={ct.tag.name}
                                                 className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs"
@@ -60,7 +85,9 @@ export const ChatsList = (chats: any) => {
                                         <span className="text-gray-500">N/A</span>
                                     )}
                                 </TableCell>
-                                <TableCell>{chat.reviewAsked == true ? 'Yes' : 'No'}</TableCell>
+                                <TableCell>
+                                    {chat.reviewAsked == true ? "Yes" : "No"}
+                                </TableCell>
                                 <TableCell className="max-w-[20px] truncate">
                                     <TooltipProvider>
                                         <Tooltip>
@@ -70,7 +97,9 @@ export const ChatsList = (chats: any) => {
                                                 </span>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p className="max-w-sm break-words">{chat.clientFeedback}</p>
+                                                <p className="max-w-sm break-words">
+                                                    {chat.clientFeedback}
+                                                </p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -89,43 +118,24 @@ export const ChatsList = (chats: any) => {
                                                 <Ellipsis />
                                             </Button>
                                         </DropdownMenuTrigger>
-                                        {/* <DropdownMenuContent align="end">
-                                            <DropdownMenuItem
-                                                onClick={() => {
-                                                    setSelectedChat(chat);
-                                                    setViewChatModal(true)
-                                                }}
-                                            >
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => onView(chat)}>
                                                 <Eye /> View Details
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() => {
-                                                    setClientId(chat.clientId)
-                                                    setChatModalOpen(true)
-                                                }
-                                                }
-                                            >
+                                            <DropdownMenuItem onClick={() => onAdd(chat)}>
                                                 <Plus /> Add Chat
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() => {
-                                                    setSelectedChat(chat);
-                                                    setEditChatModal(true)
-                                                }}
-                                            >
+                                            <DropdownMenuItem onClick={() => onEdit(chat)}>
                                                 <PenBox /> Edit Chat
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem
                                                 variant="destructive"
-                                                onClick={() => {
-                                                    setChatToDelete(chat);
-                                                    setDeleteDialogOpen(true);
-                                                }}
+                                                onClick={() => onDelete(chat)}
                                             >
                                                 <Trash2 /> Delete
                                             </DropdownMenuItem>
-                                        </DropdownMenuContent> */}
+                                        </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
                             </TableRow>
@@ -133,7 +143,7 @@ export const ChatsList = (chats: any) => {
                     ) : (
                         <TableRow>
                             <TableCell
-                                colSpan={7}
+                                colSpan={9}
                                 className="text-center py-6 text-muted-foreground"
                             >
                                 No chats found.
@@ -143,5 +153,5 @@ export const ChatsList = (chats: any) => {
                 </TableBody>
             </Table>
         </div>
-    )
+    );
 }
