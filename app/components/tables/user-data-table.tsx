@@ -18,6 +18,7 @@ import {
     AvatarImage,
 } from "@/components/ui/avatar"
 import { Link } from "react-router";
+import { PaginationBar } from "../pagination-bar";
 
 interface Meta {
     total: number;
@@ -46,9 +47,10 @@ interface DataTableProps {
     meta: Meta;
     onPageChange: (page: number) => void;
     onSearch: (term: string) => void;
+    handleLimitChange?: (limit: number) => void;
 }
 
-export function DataTable({ data, meta, onPageChange, onSearch }: DataTableProps) {
+export function DataTable({ data, meta, onPageChange, onSearch, handleLimitChange }: DataTableProps) {
     const [search, setSearch] = React.useState(meta.search ?? "");
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,29 +125,11 @@ export function DataTable({ data, meta, onPageChange, onSearch }: DataTableProps
             </div>
 
             {/* 🔢 Pagination */}
-            <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                    Page {meta.page} of {meta.totalPages}
-                </div>
-                <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onPageChange(meta.page - 1)}
-                        disabled={meta.page <= 1}
-                    >
-                        <ChevronLeft className="size-4 mr-1" /> Prev
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onPageChange(meta.page + 1)}
-                        disabled={meta.page >= meta.totalPages}
-                    >
-                        Next <ChevronRight className="size-4 ml-1" />
-                    </Button>
-                </div>
-            </div>
+            <PaginationBar
+                meta={meta}
+                onPageChange={onPageChange}
+                onLimitChange={handleLimitChange}
+            />
         </div>
     );
 }

@@ -1,4 +1,4 @@
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger} from "~/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "~/components/ui/table";
 import { ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
@@ -9,6 +9,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
+import { PaginationBar } from "~/components/pagination-bar";
 
 const AddMeetingModal = lazy(() =>
     import("~/components/modals/add-meeting-modal").then((m) => ({ default: m.AddMeetingModal }))
@@ -84,6 +85,13 @@ export default function MeetingListPage() {
     const handlePageChange = (newPage: number) => {
         const params = new URLSearchParams(window.location.search);
         params.set("page", newPage.toString());
+        navigate(`?${params.toString()}`);
+    };
+
+    const handleLimitChange = (newLimit: number) => {
+        const params = new URLSearchParams(window.location.search);
+        params.set("limit", newLimit.toString());
+        params.set("page", "1"); // reset to first page
         navigate(`?${params.toString()}`);
     };
 
@@ -225,29 +233,11 @@ export default function MeetingListPage() {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                        Page {meta.page} of {meta.totalPages}
-                    </div>
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(meta.page - 1)}
-                            disabled={meta.page <= 1}
-                        >
-                            <ChevronLeft className="size-4 mr-1" /> Prev
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(meta.page + 1)}
-                            disabled={meta.page >= meta.totalPages}
-                        >
-                            Next <ChevronRight className="size-4 ml-1" />
-                        </Button>
-                    </div>
-                </div>
+                <PaginationBar
+                    meta={meta}
+                    onPageChange={handlePageChange}
+                    onLimitChange={handleLimitChange}
+                />
             </div>
 
             {/* Add Meeting Modal */}

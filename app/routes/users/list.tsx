@@ -64,6 +64,13 @@ export default function UsersList() {
         navigate(`?${params.toString()}`);
     }
 
+    const handleLimitChange = (newLimit: number) => {
+        const params = new URLSearchParams(window.location.search);
+        params.set("limit", newLimit.toString());
+        params.set("page", "1"); // reset to first page
+        navigate(`?${params.toString()}`);
+    };
+
     function handleSearch(value: string) {
         const params = new URLSearchParams(window.location.search);
         params.set("search", value);
@@ -90,6 +97,7 @@ export default function UsersList() {
                 meta={meta}
                 onPageChange={handlePageChange}
                 onSearch={handleSearch}
+                handleLimitChange={handleLimitChange}
             />
         </div>
     );
