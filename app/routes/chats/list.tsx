@@ -11,6 +11,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
+import { cn } from "~/lib/utils";
 
 const AddChatModal = lazy(() =>
     import("~/components/modals/add-chat-modal").then((m) => ({
@@ -237,7 +238,12 @@ export default function ChatsListPage() {
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant="ghost" size="icon" className="h-6 w-6 cursor-pointer">
-                                                    <Filter className="size-4" />
+                                                    <Filter
+                                                        className={cn(
+                                                            "size-4 transition-colors",
+                                                            meta.selectedTags.length > 0 ? "text-blue-600" : "text-muted-foreground"
+                                                        )}
+                                                    />
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="max-h-64 overflow-auto w-48">
