@@ -33,6 +33,7 @@ export default [
 
     ]),
     // api routes
+    route("api/auth/login", "./api/auth/login.ts"),
     route("api/users", "./api/users/index.ts"),
     route("api/users/:id", "./api/users/$id.ts"),
     route("api/statuses", "./api/statuses.ts"),
