@@ -52,7 +52,7 @@ export default function PermissionListPage() {
                             <TableHead>Name</TableHead>
                             <TableHead>Slug</TableHead>
                             <TableHead>Created At</TableHead>
-                            <TableHead>Actions</TableHead>
+                            {/* <TableHead>Actions</TableHead> */}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -63,7 +63,7 @@ export default function PermissionListPage() {
                                     <TableCell>{perm.name}</TableCell>
                                     <TableCell>{perm.slug}</TableCell>
                                     <TableCell>{new Date(perm.createdAt).toLocaleDateString()}</TableCell>
-                                    <TableCell>
+                                    {/* <TableCell>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant="ghost" size="icon">
@@ -79,15 +79,14 @@ export default function PermissionListPage() {
                                                 >
                                                     <Edit /> Edit
                                                 </DropdownMenuItem>
-                                                {/* Add Delete or View if needed */}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
-                                    </TableCell>
+                                    </TableCell> */}
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                                <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
                                     No permissions found.
                                 </TableCell>
                             </TableRow>
