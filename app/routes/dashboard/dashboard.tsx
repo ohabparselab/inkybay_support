@@ -1,19 +1,10 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { DashboardCardsSection } from "~/components/dashboard-cards-section";
+import { Badge } from "~/components/ui/badge";
 import { useFetcher } from "react-router-dom";
 import { useEffect } from "react";
-import { Badge } from "~/components/ui/badge";
-
-type StatCardProps = {
-    title: string;
-    description: string;
-    value: string | number;
-    trend: "up" | "down";
-    badgeValue: string;
-    footerTitle: string;
-    footerSubtitle: string;
-};
+import { Spinner } from "~/components/ui/spinner";
 
 export const meta = () => [{ title: "Dashboard | InkyBay" }];
 
@@ -27,49 +18,13 @@ export default function DashboardPage() {
 
     const data = fetcher.data;
 
-    console.log("=======>>", data)
-
-    // const stats: StatCardProps[] = [
-    //     {
-    //         title: "Tasks",
-    //         description: "Total Tasks",
-    //         value: "125",
-    //         trend: "up",
-    //         badgeValue: "+12.5%",
-    //         footerTitle: "Pending Tasks",
-    //         footerSubtitle: "11",
-    //     },
-    //     {
-    //         title: "Clients",
-    //         description: "Total Chats",
-    //         value: "1,234",
-    //         trend: "up",
-    //         badgeValue: "20%",
-    //         footerTitle: "Total Chats",
-    //         footerSubtitle: "2234",
-    //     },
-    //     {
-    //         title: "Marketing Funnels",
-    //         description: "Total Marketing Funnels",
-    //         value: "45",
-    //         trend: "up",
-    //         badgeValue: "+12.5%",
-    //         footerTitle: "Active Funnels",
-    //         footerSubtitle: "20",
-    //     },
-    //     {
-    //         title: "Meetings",
-    //         description: "Total Meetings",
-    //         value: "43",
-    //         trend: "up",
-    //         badgeValue: "4.5%",
-    //         footerTitle: "Today Meetings with clients",
-    //         footerSubtitle: "0",
-    //     },
-    // ];
-
-    if (!data)
-        return <p className="text-center py-10 text-muted-foreground">Loading dashboard...</p>;
+    if (!data) {
+        return (
+            <div className="flex items-center justify-center h-[80vh] text-muted-foreground text-lg">
+                <Spinner/>
+            </div>
+        )
+    }
 
     const { summary, pendingTasks, latestTasks, todayMeetings, upcomingMeetings } = data;
 
@@ -201,8 +156,10 @@ export default function DashboardPage() {
                                                     <TableRow key={meeting.id}>
                                                         <TableCell>{meeting.storeUrl}</TableCell>
                                                         <TableCell>{meeting.user.fullName}</TableCell>
-                                                        <TableCell className="flex flex-wrap gap-1">
-                                                            {meeting.joiningStatus ? 'Yes' : 'No'}
+                                                        <TableCell>
+                                                            <Badge variant="outline">
+                                                                {meeting.joiningStatus ? 'Yes' : 'No'}
+                                                            </Badge>
                                                         </TableCell>
                                                         <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
                                                     </TableRow>
@@ -234,8 +191,10 @@ export default function DashboardPage() {
                                                     <TableRow key={meeting.id}>
                                                         <TableCell>{meeting.storeUrl}</TableCell>
                                                         <TableCell>{meeting.user.fullName}</TableCell>
-                                                        <TableCell className="flex flex-wrap gap-1">
-                                                            {meeting.joiningStatus ? 'Yes' : 'No'}
+                                                        <TableCell>
+                                                            <Badge variant="outline">
+                                                                {meeting.joiningStatus ? 'Yes' : 'No'}
+                                                            </Badge>
                                                         </TableCell>
                                                         <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
                                                     </TableRow>

@@ -1,15 +1,15 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
-import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
+import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
+import { AlertTriangle, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
+import { PaginationBar } from "~/components/pagination-bar";
 import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
-import { PaginationBar } from "~/components/pagination-bar";
 
 const AddMarketingFunnelModal = lazy(() =>
     import("~/components/modals/add-marketing-funnel-modal").then((m) => ({ default: m.AddMarketingFunnelModal }))
@@ -90,6 +90,13 @@ export default function MarketingFunnelListPage() {
     const [editMarketingFunnelModalOpen, setEditMarketingFunnelModalOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const navigate = useNavigate();
+
+    const rootData = useRouteLoaderData("root") as any;
+    const permissions = rootData?.permissions ?? [];
+    const canView = permissions.includes("marketing-funnels.view");
+    const canEdit = permissions.includes("marketing-funnels.edit");
+    const canDelete = permissions.includes("marketing-funnels.delete");
+    const canCreate = permissions.includes("marketing-funnels.create");
 
     const handlePageChange = (newPage: number) => {
         const params = new URLSearchParams(window.location.search);
@@ -173,69 +180,98 @@ export default function MarketingFunnelListPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {funnels.length > 0 ? (
-                                funnels.map((funnel, idx) => (
-                                    <TableRow key={funnel.id}>
-                                        <TableCell>{idx + 1}</TableCell>
-                                        <TableCell>{funnel.client.shopName}</TableCell>
-                                        <TableCell>{funnel.installPhase}</TableCell>
-                                        <TableCell>{funnel.typeOfProducts ?? 'N/A'}</TableCell>
-                                        <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No'}</TableCell>
-                                        <TableCell>{funnel.customizationType == '' ? 'N/A' : funnel.customizationType}</TableCell>
-                                        <TableCell>{funnel.initialFeedback == '' ? 'N/A' : funnel.initialFeedback}</TableCell>
-                                        <TableCell>{new Date(funnel.createdAt).toLocaleDateString()}</TableCell>
-                                        <TableCell>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <Ellipsis />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => {
-                                                        setSelectedMarketingFunnel(funnel);
-                                                        setViewMarketingFunnelModalOpen(true);
-                                                    }}>
-                                                        <Eye /> View Details
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onClick={() => {
-                                                            setSelectedClientId(funnel.clientId);
-                                                            setAddMarketingModalOpen(true);
-                                                        }}
-                                                    >
-                                                        <Plus /> Add Marketing Funnel
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onClick={() => {
-                                                            setSelectedMarketingFunnel(funnel);
-                                                            setEditMarketingFunnelModalOpen(true);
-                                                        }}
-                                                    >
-                                                        <PenBox /> Edit Marketing Funnel
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        variant="destructive"
-                                                        onClick={() => {
-                                                            setSelectedMarketingFunnel(funnel);
-                                                            setDeleteDialogOpen(true);
-                                                        }}
-                                                    >
-                                                        <Trash2 /> Delete
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                            {
+                                canView ? (
+                                    funnels.length > 0 ? (
+                                        funnels.map((funnel, idx) => (
+                                            <TableRow key={funnel.id}>
+                                                <TableCell>{idx + 1}</TableCell>
+                                                <TableCell>{funnel.client.shopName}</TableCell>
+                                                <TableCell>{funnel.installPhase}</TableCell>
+                                                <TableCell>{funnel.typeOfProducts ?? 'N/A'}</TableCell>
+                                                <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No'}</TableCell>
+                                                <TableCell>{funnel.customizationType == '' ? 'N/A' : funnel.customizationType}</TableCell>
+                                                <TableCell>{funnel.initialFeedback == '' ? 'N/A' : funnel.initialFeedback}</TableCell>
+                                                <TableCell>{new Date(funnel.createdAt).toLocaleDateString()}</TableCell>
+                                                <TableCell>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon">
+                                                                <Ellipsis />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => {
+                                                                setSelectedMarketingFunnel(funnel);
+                                                                setViewMarketingFunnelModalOpen(true);
+                                                            }}>
+                                                                <Eye /> View Details
+                                                            </DropdownMenuItem>
+                                                            {
+                                                                canCreate && (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => {
+                                                                            setSelectedClientId(funnel.clientId);
+                                                                            setAddMarketingModalOpen(true);
+                                                                        }}
+                                                                    >
+                                                                        <Plus /> Add Marketing Funnel
+                                                                    </DropdownMenuItem>
+                                                                )
+                                                            }
+                                                            {
+                                                                canEdit && (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => {
+                                                                            setSelectedMarketingFunnel(funnel);
+                                                                            setEditMarketingFunnelModalOpen(true);
+                                                                        }}
+                                                                    >
+                                                                        <PenBox /> Edit Marketing Funnel
+                                                                    </DropdownMenuItem>
+                                                                )
+                                                            }
+                                                            {
+                                                                canDelete && (
+                                                                    <>
+                                                                        <DropdownMenuSeparator />
+                                                                        <DropdownMenuItem
+                                                                            variant="destructive"
+                                                                            onClick={() => {
+                                                                                setSelectedMarketingFunnel(funnel);
+                                                                                setDeleteDialogOpen(true);
+                                                                            }}
+                                                                        >
+                                                                            <Trash2 /> Delete
+                                                                        </DropdownMenuItem>
+                                                                    </>
+                                                                )
+                                                            }
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={9} className="text-center py-30 text-muted-foreground">
+                                                No marketing funnels found.
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={9}>
+                                            <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
+                                                <div className="flex items-center gap-2">
+                                                    <AlertTriangle className="w-5 h-5" />
+                                                    <span>You don’t have permission to view marketing funnels data.</span>
+                                                </div>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
-                                        No marketing funnels found.
-                                    </TableCell>
-                                </TableRow>
-                            )}
+                                )
+                            }
                         </TableBody>
                     </Table>
                     {/* Pagination */}
@@ -245,8 +281,6 @@ export default function MarketingFunnelListPage() {
                         onLimitChange={handleLimitChange}
                     />
                 </div>
-
-
             </div>
 
             {/* Add Marketing Funnel Modal */}

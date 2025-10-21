@@ -13,16 +13,16 @@ import {
     TableHeader,
     TableRow,
 } from "~/components/ui/table";
-import { ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
-import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
+import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
+import { AlertTriangle, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
+import { PaginationBar } from "~/components/pagination-bar";
 import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
-import { PaginationBar } from "~/components/pagination-bar";
 
 const AddTaskModal = lazy(() =>
     import("~/components/modals/add-task-modal").then((m) => ({ default: m.AddTaskModal }))
@@ -107,6 +107,13 @@ export default function TasksListPage() {
 
     const navigate = useNavigate();
 
+    const rootData = useRouteLoaderData("root") as any;
+    const permissions = rootData?.permissions ?? [];
+    const canView = permissions.includes("tasks.view");
+    const canEdit = permissions.includes("tasks.edit");
+    const canDelete = permissions.includes("tasks.delete");
+    const canCreate = permissions.includes("tasks.create");
+
     const handlePageChange = (newPage: number) => {
         const params = new URLSearchParams(window.location.search);
         params.set("page", newPage.toString());
@@ -190,74 +197,103 @@ export default function TasksListPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {tasks.length > 0 ? (
-                                tasks.map((task, idx) => (
-                                    <TableRow key={task.id}>
-                                        <TableCell>{idx + 1}</TableCell>
-                                        <TableCell>{task.client.shopName}</TableCell>
-                                        <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell>
-                                        <TableCell>{task.client?.shopName ?? "—"}</TableCell>
-                                        <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
-                                        <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
-                                        <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>
-                                        <TableCell>{task.status?.name ?? "—"}</TableCell>
-                                        <TableCell>
-                                            {task.taskAddedDate
-                                                ? new Date(task.taskAddedDate).toLocaleDateString()
-                                                : "—"}
-                                        </TableCell>
-                                        <TableCell>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <Ellipsis />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => {
-                                                        setSelectedTask(task);
-                                                        setViewTaskModalOpen(true);
-                                                    }}>
-                                                        <Eye /> View Details
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onClick={() => {
-                                                            setSelectedClientId(task.clientId);
-                                                            setTaskModalOpen(true);
-                                                        }}
-                                                    >
-                                                        <Plus /> Add Task
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onClick={() => {
-                                                            setSelectedTask(task);
-                                                            setEditTaskModalOpen(true);
-                                                        }}
-                                                    >
-                                                        <PenBox /> Edit Task
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        variant="destructive"
-                                                        onClick={() => {
-                                                            setSelectedTask(task);
-                                                            setDeleteDialogOpen(true);
-                                                        }}
-                                                    >
-                                                        <Trash2 /> Delete
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                            {
+                                canView ? (
+                                    tasks.length > 0 ? (
+                                        tasks.map((task, idx) => (
+                                            <TableRow key={task.id}>
+                                                <TableCell>{idx + 1}</TableCell>
+                                                <TableCell>{task.client.shopName}</TableCell>
+                                                <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell>
+                                                <TableCell>{task.client?.shopName ?? "—"}</TableCell>
+                                                <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
+                                                <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
+                                                <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>
+                                                <TableCell>{task.status?.name ?? "—"}</TableCell>
+                                                <TableCell>
+                                                    {task.taskAddedDate
+                                                        ? new Date(task.taskAddedDate).toLocaleDateString()
+                                                        : "—"}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon">
+                                                                <Ellipsis />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => {
+                                                                setSelectedTask(task);
+                                                                setViewTaskModalOpen(true);
+                                                            }}>
+                                                                <Eye /> View Details
+                                                            </DropdownMenuItem>
+                                                            {
+                                                                canCreate && (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => {
+                                                                            setSelectedClientId(task.clientId);
+                                                                            setTaskModalOpen(true);
+                                                                        }}
+                                                                    >
+                                                                        <Plus /> Add Task
+                                                                    </DropdownMenuItem>
+                                                                )
+                                                            }
+                                                            {
+                                                                canEdit && (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => {
+                                                                            setSelectedTask(task);
+                                                                            setEditTaskModalOpen(true);
+                                                                        }}
+                                                                    >
+                                                                        <PenBox /> Edit Task
+                                                                    </DropdownMenuItem>
+                                                                )
+                                                            }
+                                                            {
+                                                                canDelete && (
+                                                                    <>
+                                                                        <DropdownMenuSeparator />
+                                                                        <DropdownMenuItem
+                                                                            variant="destructive"
+                                                                            onClick={() => {
+                                                                                setSelectedTask(task);
+                                                                                setDeleteDialogOpen(true);
+                                                                            }}
+                                                                        >
+                                                                            <Trash2 /> Delete
+                                                                        </DropdownMenuItem>
+                                                                    </>
+                                                                )
+                                                            }
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={10} className="text-center py-30 text-muted-foreground">
+                                                No tasks found.
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                ) : (
+                                     <TableRow>
+                                        <TableCell colSpan={10}>
+                                            <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
+                                                <div className="flex items-center gap-2">
+                                                    <AlertTriangle className="w-5 h-5" />
+                                                    <span>You don't have permission view task data.</span>
+                                                </div>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
-                                        No tasks found.
-                                    </TableCell>
-                                </TableRow>
-                            )}
+                                )
+                            }
                         </TableBody>
                     </Table>
                     {/* Pagination */}
