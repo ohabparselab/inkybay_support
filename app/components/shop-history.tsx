@@ -1,13 +1,18 @@
-import { Spinner } from "~/components/ui/spinner";
-import { useFetcher } from "react-router";
-import { useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import { useFetcher, useRouteLoaderData } from "react-router";
+import { Spinner } from "~/components/ui/spinner";
+import { useEffect } from "react";
+import { AlertTriangle } from "lucide-react";
 
 interface ShopifyHistoryProps {
     shopUrl: string;
 }
 
 export function ShopHistory({ shopUrl }: ShopifyHistoryProps) {
+
+    const rootData = useRouteLoaderData("root") as any;
+    const permissions = rootData?.permissions ?? [];
+    const canShopView = permissions.includes("shop.view");
 
     const historyFetcher = useFetcher<{ status: number; data: any }>();
 
@@ -22,6 +27,17 @@ export function ShopHistory({ shopUrl }: ShopifyHistoryProps) {
     const loading = historyFetcher.state !== "idle";
     const histories = historyFetcher.data?.data?.history || {};
     const historyData = historyFetcher.data?.data || {};
+
+     if (!canShopView) {
+        return (
+            <div className="flex flex-col items-center justify-center py-10 text-yellow-600">
+                <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5" />
+                    <span>You don't have permission view shop history data.</span>
+                </div>
+            </div>
+        )
+    }
 
     if (loading) {
         return (

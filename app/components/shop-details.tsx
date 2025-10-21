@@ -1,5 +1,6 @@
+import { AlertTriangle } from "lucide-react";
 import { useEffect } from "react";
-import { useFetcher } from "react-router";
+import { useFetcher, useRouteLoaderData } from "react-router";
 import { Spinner } from "~/components/ui/spinner";
 
 interface ShopDetailsProps {
@@ -7,6 +8,10 @@ interface ShopDetailsProps {
 }
 
 export function ShopDetails({ shopUrl }: ShopDetailsProps) {
+
+    const rootData = useRouteLoaderData("root") as any;
+    const permissions = rootData?.permissions ?? [];
+    const canShopView = permissions.includes("shop.view");
 
     const infoFetcher = useFetcher<{ status: number; data: any }>();
 
@@ -21,6 +26,17 @@ export function ShopDetails({ shopUrl }: ShopDetailsProps) {
     const loading = infoFetcher.state !== "idle";
     const shop = infoFetcher.data?.data?.shopify || {};
     const isShopEmpty = Object.keys(shop).length === 0;
+
+    if (!canShopView) {
+        return (
+            <div className="flex flex-col items-center justify-center py-10 text-yellow-600">
+                <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5" />
+                    <span>You don't have permission view shop details data.</span>
+                </div>
+            </div>
+        )
+    }
 
     if (loading) {
         return (

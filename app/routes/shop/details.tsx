@@ -1,14 +1,14 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { Ellipsis, ExternalLink, Eye, PenBox, Plus, Trash2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { AlertTriangle, Ellipsis, ExternalLink, Eye, PenBox, Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFetcher, useLocation, useRouteLoaderData } from "react-router";
 import { CenterSpinner } from "~/components/ui/center-spinner";
-import { ChatsTable } from "~/components/tables/chats-table";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { ShopDetails } from "~/components/shop-details";
 import { ShopHistory } from "~/components/shop-history";
-import { useFetcher, useLocation } from "react-router";
 import { Separator } from "~/components/ui/separator";
 import { Spinner } from "~/components/ui/spinner";
 import { Button } from "~/components/ui/button";
@@ -71,6 +71,32 @@ export default function ShopDetailsPage() {
     const [editMeetingModalOpen, setEditMeetingModalOpen] = useState(false);
     const [selectedMeeting, setSelectedMeeting] = useState<any | null>(null);
     const [meetingDeleteDialogOpen, setMeetingDeleteDialogOpen] = useState(false);
+
+    // permission checking 
+    const rootData = useRouteLoaderData("root") as any;
+    const permissions = rootData?.permissions ?? [];
+
+    const canShopView = permissions.includes("shop.view");
+
+    const canChatView = permissions.includes("chats.view");
+    const canChatEdit = permissions.includes("chats.edit");
+    const canChatDelete = permissions.includes("chats.delete");
+    const canChatCreate = permissions.includes("chats.create");
+
+    const canTaskView = permissions.includes("tasks.view");
+    const canTaskEdit = permissions.includes("tasks.edit");
+    const canTaskDelete = permissions.includes("tasks.delete");
+    const canTaskCreate = permissions.includes("tasks.create");
+
+    const canMFunnelView = permissions.includes("marketing-funnels.view");
+    const canMFunnelEdit = permissions.includes("marketing-funnels.edit");
+    const canMFunnelDelete = permissions.includes("marketing-funnels.delete");
+    const canMFunnelCreate = permissions.includes("marketing-funnels.create");
+
+    const canMeetingView = permissions.includes("meetings.view");
+    const canMeetingEdit = permissions.includes("meetings.edit");
+    const canMeetingDelete = permissions.includes("meetings.delete");
+    const canMeetingCreate = permissions.includes("meetings.create");
 
     useEffect(() => {
         if (!shopUrl) return;
@@ -209,9 +235,9 @@ export default function ShopDetailsPage() {
     }
 
     return (
-        <div className="w-full">
+        <div className="w-full px-6">
             <h1 className="text-2xl font-bold mb-2">Shop Details</h1>
-            <Card className="shadow-md rounded-xl">
+            <Card>
                 {loadingInfo ? (
                     <div className="flex justify-center py-3">
                         <Spinner />
@@ -231,19 +257,36 @@ export default function ShopDetailsPage() {
                                     <ExternalLink className="w-4 h-4" />
                                 </a>
                             </div>
-                            <div className="w-1/2 flex flex-row justify-center items-center gap-3">
-                                <Button onClick={() => { setClientId(clientId); setChatModalOpen(true); }}>
-                                    <Plus /> Add Chat
-                                </Button>
-                                <Button onClick={() => { setClientId(clientId); setTaskModalOpen(true); }}>
-                                    <Plus /> Add Task
-                                </Button>
-                                <Button onClick={() => { setClientId(clientId); setAddMarketingModalOpen(true); }}>
-                                    <Plus /> Add Marketing Funnel
-                                </Button>
-                                <Button onClick={() => { setClientId(clientId); setMeetingModalOpen(true); }}>
-                                    <Plus /> Add Meeting
-                                </Button>
+                            <div className="w-1/2 flex flex-row justify-center items-center gap-2">
+                                {
+                                    canChatCreate && (
+                                        <Button onClick={() => { setClientId(clientId); setChatModalOpen(true); }}>
+                                            <Plus /> Add Chat
+                                        </Button>
+                                    )
+                                }
+                                {
+                                    canTaskCreate && (
+                                        <Button onClick={() => { setClientId(clientId); setTaskModalOpen(true); }}>
+                                            <Plus /> Add Task
+                                        </Button>
+                                    )
+                                }
+
+                                {
+                                    canMFunnelCreate && (
+                                        <Button onClick={() => { setClientId(clientId); setAddMarketingModalOpen(true); }}>
+                                            <Plus /> Add Marketing Funnel
+                                        </Button>
+                                    )
+                                }
+                                {
+                                    canMeetingCreate && (
+                                        <Button onClick={() => { setClientId(clientId); setMeetingModalOpen(true); }}>
+                                            <Plus /> Add Meeting
+                                        </Button>
+                                    )
+                                }
                             </div>
                         </div>
                     </CardHeader>
@@ -252,41 +295,56 @@ export default function ShopDetailsPage() {
                 <CardContent className="space-y-5">
                     {/* InkyBay Details */}
                     <section>
-                        <h2 className="text-lg font-semibold mb-3">Inkybay Details</h2>
-                        {loadingInfo ? (
-                            <div className="flex justify-center py-10">
-                                <Spinner />
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-2 gap-y-1 text-sm text-gray-700">
-                                <p>
-                                    <span className="font-bold">Version:</span> {inkybay.version ? inkybay.version : "N/A"}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Plan:</span> {inkybay.plan}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Active:</span>{" "}
-                                    {inkybay.active ? "Yes" : "No"}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Trial Days:</span>{" "}
-                                    {inkybay.trial_days}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Charge Status:</span>{" "}
-                                    {inkybay.charge_status ? "Charged" : "Not Charged"}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Started At:</span>{" "}
-                                    {new Date(inkybay.start_at * 1000).toLocaleString()}
-                                </p>
-                                <p>
-                                    <span className="font-bold">Promo ID:</span>{" "}
-                                    {inkybay.promo_id}
-                                </p>
-                            </div>
-                        )}
+
+                        {
+                            canShopView ? (
+                                loadingInfo ? (
+                                    <div className="flex justify-center py-10">
+                                        <Spinner />
+                                    </div>
+                                ) : (
+                                    <>
+                                        <h2 className="text-lg font-semibold mb-3">Inkybay Details</h2>
+                                        <div className="grid grid-cols-2 gap-y-1 text-sm text-gray-700">
+                                            <p>
+                                                <span className="font-bold">Version:</span> {inkybay.version ? inkybay.version : "N/A"}
+                                            </p>
+                                            <p>
+                                                <span className="font-bold">Plan:</span> {inkybay.plan}
+                                            </p>
+                                            <p>
+                                                <span className="font-bold">Active:</span>{" "}
+                                                {inkybay.active ? "Yes" : "No"}
+                                            </p>
+                                            <p>
+                                                <span className="font-bold">Trial Days:</span>{" "}
+                                                {inkybay.trial_days}
+                                            </p>
+                                            <p>
+                                                <span className="font-bold">Charge Status:</span>{" "}
+                                                {inkybay.charge_status ? "Charged" : "Not Charged"}
+                                            </p>
+                                            <p>
+                                                <span className="font-bold">Started At:</span>{" "}
+                                                {new Date(inkybay.start_at * 1000).toLocaleString()}
+                                            </p>
+                                            <p>
+                                                <span className="font-bold">Promo ID:</span>{" "}
+                                                {inkybay.promo_id}
+                                            </p>
+                                        </div>
+                                    </>
+                                )
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-10 text-yellow-600">
+                                    <div className="flex items-center gap-2">
+                                        <AlertTriangle className="w-5 h-5" />
+                                        <span>You don't have permission view shop details data.</span>
+                                    </div>
+                                </div>
+                            )
+
+                        }
                     </section>
                     <Separator />
 
@@ -376,429 +434,675 @@ export default function ShopDetailsPage() {
 
                             {/* chats Tabs */}
                             <TabsContent value="chats" className="mt-4 text-gray-500 text-sm">
-                                {loadingChats ? (
-                                    <div className="flex justify-center py-5">
-                                        <Spinner />
-                                    </div>
-                                ) : chats.length > 0 ? (
-                                    <div className="w-full space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="relative w-full sm:w-64">
-                                                <Button
-                                                    onClick={() => {
-                                                        setClientId(clientId);
-                                                        setChatModalOpen(true);
-                                                    }}
-                                                >
-                                                    <Plus /> Add Chat
-                                                </Button>
+                                {
+                                    canChatView ? (
+                                        loadingChats ? (
+                                            <div className="flex justify-center py-5">
+                                                <Spinner />
                                             </div>
-                                            <div className="text-sm text-muted-foreground">
-                                                Total: {chats.length}
+                                        ) : chats.length > 0 ? (
+                                            <div className="w-full space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="relative w-full sm:w-64">
+                                                        {
+                                                            canChatCreate && (
+                                                                <Button
+                                                                    onClick={() => {
+                                                                        setClientId(clientId);
+                                                                        setChatModalOpen(true);
+                                                                    }}
+                                                                >
+                                                                    <Plus /> Add Chat
+                                                                </Button>
+                                                            )
+                                                        }
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                        Total: {chats.length}
+                                                    </div>
+                                                </div>
+                                                <div className="rounded-md border bg-card shadow-sm">
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow>
+                                                                <TableHead>ID</TableHead>
+                                                                <TableHead>Shop Name</TableHead>
+                                                                <TableHead>Client Query</TableHead>
+                                                                <TableHead>Handle By</TableHead>
+                                                                <TableHead>Tags</TableHead>
+                                                                <TableHead>Review Asked?</TableHead>
+                                                                <TableHead>Client Feedback</TableHead>
+                                                                <TableHead>Created</TableHead>
+                                                                <TableHead>Actions</TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {chats.length > 0 ? (
+                                                                chats.map((chat: any, index: any) => (
+                                                                    <TableRow key={chat.id}>
+                                                                        <TableCell>{index + 1}</TableCell>
+                                                                        <TableCell>{chat.client.shopName}</TableCell>
+                                                                        <TableCell className="max-w-[20px] truncate">
+                                                                            <TooltipProvider>
+                                                                                <Tooltip>
+                                                                                    <TooltipTrigger asChild>
+                                                                                        <span className="block truncate cursor-pointer">
+                                                                                            {chat.clientQuery || "-"}
+                                                                                        </span>
+                                                                                    </TooltipTrigger>
+                                                                                    <TooltipContent>
+                                                                                        <p className="max-w-sm break-words">
+                                                                                            {chat.clientQuery}
+                                                                                        </p>
+                                                                                    </TooltipContent>
+                                                                                </Tooltip>
+                                                                            </TooltipProvider>
+                                                                        </TableCell>
+                                                                        <TableCell>{chat.handleByUser?.fullName ?? "—"}</TableCell>
+                                                                        <TableCell className="flex flex-wrap gap-1">
+                                                                            {chat.chatTags && chat.chatTags.length > 0 ? (
+                                                                                chat.chatTags.map((ct: any) => (
+                                                                                    <span
+                                                                                        key={ct.tag.name}
+                                                                                        className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs"
+                                                                                    >
+                                                                                        {ct.tag.name}
+                                                                                    </span>
+                                                                                ))
+                                                                            ) : (
+                                                                                <span className="text-gray-500">N/A</span>
+                                                                            )}
+                                                                        </TableCell>
+                                                                        <TableCell>
+                                                                            {chat.reviewAsked == true ? "Yes" : "No"}
+                                                                        </TableCell>
+                                                                        <TableCell className="max-w-[20px] truncate">
+                                                                            <TooltipProvider>
+                                                                                <Tooltip>
+                                                                                    <TooltipTrigger asChild>
+                                                                                        <span className="block truncate cursor-pointer">
+                                                                                            {chat.clientFeedback || "N/A"}
+                                                                                        </span>
+                                                                                    </TooltipTrigger>
+                                                                                    <TooltipContent>
+                                                                                        <p className="max-w-sm break-words">
+                                                                                            {chat.clientFeedback}
+                                                                                        </p>
+                                                                                    </TooltipContent>
+                                                                                </Tooltip>
+                                                                            </TooltipProvider>
+                                                                        </TableCell>
+                                                                        <TableCell>
+                                                                            {new Date(chat.createdAt).toLocaleDateString()}
+                                                                        </TableCell>
+                                                                        <TableCell>
+                                                                            <DropdownMenu>
+                                                                                <DropdownMenuTrigger asChild>
+                                                                                    <Button
+                                                                                        variant="ghost"
+                                                                                        className="data-[state=open]:bg-muted text-muted-foreground flex size-8 cursor-pointer"
+                                                                                        size="icon"
+                                                                                    >
+                                                                                        <Ellipsis />
+                                                                                    </Button>
+                                                                                </DropdownMenuTrigger>
+                                                                                <DropdownMenuContent align="end">
+                                                                                    <DropdownMenuItem onClick={() => {
+                                                                                        setSelectedChat(chat);
+                                                                                        setViewChatModal(true);
+                                                                                    }}>
+                                                                                        <Eye /> View Details
+                                                                                    </DropdownMenuItem>
+                                                                                    {
+                                                                                        canChatCreate && (
+                                                                                            <DropdownMenuItem onClick={() => {
+                                                                                                setClientId(chat.clientId);
+                                                                                                setChatModalOpen(true);
+                                                                                            }}>
+                                                                                                <Plus /> Add Chat
+                                                                                            </DropdownMenuItem>
+                                                                                        )
+                                                                                    }
+                                                                                    {
+                                                                                        canChatEdit && (
+                                                                                            <DropdownMenuItem onClick={() => {
+                                                                                                setSelectedChat(chat);
+                                                                                                setEditChatModal(true);
+                                                                                            }}>
+                                                                                                <PenBox /> Edit Chat
+                                                                                            </DropdownMenuItem>
+                                                                                        )
+                                                                                    }
+                                                                                    {
+                                                                                        canChatDelete && (
+                                                                                            <>
+                                                                                                <DropdownMenuSeparator />
+                                                                                                <DropdownMenuItem
+                                                                                                    variant="destructive"
+                                                                                                    onClick={() => {
+                                                                                                        setSelectedChat(chat);
+                                                                                                        setDeleteDialogOpen(true);
+                                                                                                    }}
+                                                                                                >
+                                                                                                    <Trash2 /> Delete
+                                                                                                </DropdownMenuItem>
+                                                                                            </>
+                                                                                        )
+                                                                                    }
+                                                                                </DropdownMenuContent>
+                                                                            </DropdownMenu>
+                                                                        </TableCell>
+                                                                    </TableRow>
+                                                                ))
+                                                            ) : (
+                                                                <TableRow>
+                                                                    <TableCell
+                                                                        colSpan={9}
+                                                                        className="text-center py-6 text-muted-foreground"
+                                                                    >
+                                                                        No chats found.
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            )}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-gray-400 text-center py-15">
+                                                <span>
+                                                    No chats available
+                                                </span>
+                                                {
+                                                    canChatCreate && (
+                                                        <Button
+                                                            className="ml-5"
+                                                            onClick={() => {
+                                                                setChatModalOpen(true);
+                                                            }}
+                                                        >
+                                                            <Plus /> Add Chat
+                                                        </Button>
+                                                    )
+                                                }
+                                            </div>
+                                        )
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-30 text-yellow-600">
+                                            <div className="flex items-center gap-2">
+                                                <AlertTriangle className="w-5 h-5" />
+                                                <span>You don’t have permission to view chats data.</span>
                                             </div>
                                         </div>
-                                        <ChatsTable
-                                            chats={chats}
-                                            onView={(chat) => {
-                                                setSelectedChat(chat);
-                                                setViewChatModal(true);
-                                            }}
-                                            onAdd={(chat) => {
-                                                setClientId(chat.clientId);
-                                                setChatModalOpen(true);
-                                            }}
-                                            onEdit={(chat) => {
-                                                setSelectedChat(chat);
-                                                setEditChatModal(true);
-                                            }}
-                                            onDelete={(chat) => {
-                                                setSelectedChat(chat);
-                                                setDeleteDialogOpen(true);
-                                            }}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="text-gray-400 text-center py-15">
-                                        <span>
-                                            No chats available
-                                        </span>
-                                        <Button
-                                            className="ml-5"
-                                            onClick={() => {
-                                                setChatModalOpen(true);
-                                            }}
-                                        >
-                                            <Plus /> Add Chat
-                                        </Button>
-                                    </div>
-                                )}
+                                    )
+                                }
                             </TabsContent>
                             {/* task Tabs */}
                             <TabsContent value="tasks" className="mt-4 text-gray-500 text-sm">
-                                {loadingTasks ? (
-                                    <div className="flex justify-center py-5">
-                                        <Spinner />
-                                    </div>
-                                ) : tasks.length > 0 ? (
-                                    <div className="w-full space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="relative w-full sm:w-64">
-                                                <Button
-                                                    onClick={() => {
-                                                        setClientId(clientId);
-                                                        setTaskModalOpen(true);
-                                                    }}
-                                                >
-                                                    <Plus /> Add Task
-                                                </Button>
+                                {
+
+                                    canTaskView ? (
+                                        loadingTasks ? (
+                                            <div className="flex justify-center py-5">
+                                                <Spinner />
                                             </div>
-                                            <div className="text-sm text-muted-foreground">
-                                                Total: {tasks.length}
-                                            </div>
-                                        </div>
-                                        <div className="rounded-md border bg-card shadow-sm">
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead>ID</TableHead>
-                                                        <TableHead>Shop Name</TableHead>
-                                                        <TableHead>Task Details</TableHead>
-                                                        <TableHead>Client</TableHead>
-                                                        <TableHead>Provided By</TableHead>
-                                                        <TableHead>Solved By</TableHead>
-                                                        <TableHead>Store Access</TableHead>
-                                                        <TableHead>Status</TableHead>
-                                                        <TableHead>Task Added</TableHead>
-                                                        <TableHead>Actions</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {tasks.length > 0 ? (
-                                                        tasks.map((task: any, idx: number) => (
-                                                            <TableRow key={task.id}>
-                                                                <TableCell>{idx + 1}</TableCell>
-                                                                <TableCell>{task.client.shopName}</TableCell>
-                                                                <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell>
-                                                                <TableCell>{task.client?.shopName ?? "—"}</TableCell>
-                                                                <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
-                                                                <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
-                                                                <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>
-                                                                <TableCell>{task.status?.name ?? "—"}</TableCell>
-                                                                <TableCell>
-                                                                    {task.taskAddedDate
-                                                                        ? new Date(task.taskAddedDate).toLocaleDateString()
-                                                                        : "—"}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    <DropdownMenu>
-                                                                        <DropdownMenuTrigger asChild>
-                                                                            <Button variant="ghost" size="icon">
-                                                                                <Ellipsis />
-                                                                            </Button>
-                                                                        </DropdownMenuTrigger>
-                                                                        <DropdownMenuContent align="end">
-                                                                            <DropdownMenuItem onClick={() => {
-                                                                                setSelectedTask(task);
-                                                                                setViewTaskModalOpen(true);
-                                                                            }}>
-                                                                                <Eye /> View Details
-                                                                            </DropdownMenuItem>
-                                                                            <DropdownMenuItem
-                                                                                onClick={() => {
-                                                                                    setClientId(task.clientId);
-                                                                                    setTaskModalOpen(true);
-                                                                                }}
-                                                                            >
-                                                                                <Plus /> Add Task
-                                                                            </DropdownMenuItem>
-                                                                            <DropdownMenuItem
-                                                                                onClick={() => {
-                                                                                    setSelectedTask(task);
-                                                                                    setEditTaskModalOpen(true);
-                                                                                }}
-                                                                            >
-                                                                                <PenBox /> Edit Task
-                                                                            </DropdownMenuItem>
-                                                                            <DropdownMenuSeparator />
-                                                                            <DropdownMenuItem
-                                                                                variant="destructive"
-                                                                                onClick={() => {
-                                                                                    setSelectedTask(task);
-                                                                                    setTaskDeleteDialogOpen(true);
-                                                                                }}
-                                                                            >
-                                                                                <Trash2 /> Delete
-                                                                            </DropdownMenuItem>
-                                                                        </DropdownMenuContent>
-                                                                    </DropdownMenu>
-                                                                </TableCell>
+                                        ) : tasks.length > 0 ? (
+                                            <div className="w-full space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="relative w-full sm:w-64">
+                                                        {
+                                                            canTaskCreate && (
+                                                                <Button
+                                                                    onClick={() => {
+                                                                        setClientId(clientId);
+                                                                        setTaskModalOpen(true);
+                                                                    }}
+                                                                >
+                                                                    <Plus /> Add Task
+                                                                </Button>
+                                                            )
+                                                        }
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                        Total: {tasks.length}
+                                                    </div>
+                                                </div>
+                                                <div className="rounded-md border bg-card shadow-sm">
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow>
+                                                                <TableHead>ID</TableHead>
+                                                                <TableHead>Shop Name</TableHead>
+                                                                <TableHead>Task Details</TableHead>
+                                                                <TableHead>Client</TableHead>
+                                                                <TableHead>Provided By</TableHead>
+                                                                <TableHead>Solved By</TableHead>
+                                                                <TableHead>Store Access</TableHead>
+                                                                <TableHead>Status</TableHead>
+                                                                <TableHead>Task Added</TableHead>
+                                                                <TableHead>Actions</TableHead>
                                                             </TableRow>
-                                                        ))
-                                                    ) : (
-                                                        <TableRow>
-                                                            <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
-                                                                No tasks available
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    )}
-                                                </TableBody>
-                                            </Table>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {tasks.length > 0 ? (
+                                                                tasks.map((task: any, idx: number) => (
+                                                                    <TableRow key={task.id}>
+                                                                        <TableCell>{idx + 1}</TableCell>
+                                                                        <TableCell>{task.client.shopName}</TableCell>
+                                                                        <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell>
+                                                                        <TableCell>{task.client?.shopName ?? "—"}</TableCell>
+                                                                        <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
+                                                                        <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
+                                                                        <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>
+                                                                        <TableCell>{task.status?.name ?? "—"}</TableCell>
+                                                                        <TableCell>
+                                                                            {task.taskAddedDate
+                                                                                ? new Date(task.taskAddedDate).toLocaleDateString()
+                                                                                : "—"}
+                                                                        </TableCell>
+                                                                        <TableCell>
+                                                                            <DropdownMenu>
+                                                                                <DropdownMenuTrigger asChild>
+                                                                                    <Button variant="ghost" size="icon">
+                                                                                        <Ellipsis />
+                                                                                    </Button>
+                                                                                </DropdownMenuTrigger>
+                                                                                <DropdownMenuContent align="end">
+                                                                                    <DropdownMenuItem onClick={() => {
+                                                                                        setSelectedTask(task);
+                                                                                        setViewTaskModalOpen(true);
+                                                                                    }}>
+                                                                                        <Eye /> View Details
+                                                                                    </DropdownMenuItem>
+                                                                                    {
+                                                                                        canTaskCreate && (
+                                                                                            <DropdownMenuItem
+                                                                                                onClick={() => {
+                                                                                                    setClientId(task.clientId);
+                                                                                                    setTaskModalOpen(true);
+                                                                                                }}
+                                                                                            >
+                                                                                                <Plus /> Add Task
+                                                                                            </DropdownMenuItem>
+                                                                                        )
+                                                                                    }
+                                                                                    {
+                                                                                        canTaskEdit && (
+                                                                                            <DropdownMenuItem
+                                                                                                onClick={() => {
+                                                                                                    setSelectedTask(task);
+                                                                                                    setEditTaskModalOpen(true);
+                                                                                                }}
+                                                                                            >
+                                                                                                <PenBox /> Edit Task
+                                                                                            </DropdownMenuItem>
+                                                                                        )
+                                                                                    }
+                                                                                    {
+                                                                                        canTaskDelete && (
+                                                                                            <>
+                                                                                                <DropdownMenuSeparator />
+                                                                                                <DropdownMenuItem
+                                                                                                    variant="destructive"
+                                                                                                    onClick={() => {
+                                                                                                        setSelectedTask(task);
+                                                                                                        setTaskDeleteDialogOpen(true);
+                                                                                                    }}
+                                                                                                >
+                                                                                                    <Trash2 /> Delete
+                                                                                                </DropdownMenuItem>
+                                                                                            </>
+                                                                                        )
+                                                                                    }
+                                                                                </DropdownMenuContent>
+                                                                            </DropdownMenu>
+                                                                        </TableCell>
+                                                                    </TableRow>
+                                                                ))
+                                                            ) : (
+                                                                <TableRow>
+                                                                    <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
+                                                                        No tasks available
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            )}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-gray-400 text-center py-15">
+                                                <span>
+                                                    No tasks available
+                                                </span>
+                                                {
+                                                    canTaskCreate && (
+                                                        <Button
+                                                            className="ml-5"
+                                                            onClick={() => {
+                                                                setClientId(clientId);
+                                                                setTaskModalOpen(true);
+                                                            }}
+                                                        >
+                                                            <Plus /> Add Task
+                                                        </Button>
+                                                    )
+                                                }
+                                            </div>
+                                        )
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-30 text-yellow-600">
+                                            <div className="flex items-center gap-2">
+                                                <AlertTriangle className="w-5 h-5" />
+                                                <span>You don’t have permission to view tasks data.</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-gray-400 text-center py-15">
-                                        <span>
-                                            No tasks available
-                                        </span>
-                                        <Button
-                                            className="ml-5"
-                                            onClick={() => {
-                                                setClientId(clientId);
-                                                setTaskModalOpen(true);
-                                            }}
-                                        >
-                                            <Plus /> Add Task
-                                        </Button>
-                                    </div>
-                                )}
+                                    )
+                                }
                             </TabsContent>
                             <TabsContent value="marketingFunnels" className="mt-4 text-gray-500 text-sm">
-                                {loadingMarketingFunnels ? (
-                                    <div className="flex justify-center py-5">
-                                        <Spinner />
-                                    </div>
-                                ) : marketingFunnels.length > 0 ? (
-                                    <div className="w-full space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="relative w-full sm:w-64">
-                                                <Button
-                                                    onClick={() => {
-                                                        setClientId(clientId);
-                                                        setAddMarketingModalOpen(true);
-                                                    }}
-                                                >
-                                                    <Plus /> Add Marketing Funnel
-                                                </Button>
+                                {
+                                    canMFunnelView ? (
+                                        loadingMarketingFunnels ? (
+                                            <div className="flex justify-center py-5">
+                                                <Spinner />
                                             </div>
-                                            <div className="text-sm text-muted-foreground">
-                                                Total: {tasks.length}
-                                            </div>
-                                        </div>
-                                        {/* Table */}
-                                        <div className="rounded-md border bg-card shadow-sm">
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead>ID</TableHead>
-                                                        <TableHead>Shop Name</TableHead>
-                                                        <TableHead>Install Phase</TableHead>
-                                                        <TableHead>Type of Products</TableHead>
-                                                        <TableHead>Client Success</TableHead>
-                                                        <TableHead>Customization Type</TableHead>
-                                                        <TableHead>Initial Feedback</TableHead>
-                                                        <TableHead>Created At</TableHead>
-                                                        <TableHead>Actions</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {marketingFunnels.length > 0 ? (
-                                                        marketingFunnels?.map((funnel: any, idx: number) => (
-                                                            <TableRow key={funnel.id}>
-                                                                <TableCell>{idx + 1}</TableCell>
-                                                                <TableCell>{funnel.client.shopName}</TableCell>
-                                                                <TableCell>{funnel.installPhase}</TableCell>
-                                                                <TableCell>{funnel.typeOfProducts ?? 'N/A'}</TableCell>
-                                                                <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No'}</TableCell>
-                                                                <TableCell>{funnel.customizationType == '' ? 'N/A' : funnel.customizationType}</TableCell>
-                                                                <TableCell>{funnel.initialFeedback == '' ? 'N/A' : funnel.initialFeedback}</TableCell>
-                                                                <TableCell>{new Date(funnel.createdAt).toLocaleDateString()}</TableCell>
-                                                                <TableCell>
-                                                                    <DropdownMenu>
-                                                                        <DropdownMenuTrigger asChild>
-                                                                            <Button variant="ghost" size="icon">
-                                                                                <Ellipsis />
-                                                                            </Button>
-                                                                        </DropdownMenuTrigger>
-                                                                        <DropdownMenuContent align="end">
-                                                                            <DropdownMenuItem onClick={() => {
-                                                                                setSelectedMarketingFunnel(funnel);
-                                                                                setViewMarketingFunnelModalOpen(true);
-                                                                            }}>
-                                                                                <Eye /> View Details
-                                                                            </DropdownMenuItem>
-                                                                            <DropdownMenuItem
-                                                                                onClick={() => {
-                                                                                    setClientId(funnel.clientId);
-                                                                                    setAddMarketingModalOpen(true);
-                                                                                }}
-                                                                            >
-                                                                                <Plus /> Add Marketing Funnel
-                                                                            </DropdownMenuItem>
-                                                                            <DropdownMenuItem
-                                                                                onClick={() => {
-                                                                                    setSelectedMarketingFunnel(funnel);
-                                                                                    setEditMarketingFunnelModalOpen(true);
-                                                                                }}
-                                                                            >
-                                                                                <PenBox /> Edit Marketing Funnel
-                                                                            </DropdownMenuItem>
-                                                                            <DropdownMenuSeparator />
-                                                                            <DropdownMenuItem
-                                                                                variant="destructive"
-                                                                                onClick={() => {
-                                                                                    setSelectedMarketingFunnel(funnel);
-                                                                                    setMFunnelDeleteDialogOpen(true);
-                                                                                }}
-                                                                            >
-                                                                                <Trash2 /> Delete
-                                                                            </DropdownMenuItem>
-                                                                        </DropdownMenuContent>
-                                                                    </DropdownMenu>
-                                                                </TableCell>
+                                        ) : marketingFunnels.length > 0 ? (
+                                            <div className="w-full space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="relative w-full sm:w-64">
+                                                        {
+                                                            canMFunnelCreate && (
+                                                                <Button
+                                                                    onClick={() => {
+                                                                        setClientId(clientId);
+                                                                        setAddMarketingModalOpen(true);
+                                                                    }}
+                                                                >
+                                                                    <Plus /> Add Marketing Funnel
+                                                                </Button>
+                                                            )
+                                                        }
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                        Total: {tasks.length}
+                                                    </div>
+                                                </div>
+                                                {/* Table */}
+                                                <div className="rounded-md border bg-card shadow-sm">
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow>
+                                                                <TableHead>ID</TableHead>
+                                                                <TableHead>Shop Name</TableHead>
+                                                                <TableHead>Install Phase</TableHead>
+                                                                <TableHead>Type of Products</TableHead>
+                                                                <TableHead>Client Success</TableHead>
+                                                                <TableHead>Customization Type</TableHead>
+                                                                <TableHead>Initial Feedback</TableHead>
+                                                                <TableHead>Created At</TableHead>
+                                                                <TableHead>Actions</TableHead>
                                                             </TableRow>
-                                                        ))
-                                                    ) : (
-                                                        <TableRow>
-                                                            <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
-                                                                No marketing funnels found.
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    )}
-                                                </TableBody>
-                                            </Table>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {marketingFunnels.length > 0 ? (
+                                                                marketingFunnels?.map((funnel: any, idx: number) => (
+                                                                    <TableRow key={funnel.id}>
+                                                                        <TableCell>{idx + 1}</TableCell>
+                                                                        <TableCell>{funnel.client.shopName}</TableCell>
+                                                                        <TableCell>{funnel.installPhase}</TableCell>
+                                                                        <TableCell>{funnel.typeOfProducts ?? 'N/A'}</TableCell>
+                                                                        <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No'}</TableCell>
+                                                                        <TableCell>{funnel.customizationType == '' ? 'N/A' : funnel.customizationType}</TableCell>
+                                                                        <TableCell>{funnel.initialFeedback == '' ? 'N/A' : funnel.initialFeedback}</TableCell>
+                                                                        <TableCell>{new Date(funnel.createdAt).toLocaleDateString()}</TableCell>
+                                                                        <TableCell>
+                                                                            <DropdownMenu>
+                                                                                <DropdownMenuTrigger asChild>
+                                                                                    <Button variant="ghost" size="icon">
+                                                                                        <Ellipsis />
+                                                                                    </Button>
+                                                                                </DropdownMenuTrigger>
+                                                                                <DropdownMenuContent align="end">
+                                                                                    <DropdownMenuItem onClick={() => {
+                                                                                        setSelectedMarketingFunnel(funnel);
+                                                                                        setViewMarketingFunnelModalOpen(true);
+                                                                                    }}>
+                                                                                        <Eye /> View Details
+                                                                                    </DropdownMenuItem>
+                                                                                    {
+                                                                                        canMFunnelCreate && (
+                                                                                            <DropdownMenuItem
+                                                                                                onClick={() => {
+                                                                                                    setClientId(funnel.clientId);
+                                                                                                    setAddMarketingModalOpen(true);
+                                                                                                }}
+                                                                                            >
+                                                                                                <Plus /> Add Marketing Funnel
+                                                                                            </DropdownMenuItem>
+                                                                                        )
+                                                                                    }
+                                                                                    {
+                                                                                        canMFunnelEdit && (
+                                                                                            <DropdownMenuItem
+                                                                                                onClick={() => {
+                                                                                                    setSelectedMarketingFunnel(funnel);
+                                                                                                    setEditMarketingFunnelModalOpen(true);
+                                                                                                }}
+                                                                                            >
+                                                                                                <PenBox /> Edit Marketing Funnel
+                                                                                            </DropdownMenuItem>
+                                                                                        )
+                                                                                    }
+                                                                                    {
+                                                                                        canMFunnelDelete && (
+                                                                                            <>
+                                                                                                <DropdownMenuSeparator />
+                                                                                                <DropdownMenuItem
+                                                                                                    variant="destructive"
+                                                                                                    onClick={() => {
+                                                                                                        setSelectedMarketingFunnel(funnel);
+                                                                                                        setMFunnelDeleteDialogOpen(true);
+                                                                                                    }}
+                                                                                                >
+                                                                                                    <Trash2 /> Delete
+                                                                                                </DropdownMenuItem>
+                                                                                            </>
+                                                                                        )
+                                                                                    }
+                                                                                </DropdownMenuContent>
+                                                                            </DropdownMenu>
+                                                                        </TableCell>
+                                                                    </TableRow>
+                                                                ))
+                                                            ) : (
+                                                                <TableRow>
+                                                                    <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
+                                                                        No marketing funnels found.
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            )}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-gray-400 text-center py-15">
+                                                <span>
+                                                    No marketing funnels available
+                                                </span>
+                                                {
+                                                    canMFunnelCreate && (
+                                                        <Button
+                                                            className="ml-5"
+                                                            onClick={() => {
+                                                                setClientId(clientId);
+                                                                setAddMarketingModalOpen(true);
+                                                            }}
+                                                        >
+                                                            <Plus /> Add Marketing Funnel
+                                                        </Button>
+                                                    )
+                                                }
+                                            </div>
+                                        )
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-30 text-yellow-600">
+                                            <div className="flex items-center gap-2">
+                                                <AlertTriangle className="w-5 h-5" />
+                                                <span>You don’t have permission to view marketing funnels data.</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-gray-400 text-center py-15">
-                                        <span>
-                                            No marketing funnels available
-                                        </span>
-                                        <Button
-                                            className="ml-5"
-                                            onClick={() => {
-                                                setClientId(clientId);
-                                                setAddMarketingModalOpen(true);
-                                            }}
-                                        >
-                                            <Plus /> Add Marketing Funnel
-                                        </Button>
-                                    </div>
-                                )}
+                                    )
+
+                                }
                             </TabsContent>
                             <TabsContent value="meetings" className="mt-4 text-gray-500 text-sm">
-                                {loadingMeetings ? (
-                                    <div className="flex justify-center py-5">
-                                        <Spinner />
-                                    </div>
-                                ) : meetings.length > 0 ? (
-                                    <div className="w-full space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="relative w-full sm:w-64">
-                                                <Button
-                                                    onClick={() => {
-                                                        setClientId(clientId);
-                                                        setMeetingModalOpen(true);
-                                                    }}
-                                                >
-                                                    <Plus /> Add Meeting
-                                                </Button>
+                                {
+                                    canMeetingView ? (
+                                        loadingMeetings ? (
+                                            <div className="flex justify-center py-5">
+                                                <Spinner />
                                             </div>
-                                            <div className="text-sm text-muted-foreground">
-                                                Total: {meetings.length}
-                                            </div>
-                                        </div>
-                                        <div className="rounded-md border bg-card shadow-sm">
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead>ID</TableHead>
-                                                        <TableHead>Store URL</TableHead>
-                                                        <TableHead>Agent</TableHead>
-                                                        <TableHead>Joining Status</TableHead>
-                                                        <TableHead>Meeting Date</TableHead>
-                                                        <TableHead>External?</TableHead>
-                                                        <TableHead>Review Asked?</TableHead>
-                                                        <TableHead>Review Given?</TableHead>
-                                                        <TableHead>Actions</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {meetings.length > 0 ? (
-                                                        meetings.map((meeting: any, idx: number) => (
-                                                            <TableRow key={meeting.id}>
-                                                                <TableCell>{idx + 1}</TableCell>
-                                                                <TableCell className="max-w-xs truncate">{meeting.storeUrl}</TableCell>
-                                                                <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
-                                                                <TableCell className="flex flex-wrap gap-1">
-                                                                    {meeting.joiningStatus ? 'Yes' : 'No'}
-                                                                </TableCell>
-                                                                <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
-                                                                <TableCell>{meeting.isExternalMeeting ? "Yes" : "No"}</TableCell>
-                                                                <TableCell>{meeting.reviewAsked ? "Yes" : "No"}</TableCell>
-                                                                <TableCell>{meeting.reviewGiven ? "Yes" : "No"}</TableCell>
-                                                                <TableCell>
-                                                                    <DropdownMenu>
-                                                                        <DropdownMenuTrigger asChild>
-                                                                            <Button variant="ghost" size="icon">
-                                                                                <Ellipsis />
-                                                                            </Button>
-                                                                        </DropdownMenuTrigger>
-                                                                        <DropdownMenuContent align="end">
-                                                                            <DropdownMenuItem onClick={() => {
-                                                                                setSelectedMeeting(meeting);
-                                                                                setViewMeetingModalOpen(true);
-                                                                            }}>
-                                                                                <Eye /> View Details
-                                                                            </DropdownMenuItem>
-                                                                            <DropdownMenuItem
-                                                                                onClick={() => {
-                                                                                    setSelectedMeeting(meeting);
-                                                                                    setEditMeetingModalOpen(true);
-                                                                                }}
-                                                                            >
-                                                                                <PenBox /> Edit Task
-                                                                            </DropdownMenuItem>
-                                                                            <DropdownMenuSeparator />
-                                                                            <DropdownMenuItem
-                                                                                variant="destructive"
-                                                                                onClick={() => {
-                                                                                    setSelectedMeeting(meeting);
-                                                                                    setMeetingDeleteDialogOpen(true);
-                                                                                }}
-                                                                            >
-                                                                                <Trash2 /> Delete
-                                                                            </DropdownMenuItem>
-                                                                        </DropdownMenuContent>
-                                                                    </DropdownMenu>
-                                                                </TableCell>
+                                        ) : meetings.length > 0 ? (
+                                            <div className="w-full space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="relative w-full sm:w-64">
+                                                        {
+                                                            canMeetingCreate && (
+                                                                <Button
+                                                                    onClick={() => {
+                                                                        setClientId(clientId);
+                                                                        setMeetingModalOpen(true);
+                                                                    }}
+                                                                >
+                                                                    <Plus /> Add Meeting
+                                                                </Button>
+                                                            )
+                                                        }
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                        Total: {meetings.length}
+                                                    </div>
+                                                </div>
+                                                <div className="rounded-md border bg-card shadow-sm">
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow>
+                                                                <TableHead>ID</TableHead>
+                                                                <TableHead>Store URL</TableHead>
+                                                                <TableHead>Agent</TableHead>
+                                                                <TableHead>Joining Status</TableHead>
+                                                                <TableHead>Meeting Date</TableHead>
+                                                                <TableHead>External?</TableHead>
+                                                                <TableHead>Review Asked?</TableHead>
+                                                                <TableHead>Review Given?</TableHead>
+                                                                <TableHead>Actions</TableHead>
                                                             </TableRow>
-                                                        ))
-                                                    ) : (
-                                                        <TableRow>
-                                                            <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
-                                                                No meetings found.
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    )}
-                                                </TableBody>
-                                            </Table>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {meetings.length > 0 ? (
+                                                                meetings.map((meeting: any, idx: number) => (
+                                                                    <TableRow key={meeting.id}>
+                                                                        <TableCell>{idx + 1}</TableCell>
+                                                                        <TableCell className="max-w-xs truncate">{meeting.storeUrl}</TableCell>
+                                                                        <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
+                                                                        <TableCell className="flex flex-wrap gap-1">
+                                                                            {meeting.joiningStatus ? 'Yes' : 'No'}
+                                                                        </TableCell>
+                                                                        <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
+                                                                        <TableCell>{meeting.isExternalMeeting ? "Yes" : "No"}</TableCell>
+                                                                        <TableCell>{meeting.reviewAsked ? "Yes" : "No"}</TableCell>
+                                                                        <TableCell>{meeting.reviewGiven ? "Yes" : "No"}</TableCell>
+                                                                        <TableCell>
+                                                                            <DropdownMenu>
+                                                                                <DropdownMenuTrigger asChild>
+                                                                                    <Button variant="ghost" size="icon">
+                                                                                        <Ellipsis />
+                                                                                    </Button>
+                                                                                </DropdownMenuTrigger>
+                                                                                <DropdownMenuContent align="end">
+                                                                                    <DropdownMenuItem onClick={() => {
+                                                                                        setSelectedMeeting(meeting);
+                                                                                        setViewMeetingModalOpen(true);
+                                                                                    }}>
+                                                                                        <Eye /> View Details
+                                                                                    </DropdownMenuItem>
+                                                                                    {
+                                                                                        canMeetingEdit && (
+                                                                                            <DropdownMenuItem
+                                                                                                onClick={() => {
+                                                                                                    setSelectedMeeting(meeting);
+                                                                                                    setEditMeetingModalOpen(true);
+                                                                                                }}
+                                                                                            >
+                                                                                                <PenBox /> Edit Task
+                                                                                            </DropdownMenuItem>
+                                                                                        )
+                                                                                    }
+                                                                                    {
+                                                                                        canMeetingDelete && (
+                                                                                            <>
+                                                                                                <DropdownMenuSeparator />
+                                                                                                <DropdownMenuItem
+                                                                                                    variant="destructive"
+                                                                                                    onClick={() => {
+                                                                                                        setSelectedMeeting(meeting);
+                                                                                                        setMeetingDeleteDialogOpen(true);
+                                                                                                    }}
+                                                                                                >
+                                                                                                    <Trash2 /> Delete
+                                                                                                </DropdownMenuItem>
+                                                                                            </>
+                                                                                        )
+                                                                                    }
+                                                                                </DropdownMenuContent>
+                                                                            </DropdownMenu>
+                                                                        </TableCell>
+                                                                    </TableRow>
+                                                                ))
+                                                            ) : (
+                                                                <TableRow>
+                                                                    <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
+                                                                        No meetings found.
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            )}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-gray-400 text-center py-15">
+                                                <span>
+                                                    No meetings available
+                                                </span>
+                                                {
+                                                    canMeetingCreate && (
+                                                        <Button
+                                                            className="ml-5"
+                                                            onClick={() => {
+                                                                setMeetingModalOpen(true);
+                                                            }}
+                                                        >
+                                                            <Plus /> Add Meeting
+                                                        </Button>
+                                                    )
+                                                }
+                                            </div>
+                                        )
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-30 text-yellow-600">
+                                            <div className="flex items-center gap-2">
+                                                <AlertTriangle className="w-5 h-5" />
+                                                <span>You don’t have permission to view meetings data.</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="text-gray-400 text-center py-15">
-                                        <span>
-                                            No meetings available
-                                        </span>
-                                        <Button
-                                            className="ml-5"
-                                            onClick={() => {
-                                                setMeetingModalOpen(true);
-                                            }}
-                                        >
-                                            <Plus /> Add Meeting
-                                        </Button>
-                                    </div>
-                                )}
+                                    )
+
+
+
+                                }
                             </TabsContent>
                         </Tabs>
                     </section>
