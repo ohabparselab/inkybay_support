@@ -293,7 +293,16 @@ export default function ShopDetailsPage() {
 
                                 {
                                     canMFunnelCreate && (
-                                        <Button onClick={() => { setClientId(clientId); setAddMarketingModalOpen(true); }}>
+                                        <Button onClick={() => {
+                                            setClientId(clientId);
+                                            setSelectedMarketingFunnel({
+                                                client: {
+                                                    shopName: shopify['shop_name'],
+                                                    shopDomain: shop.url
+                                                }
+                                            })
+                                            setAddMarketingModalOpen(true);
+                                        }}>
                                             <Plus /> Add Marketing Funnel
                                         </Button>
                                     )
@@ -861,6 +870,12 @@ export default function ShopDetailsPage() {
                                                                 <Button
                                                                     onClick={() => {
                                                                         setClientId(clientId);
+                                                                        setSelectedMarketingFunnel({
+                                                                            client: {
+                                                                                shopName: shopify['shop_name'],
+                                                                                shopDomain: shop.url
+                                                                            }
+                                                                        });
                                                                         setAddMarketingModalOpen(true);
                                                                     }}
                                                                 >
@@ -920,7 +935,9 @@ export default function ShopDetailsPage() {
                                                                                             <DropdownMenuItem
                                                                                                 onClick={() => {
                                                                                                     setClientId(funnel.clientId);
+                                                                                                    setSelectedMarketingFunnel(funnel);
                                                                                                     setAddMarketingModalOpen(true);
+
                                                                                                 }}
                                                                                             >
                                                                                                 <Plus /> Add Marketing Funnel
@@ -982,6 +999,12 @@ export default function ShopDetailsPage() {
                                                             className="ml-5"
                                                             onClick={() => {
                                                                 setClientId(clientId);
+                                                                setSelectedMarketingFunnel({
+                                                                    client: {
+                                                                        shopName: shopify['shop_name'],
+                                                                        shopDomain: shop.url
+                                                                    }
+                                                                })
                                                                 setAddMarketingModalOpen(true);
                                                             }}
                                                         >
@@ -1245,13 +1268,14 @@ export default function ShopDetailsPage() {
             {/* =========marketingFunnels modals============= */}
 
             {/* Add Marketing Funnel Modal */}
-            {addMarketingModalOpen && clientId && (
+            {addMarketingModalOpen && clientId && selectedMarketingFunnel && (
                 <Suspense fallback={<CenterSpinner />}>
                     <AddMarketingFunnelModal
                         clientId={clientId}
                         open={addMarketingModalOpen}
                         onOpenChange={setAddMarketingModalOpen}
                         refreshPage={refreshPage}
+                        funnel={selectedMarketingFunnel}
                     />
                 </Suspense>
             )}

@@ -212,6 +212,7 @@ export default function MarketingFunnelListPage() {
                                                                     <DropdownMenuItem
                                                                         onClick={() => {
                                                                             setSelectedClientId(funnel.clientId);
+                                                                            setSelectedMarketingFunnel(funnel);
                                                                             setAddMarketingModalOpen(true);
                                                                         }}
                                                                     >
@@ -284,13 +285,14 @@ export default function MarketingFunnelListPage() {
             </div>
 
             {/* Add Marketing Funnel Modal */}
-            {addMarketingModalOpen && selectedClientId && (
+            {addMarketingModalOpen && selectedClientId && selectedMarketingFunnel && (
                 <Suspense fallback={<CenterSpinner />}>
                     <AddMarketingFunnelModal
                         clientId={selectedClientId}
                         open={addMarketingModalOpen}
                         onOpenChange={setAddMarketingModalOpen}
                         refreshPage={refreshPage}
+                        funnel={selectedMarketingFunnel}
                     />
                 </Suspense>
             )}

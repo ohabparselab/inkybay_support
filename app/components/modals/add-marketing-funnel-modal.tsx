@@ -10,7 +10,6 @@ import { addMarketingFunnelSchema, type AddMarketingFunnelInput } from "~/lib/va
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,9 +27,11 @@ interface AddMarketingFunnelModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     refreshPage?: () => void;
+    funnel: any
 }
 
-export function AddMarketingFunnelModal({ clientId, open, onOpenChange, refreshPage }: AddMarketingFunnelModalProps) {
+export function AddMarketingFunnelModal({ clientId, open, onOpenChange, refreshPage, funnel }: AddMarketingFunnelModalProps) {
+    
     const [formSubmitLoading, setFormSubmitLoading] = useState(false);
 
     const {
@@ -76,7 +77,7 @@ export function AddMarketingFunnelModal({ clientId, open, onOpenChange, refreshP
                 toast.success("Marketing Funnel added successfully.");
                 onOpenChange(false);
                 reset();
-                if(refreshPage) refreshPage();
+                if (refreshPage) refreshPage();
             } else {
                 toast.error(result.message || "Failed to add marketing funnel.");
             }
@@ -91,7 +92,20 @@ export function AddMarketingFunnelModal({ clientId, open, onOpenChange, refreshP
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
                 <DialogHeader>
-                    <DialogTitle>Add Marketing Funnel</DialogTitle>
+                    <DialogTitle>
+                        Add Marketing Funnel
+                        (
+                        <span className="font-semibold text-foreground">{funnel.client.shopName}</span>,{" "}
+                        <a
+                            href={`https://${funnel.client.shopDomain}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                        >
+                            {funnel.client.shopDomain}
+                        </a>
+                        )
+                    </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-3">
