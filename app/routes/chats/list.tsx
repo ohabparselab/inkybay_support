@@ -1,14 +1,16 @@
 
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Ellipsis, Eye, Filter, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { CenterSpinner } from "~/components/ui/center-spinner";
-import { ChatsTable } from "~/components/tables/chats-table";
+import { PaginationBar } from "~/components/pagination-bar";
 import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
-import { PaginationBar } from "~/components/pagination-bar";
 
 const AddChatModal = lazy(() =>
     import("~/components/modals/add-chat-modal").then((m) => ({
@@ -40,24 +42,40 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const page = Number(url.searchParams.get("page") || 1);
     const limit = Number(url.searchParams.get("limit") || 10);
     const search = (url.searchParams.get("search") || "").trim();
+    const tagParams = url.searchParams.get("tags");
+    const selectedTags = tagParams ? tagParams.split(",").map((t) => t.trim()) : [];
 
     const skip = (page - 1) * limit;
-
     const searchLower = search.toLowerCase();
 
-    const where = search
-        ? {
-            OR: [
-                { client: { shopDomain: { contains: searchLower } } },
-                { client: { shopName: { contains: searchLower } } },
-                { client: { email: { contains: searchLower } } },
-                { clientQuery: { contains: searchLower } },
-                { handleByUser: { fullName: { contains: searchLower } } },
-            ],
-        }
-        : {};
+    const where: any = {
+        ...(search
+            ? {
+                OR: [
+                    { client: { shopDomain: { contains: searchLower } } },
+                    { client: { shopName: { contains: searchLower } } },
+                    { client: { email: { contains: searchLower } } },
+                    { clientQuery: { contains: searchLower } },
+                    { handleByUser: { fullName: { contains: searchLower } } },
+                ],
+            }
+            : {}),
+        ...(selectedTags.length
+            ? {
+                chatTags: {
+                    some: {
+                        tag: {
+                            name: {
+                                in: selectedTags,
+                            },
+                        },
+                    },
+                },
+            }
+            : {}),
+    };
 
-    const [chats, total] = await Promise.all([
+    const [chats, total, tags] = await Promise.all([
         prisma.chat.findMany({
             where,
             skip,
@@ -66,41 +84,45 @@ export async function loader({ request }: LoaderFunctionArgs) {
             include: {
                 client: {
                     select: {
-                        id: true, shopDomain: true, shopName: true,
-                        clientEmail: {
-                            select: { id: true, email: true },
-                        },
+                        id: true,
+                        shopDomain: true,
+                        shopName: true,
+                        clientEmail: { select: { id: true, email: true } },
                     },
                 },
                 handleByUser: { select: { id: true, fullName: true, email: true } },
-                chatTags: {
-                    include: { tag: { select: { name: true } } },
-                },
+                chatTags: { include: { tag: { select: { name: true } } } },
             },
         }),
         prisma.chat.count({ where }),
+        prisma.tag.findMany({ select: { id: true, name: true } }),
     ]);
 
     return {
         chats,
+        tags,
         meta: {
             total,
             page,
             limit,
             totalPages: Math.ceil(total / limit),
             search,
+            selectedTags,
         },
     };
 }
+
+
 
 export const meta = () => [{ title: "Chats | InkyBay" }];
 
 export default function ChatsListPage() {
 
-    const { chats, meta } = useLoaderData<typeof loader>();
-    const [search, setSearch] = useState(meta.search ?? "");
-    const [clientId, setClientId] = useState(0);
     const navigate = useNavigate();
+    const { chats, meta, tags } = useLoaderData<typeof loader>();
+    const [search, setSearch] = useState(meta.search ?? "");
+
+    const [clientId, setClientId] = useState(0);
 
     const [chatModalOpen, setChatModalOpen] = useState(false);
     const [viewChatModal, setViewChatModal] = useState(false);
@@ -155,6 +177,23 @@ export default function ChatsListPage() {
         navigate(window.location.pathname + window.location.search, { replace: true });
     };
 
+    const handleTagToggle = (tagName: string, checked: boolean) => {
+        const params = new URLSearchParams(window.location.search);
+        const currentTags = params.get("tags")
+            ? params.get("tags")!.split(",").filter(Boolean)
+            : [];
+
+        let newTags: string[];
+        if (checked) newTags = [...new Set([...currentTags, tagName])];
+        else newTags = currentTags.filter((t) => t !== tagName);
+
+        if (newTags.length) params.set("tags", newTags.join(","));
+        else params.delete("tags");
+
+        params.set("page", "1"); // reset pagination
+        navigate(`?${params.toString()}`);
+    };
+
     return (
         <div className="px-6 space-y-2">
             <div className="flex items-center justify-between">
@@ -177,32 +216,166 @@ export default function ChatsListPage() {
                 </div>
 
                 {/* 🧱 Table */}
-                <ChatsTable
-                    chats={chats}
-                    onView={(chat) => {
-                        setSelectedChat(chat);
-                        setViewChatModal(true);
-                    }}
-                    onAdd={(chat) => {
-                        setClientId(chat.clientId);
-                        setChatModalOpen(true);
-                    }}
-                    onEdit={(chat) => {
-                        setSelectedChat(chat);
-                        setEditChatModal(true);
-                    }}
-                    onDelete={(chat) => {
-                        setChatToDelete(chat);
-                        setDeleteDialogOpen(true);
-                    }}
-                />
-
-                {/* Pagination */}
-                <PaginationBar
-                    meta={meta}
-                    onPageChange={handlePageChange}
-                    onLimitChange={handleLimitChange}
-                />
+                <div className="rounded-md border bg-card shadow-sm">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>ID</TableHead>
+                                <TableHead>Shop Name</TableHead>
+                                <TableHead>Client Query</TableHead>
+                                <TableHead>Handle By</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Tags</span>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 cursor-pointer">
+                                                    <Filter className="size-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="max-h-64 overflow-auto w-48">
+                                                {tags.map((t: any) => (
+                                                    <DropdownMenuCheckboxItem
+                                                        key={t.id}
+                                                        checked={meta.selectedTags.includes(t.name)}
+                                                        onCheckedChange={(checked) => handleTagToggle(t.name, checked)}
+                                                    >
+                                                        {t.name}
+                                                    </DropdownMenuCheckboxItem>
+                                                ))}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                </TableHead>
+                                <TableHead>Review Asked?</TableHead>
+                                <TableHead>Client Feedback</TableHead>
+                                <TableHead>Created</TableHead>
+                                <TableHead>Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {chats.length > 0 ? (
+                                chats.map((chat, index) => (
+                                    <TableRow key={chat.id}>
+                                        <TableCell>{index + 1}</TableCell>
+                                        <TableCell>{chat.client.shopName}</TableCell>
+                                        <TableCell className="max-w-[20px] truncate">
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span className="block truncate cursor-pointer">
+                                                            {chat.clientQuery || "-"}
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p className="max-w-sm break-words">
+                                                            {chat.clientQuery}
+                                                        </p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </TableCell>
+                                        <TableCell>{chat.handleByUser?.fullName ?? "—"}</TableCell>
+                                        <TableCell className="flex flex-wrap gap-1">
+                                            {chat.chatTags && chat.chatTags.length > 0 ? (
+                                                chat.chatTags.map((ct: any) => (
+                                                    <span
+                                                        key={ct.tag.name}
+                                                        className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs"
+                                                    >
+                                                        {ct.tag.name}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="text-gray-500">N/A</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {chat.reviewAsked == true ? "Yes" : "No"}
+                                        </TableCell>
+                                        <TableCell className="max-w-[20px] truncate">
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span className="block truncate cursor-pointer">
+                                                            {chat.clientFeedback || "N/A"}
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p className="max-w-sm break-words">
+                                                            {chat.clientFeedback}
+                                                        </p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </TableCell>
+                                        <TableCell>
+                                            {new Date(chat.createdAt).toLocaleDateString()}
+                                        </TableCell>
+                                        <TableCell>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="data-[state=open]:bg-muted text-muted-foreground flex size-8 cursor-pointer"
+                                                        size="icon"
+                                                    >
+                                                        <Ellipsis />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => {
+                                                        setSelectedChat(chat);
+                                                        setViewChatModal(true);
+                                                    }}>
+                                                        <Eye /> View Details
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => {
+                                                        setClientId(chat.clientId);
+                                                        setChatModalOpen(true);
+                                                    }}>
+                                                        <Plus /> Add Chat
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => {
+                                                        setSelectedChat(chat);
+                                                        setEditChatModal(true);
+                                                    }}>
+                                                        <PenBox /> Edit Chat
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        variant="destructive"
+                                                        onClick={() => {
+                                                            setChatToDelete(chat);
+                                                            setDeleteDialogOpen(true);
+                                                        }}
+                                                    >
+                                                        <Trash2 /> Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={9}
+                                        className="text-center py-6 text-muted-foreground"
+                                    >
+                                        No chats found.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                    {/* Pagination */}
+                    <PaginationBar
+                        meta={meta}
+                        onPageChange={handlePageChange}
+                        onLimitChange={handleLimitChange}
+                    />
+                </div>
             </div>
 
             {/* Modals */}
