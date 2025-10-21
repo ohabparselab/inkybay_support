@@ -138,16 +138,17 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat }
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
                 <DialogHeader >
                     <DialogTitle>
-                        Add New Chat (
-                        <span className="font-semibold text-foreground">{chat.client.shopName}</span>,{" "}
-                        <a
-                            href={`https://${chat.client.shopDomain}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                        >
-                            {chat.client.shopDomain}
-                        </a>
+                        Add New Chat
+                        (
+                            <span className="font-semibold text-foreground">{chat.client.shopName}</span>,{" "}
+                            <a
+                                href={`https://${chat.client.shopDomain}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                            >
+                                {chat.client.shopDomain}
+                            </a>
                         )
                     </DialogTitle>
                 </DialogHeader>

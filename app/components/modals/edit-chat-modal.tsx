@@ -172,7 +172,19 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
                 <DialogHeader>
-                    <DialogTitle>Edit Chat</DialogTitle>
+                    <DialogTitle>Edit Chat
+                        (
+                            <span className="font-semibold text-foreground">{chat.client.shopName}</span>,{" "}
+                            <a
+                                href={`https://${chat.client.shopDomain}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                            >
+                                {chat.client.shopDomain}
+                            </a>
+                        )
+                    </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-3">
