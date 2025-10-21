@@ -127,7 +127,7 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                 toast.success("Meeting updated successfully.");
                 setFormSubmitLoading(false);
                 onOpenChange(false);
-                if(refreshPage) refreshPage();
+                if (refreshPage) refreshPage();
             } else {
                 setFormSubmitLoading(false);
                 toast.error(result.message || "Failed to update meeting.");
@@ -143,7 +143,24 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
                 <DialogHeader>
-                    <DialogTitle>Edit Meeting</DialogTitle>
+                    <DialogTitle>Edit Meeting
+                        {
+                            meeting.storeUrl && (
+                                <>
+                                    (
+                                    <a
+                                        href={`https://${meeting.storeUrl}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline"
+                                    >
+                                        {meeting.storeUrl}
+                                    </a>
+                                    )
+                                </>
+                            )
+                        }
+                    </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-3">

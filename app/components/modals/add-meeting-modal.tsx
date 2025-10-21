@@ -110,7 +110,7 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                 setFormSubmitLoading(false);
                 onOpenChange(false);
                 reset();
-                if(refreshPage) refreshPage();
+                if (refreshPage) refreshPage();
             } else {
                 setFormSubmitLoading(false);
                 toast.error(result.message || "Failed to add meeting.");
@@ -121,12 +121,29 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
             toast.error("Something went wrong while adding meeting.");
         }
     };
-    
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
                 <DialogHeader>
-                    <DialogTitle>Add New Meeting</DialogTitle>
+                    <DialogTitle>
+                        Add New Meeting{" "}
+                        {storeUrl && (
+                            <>
+                                (
+                                <a
+                                    href={`https://${storeUrl}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:underline"
+                                >
+                                    {storeUrl}
+                                </a>
+                                )
+                            </>
+                        )}
+                    </DialogTitle>
+
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-3">
@@ -388,7 +405,7 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                             <ListRestart /> Reset
                         </Button>
                         <Button type="submit">
-                            {formSubmitLoading ? <Spinner/> : <Plus />} Add Meeting
+                            {formSubmitLoading ? <Spinner /> : <Plus />} Add Meeting
                         </Button>
                     </DialogFooter>
                 </form>
