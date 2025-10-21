@@ -34,9 +34,10 @@ interface AddMeetingModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     refreshPage?: () => void;
+    storeUrl?: string;
 }
 
-export function AddMeetingModal({ open, onOpenChange, refreshPage }: AddMeetingModalProps) {
+export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: AddMeetingModalProps) {
 
     const [users, setUsers] = useState<any[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
@@ -51,6 +52,7 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage }: AddMeetingM
     } = useForm<AddMeetingInput>({
         resolver: zodResolver(addMeetingSchema),
         defaultValues: {
+            storeUrl: storeUrl ? storeUrl : "",
             agentId: "",
             emails: [],
             reviewAsked: false,

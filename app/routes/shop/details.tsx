@@ -1247,6 +1247,7 @@ export default function ShopDetailsPage() {
                         open={meetingModalOpen}
                         onOpenChange={setMeetingModalOpen}
                         refreshPage={refreshPage}
+                        storeUrl={shopUrl}
                     />
                 </Suspense>
             )}
