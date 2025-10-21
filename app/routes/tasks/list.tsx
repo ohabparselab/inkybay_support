@@ -235,6 +235,7 @@ export default function TasksListPage() {
                                                                         onClick={() => {
                                                                             setSelectedClientId(task.clientId);
                                                                             setTaskModalOpen(true);
+                                                                            setSelectedTask(task);
                                                                         }}
                                                                     >
                                                                         <Plus /> Add Task
@@ -308,9 +309,14 @@ export default function TasksListPage() {
             </div>
 
             {/* Add Task Modal */}
-            {taskModalOpen && selectedClientId && (
+            {taskModalOpen && selectedClientId && selectedTask && (
                 <Suspense fallback={<CenterSpinner />}>
-                    <AddTaskModal clientId={selectedClientId} open={taskModalOpen} onOpenChange={setTaskModalOpen} />
+                    <AddTaskModal 
+                    clientId={selectedClientId} 
+                    open={taskModalOpen} 
+                    onOpenChange={setTaskModalOpen} 
+                    task={selectedTask}
+                    />
                 </Suspense>
             )}
 

@@ -276,7 +276,16 @@ export default function ShopDetailsPage() {
                                 }
                                 {
                                     canTaskCreate && (
-                                        <Button onClick={() => { setClientId(clientId); setTaskModalOpen(true); }}>
+                                        <Button onClick={() => {
+                                            setClientId(clientId);
+                                            setTaskModalOpen(true);
+                                            setSelectedTask({
+                                                client: {
+                                                    shopName: shopify['shop_name'],
+                                                    shopDomain: shop.url
+                                                }
+                                            })
+                                        }}>
                                             <Plus /> Add Task
                                         </Button>
                                     )
@@ -679,6 +688,12 @@ export default function ShopDetailsPage() {
                                                                     onClick={() => {
                                                                         setClientId(clientId);
                                                                         setTaskModalOpen(true);
+                                                                        setSelectedTask({
+                                                                            client: {
+                                                                                shopName: shopify['shop_name'],
+                                                                                shopDomain: shop.url
+                                                                            }
+                                                                        })
                                                                     }}
                                                                 >
                                                                     <Plus /> Add Task
@@ -742,6 +757,7 @@ export default function ShopDetailsPage() {
                                                                                             <DropdownMenuItem
                                                                                                 onClick={() => {
                                                                                                     setClientId(task.clientId);
+                                                                                                    setSelectedTask(task)
                                                                                                     setTaskModalOpen(true);
                                                                                                 }}
                                                                                             >
@@ -805,6 +821,12 @@ export default function ShopDetailsPage() {
                                                             onClick={() => {
                                                                 setClientId(clientId);
                                                                 setTaskModalOpen(true);
+                                                                setSelectedTask({
+                                                                    client: {
+                                                                        shopName: shopify['shop_name'],
+                                                                        shopDomain: shop.url
+                                                                    }
+                                                                })
                                                             }}
                                                         >
                                                             <Plus /> Add Task
@@ -1175,9 +1197,14 @@ export default function ShopDetailsPage() {
 
             {/* =========tasks modals============= */}
             {/* Add Task Modal */}
-            {taskModalOpen && clientId && (
+            {taskModalOpen && clientId && selectedTask && (
                 <Suspense fallback={<CenterSpinner />}>
-                    <AddTaskModal clientId={clientId} open={taskModalOpen} onOpenChange={setTaskModalOpen} />
+                    <AddTaskModal
+                        clientId={clientId}
+                        open={taskModalOpen}
+                        onOpenChange={setTaskModalOpen}
+                        task={selectedTask}
+                    />
                 </Suspense>
             )}
 

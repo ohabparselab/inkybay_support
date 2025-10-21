@@ -29,9 +29,10 @@ interface AddTaskModalProps {
     clientId: number;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    task:any
 }
 
-export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps) {
+export function AddTaskModal({ clientId, open, onOpenChange, task }: AddTaskModalProps) {
 
     const [users, setUsers] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
@@ -103,12 +104,24 @@ export function AddTaskModal({ clientId, open, onOpenChange }: AddTaskModalProps
         fetchUsers();
         fetchStatuses();
     }, []);
-    console.log(errors);
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
                 <DialogHeader>
-                    <DialogTitle>Add New Task</DialogTitle>
+                    <DialogTitle>Add New Task
+                        (
+                            <span className="font-semibold text-foreground">{task.client.shopName}</span>,{" "}
+                            <a
+                                href={`https://${task.client.shopDomain}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                            >
+                                {task.client.shopDomain}
+                            </a>
+                        )
+                    </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-3">
