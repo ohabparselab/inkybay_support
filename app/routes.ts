@@ -62,6 +62,9 @@ export default [
     //inkybay search api
     route("/api/inkybay/:kind", "./api/api.inkybay.$kind.tsx"),
 
+    // dashboard api
+    route("api/dashboard", "./api/dashboard/index.ts"),
+
     
     // 404 route
     route("*", "./routes/404.tsx"),

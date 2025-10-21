@@ -1,8 +1,9 @@
-"use client";
-import { List } from "lucide-react";
-import { DashboardCardsSection } from "~/components/dashboard-cards-section";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { DashboardCardsSection } from "~/components/dashboard-cards-section";
+import { useFetcher } from "react-router-dom";
+import { useEffect } from "react";
+import { Badge } from "~/components/ui/badge";
 
 type StatCardProps = {
     title: string;
@@ -18,72 +19,63 @@ export const meta = () => [{ title: "Dashboard | InkyBay" }];
 
 export default function DashboardPage() {
 
-    const stats: StatCardProps[] = [
-        {
-            title: "Tasks",
-            description: "Total Tasks",
-            value: "125",
-            trend: "up",
-            badgeValue: "+12.5%",
-            footerTitle: "Pending Tasks",
-            footerSubtitle: "11",
-        },
-        {
-            title: "Clients",
-            description: "Total Chats",
-            value: "1,234",
-            trend: "up",
-            badgeValue: "20%",
-            footerTitle: "Total Chats",
-            footerSubtitle: "2234",
-        },
-        {
-            title: "Marketing Funnels",
-            description: "Total Marketing Funnels",
-            value: "45",
-            trend: "up",
-            badgeValue: "+12.5%",
-            footerTitle: "Active Funnels",
-            footerSubtitle: "20",
-        },
-        {
-            title: "Meetings",
-            description: "Total Meetings",
-            value: "43",
-            trend: "up",
-            badgeValue: "4.5%",
-            footerTitle: "Today Meetings with clients",
-            footerSubtitle: "0",
-        },
-    ];
+    const fetcher = useFetcher();
 
-    const pendingTasks: any[] = [
-        {
-            id: 1
-        },
-        {
-            id: 1
-        },
-        {
-            id: 1
-        },
-        {
-            id: 1
-        },
-        {
-            id: 1
-        },
-        {
-            id: 1
-        },
-        {
-            id: 1
-        }
-    ]
+    useEffect(() => {
+        fetcher.submit({}, { method: "post", action: "/api/dashboard" });
+    }, []);
+
+    const data = fetcher.data;
+
+    console.log("=======>>", data)
+
+    // const stats: StatCardProps[] = [
+    //     {
+    //         title: "Tasks",
+    //         description: "Total Tasks",
+    //         value: "125",
+    //         trend: "up",
+    //         badgeValue: "+12.5%",
+    //         footerTitle: "Pending Tasks",
+    //         footerSubtitle: "11",
+    //     },
+    //     {
+    //         title: "Clients",
+    //         description: "Total Chats",
+    //         value: "1,234",
+    //         trend: "up",
+    //         badgeValue: "20%",
+    //         footerTitle: "Total Chats",
+    //         footerSubtitle: "2234",
+    //     },
+    //     {
+    //         title: "Marketing Funnels",
+    //         description: "Total Marketing Funnels",
+    //         value: "45",
+    //         trend: "up",
+    //         badgeValue: "+12.5%",
+    //         footerTitle: "Active Funnels",
+    //         footerSubtitle: "20",
+    //     },
+    //     {
+    //         title: "Meetings",
+    //         description: "Total Meetings",
+    //         value: "43",
+    //         trend: "up",
+    //         badgeValue: "4.5%",
+    //         footerTitle: "Today Meetings with clients",
+    //         footerSubtitle: "0",
+    //     },
+    // ];
+
+    if (!data)
+        return <p className="text-center py-10 text-muted-foreground">Loading dashboard...</p>;
+
+    const { summary, pendingTasks, latestTasks, todayMeetings, upcomingMeetings } = data;
 
     return (
         <>
-            <DashboardCardsSection stats={stats} />
+            <DashboardCardsSection summary={summary} />
             <div className="flex w-full gap-4 px-4 lg:px-6">
                 <div className="w-1/2">
                     <section className="border p-3 rounded">
@@ -91,7 +83,10 @@ export default function DashboardPage() {
                         <Tabs defaultValue="pending-tasks" className="w-full">
                             <TabsList className="w-full flex border-b">
                                 <TabsTrigger value="pending-tasks" className="flex-1 text-center px-6 py-4 font-medium">
-                                    Pending Tasks {(0)}
+                                    Pending Tasks
+                                    <Badge variant="outline">
+                                        {summary.pendingTaskCount}
+                                    </Badge>
                                 </TabsTrigger>
                                 <TabsTrigger value="latest-tasks" className="flex-1 text-center px-6 py-4 ont-medium">
                                     Latest Tasks
@@ -104,20 +99,22 @@ export default function DashboardPage() {
                                             <TableRow>
                                                 <TableHead>Shop Name</TableHead>
                                                 <TableHead>Provided By</TableHead>
-                                                <TableHead>Status</TableHead>
                                                 <TableHead>Task Added</TableHead>
-                                                <TableHead>Actions</TableHead>
+                                                <TableHead>Status</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {pendingTasks.length > 0 ? (
-                                                pendingTasks.map((task, idx) => (
+                                                pendingTasks.map((task: any, idx: number) => (
                                                     <TableRow key={task.id}>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
+                                                        <TableCell>{task.client.shopName}</TableCell>
+                                                        <TableCell>{task.providedByUser.fullName}</TableCell>
+                                                        <TableCell>{new Date(task.taskAddedDate).toLocaleString()}</TableCell>
+                                                        <TableCell>
+                                                            <Badge variant="outline">
+                                                                {task.status.name}
+                                                            </Badge>
+                                                        </TableCell>
                                                     </TableRow>
                                                 ))) : (
                                                 <TableRow>
@@ -138,29 +135,30 @@ export default function DashboardPage() {
                                             <TableRow>
                                                 <TableHead>Shop Name</TableHead>
                                                 <TableHead>Provided By</TableHead>
-                                                <TableHead>Status</TableHead>
                                                 <TableHead>Task Added</TableHead>
-                                                <TableHead>Actions</TableHead>
+                                                <TableHead>Status</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {pendingTasks.length > 0 ? (
-                                                pendingTasks.map((task, idx) => (
+                                            {latestTasks.length > 0 ? (
+                                                latestTasks.map((task: any, idx: number) => (
                                                     <TableRow key={task.id}>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
+                                                        <TableCell>{task.client.shopName}</TableCell>
+                                                        <TableCell>{task.providedByUser.fullName}</TableCell>
+                                                        <TableCell>{new Date(task.taskAddedDate).toLocaleString()}</TableCell>
+                                                        <TableCell>
+                                                            <Badge variant="outline">
+                                                                {task.status.name}
+                                                            </Badge>
+                                                        </TableCell>
                                                     </TableRow>
                                                 ))) : (
                                                 <TableRow>
                                                     <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                                                        No pending tasks found.
+                                                        No tasks found.
                                                     </TableCell>
                                                 </TableRow>
-                                            )
-                                            }
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </div>
@@ -171,79 +169,83 @@ export default function DashboardPage() {
                 <div className="w-1/2">
                     <section className="border p-3 rounded">
                         <h3 className="mb-2 font-semibold tracking-tight">Meetings</h3>
-                        <Tabs defaultValue="pending-tasks" className="w-full">
+                        <Tabs defaultValue="today-meetings" className="w-full">
                             <TabsList className="w-full flex border-b">
-                                <TabsTrigger value="pending-tasks" className="flex-1 text-center px-6 py-4 font-medium">
-                                    Today Meetings {(0)}
+                                <TabsTrigger value="today-meetings" className="flex-1 text-center px-6 py-4 font-medium">
+                                    Today Meetings
+                                    <Badge variant="outline">
+                                        {summary.todayMeetingCount}
+                                    </Badge>
                                 </TabsTrigger>
-                                <TabsTrigger value="latest-tasks" className="flex-1 text-center px-6 py-4 ont-medium">
+                                <TabsTrigger value="upcoming-meetings" className="flex-1 text-center px-6 py-4 ont-medium">
                                     Upcoming Meetings
+                                    <Badge variant="outline">
+                                        {summary.upcomingMeetingCount}
+                                    </Badge>
                                 </TabsTrigger>
                             </TabsList>
-                            <TabsContent value="pending-tasks" className="mt-2">
+                            <TabsContent value="today-meetings" className="mt-2">
                                 <div className="rounded-md border bg-card shadow-sm">
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Shop Name</TableHead>
-                                                <TableHead>Provided By</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead>Task Added</TableHead>
-                                                <TableHead>Actions</TableHead>
+                                                <TableHead>Store URL</TableHead>
+                                                <TableHead>Agent</TableHead>
+                                                <TableHead>Joining Status</TableHead>
+                                                <TableHead>Meeting Date</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {pendingTasks.length > 0 ? (
-                                                pendingTasks.map((task, idx) => (
-                                                    <TableRow key={task.id}>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
+                                            {todayMeetings.length > 0 ? (
+                                                todayMeetings.map((meeting: any, idx: number) => (
+                                                    <TableRow key={meeting.id}>
+                                                        <TableCell>{meeting.storeUrl}</TableCell>
+                                                        <TableCell>{meeting.user.fullName}</TableCell>
+                                                        <TableCell className="flex flex-wrap gap-1">
+                                                            {meeting.joiningStatus ? 'Yes' : 'No'}
+                                                        </TableCell>
+                                                        <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
                                                     </TableRow>
                                                 ))) : (
                                                 <TableRow>
                                                     <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                                                        No pending tasks found.
+                                                        No today meetings found.
                                                     </TableCell>
                                                 </TableRow>
-                                            )
-                                            }
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </div>
                             </TabsContent>
-                            <TabsContent value="latest-tasks" className="mt-3">
+                            <TabsContent value="upcoming-meetings" className="mt-3">
                                 <div className="rounded-md border bg-card shadow-sm">
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Shop Name</TableHead>
-                                                <TableHead>Provided By</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead>Task Added</TableHead>
-                                                <TableHead>Actions</TableHead>
+                                                <TableHead>Store URL</TableHead>
+                                                <TableHead>Agent</TableHead>
+                                                <TableHead>Joining Status</TableHead>
+                                                <TableHead>Meeting Date</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {pendingTasks.length > 0 ? (
-                                                pendingTasks.map((task, idx) => (
-                                                    <TableRow key={task.id}>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>{idx + 1}</TableCell>
+                                            {upcomingMeetings.length > 0 ? (
+                                                upcomingMeetings.map((meeting: any, idx: number) => (
+                                                    <TableRow key={meeting.id}>
+                                                        <TableCell>{meeting.storeUrl}</TableCell>
+                                                        <TableCell>{meeting.user.fullName}</TableCell>
+                                                        <TableCell className="flex flex-wrap gap-1">
+                                                            {meeting.joiningStatus ? 'Yes' : 'No'}
+                                                        </TableCell>
+                                                        <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
                                                     </TableRow>
                                                 ))) : (
                                                 <TableRow>
                                                     <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                                                        No pending tasks found.
+                                                        No upcoming meetings found.
                                                     </TableCell>
                                                 </TableRow>
-                                            )
-                                            }
+                                            )}
                                         </TableBody>
                                     </Table>
                                 </div>
