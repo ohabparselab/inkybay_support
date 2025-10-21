@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 
 export async function seedModules() {
   const modules = [
-    { name: "Clients", slug: "clients" },
+    { name: "Shop", slug: "shop" },
     { name: "Chats", slug: "chats" },
     { name: "Tasks", slug: "tasks" },
     { name: "Meetings", slug: "meetings" },
