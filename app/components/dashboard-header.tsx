@@ -1,7 +1,8 @@
+import { SearchModal } from "@/components/modals/search-modal";
+import { CenterSpinner } from "@/components/ui/center-spinner";
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Separator } from "@/components/ui/separator"
-import { SearchModal } from "./modals/search-modal";
-import { CenterSpinner } from "./ui/center-spinner";
 import { Suspense, useState } from "react";
 import { Search } from "lucide-react";
 
@@ -30,6 +31,7 @@ export function DashboardHeader() {
                         />
                     </div>
                 </div>
+                <ThemeToggle/>
             </div>
             {
                 searchModalOpen && (

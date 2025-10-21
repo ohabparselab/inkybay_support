@@ -31,7 +31,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     const { email, password } = result.data;
-    const session = await handleLogin(formData);
+    const session = await handleLogin(email, password);
     if (!session) {
         return { formError: "Invalid credentials email or password" };
     }

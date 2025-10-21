@@ -65,6 +65,7 @@ export default [
 
     // dashboard api
     route("api/dashboard", "./api/dashboard/index.ts"),
+    route("action/set-theme", "./routes/action.set-theme.ts"),
 
     
     // 404 route
