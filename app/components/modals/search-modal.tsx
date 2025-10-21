@@ -49,9 +49,9 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="!max-w-3xl w-full mx-auto bg-white rounded-lg shadow-lg">
+            <DialogContent className="!max-w-3xl w-full mx-auto rounded-lg shadow-lg">
                 {/* Modal Header */}
-                <div className="sticky top-0 w-full bg-white py-5 border-b border-gray-200">
+                <div className="sticky top-0 w-full py-5 border-b ">
                     <div className="relative w-full mx-auto">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                             <Search className="h-5 w-5 text-gray-400" />
@@ -82,7 +82,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                             }}>
                                 <div
                                     key={item.id}
-                                    className="group p-4 mb-2 border rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer bg-white hover:bg-gray-50"
+                                    className="group p-4 mb-2 border rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
                                 >
                                     <div className="flex items-start justify-between">
                                         {/* Left side: Shop info */}
@@ -94,7 +94,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                                         </div>
 
                                         {/* Right side: ID badge */}
-                                        <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-md">
+                                        <span className="text-xs font-medium text-gray-600 px-2 py-1 rounded-md">
                                             ID: {item.id}
                                         </span>
                                     </div>

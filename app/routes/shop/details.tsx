@@ -332,7 +332,7 @@ export default function ShopDetailsPage() {
                                 ) : (
                                     <>
                                         <h2 className="text-lg font-semibold mb-3">Inkybay Details</h2>
-                                        <div className="grid grid-cols-2 gap-y-1 text-sm text-gray-700">
+                                        <div className="grid grid-cols-2 gap-y-1 text-sm">
                                             <p>
                                                 <span className="font-bold">Version:</span> {inkybay.version ? inkybay.version : "N/A"}
                                             </p>
@@ -644,7 +644,7 @@ export default function ShopDetailsPage() {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="text-gray-400 text-center py-15">
+                                            <div className="text-center py-15">
                                                 <span>
                                                     No chats available
                                                 </span>
@@ -819,7 +819,7 @@ export default function ShopDetailsPage() {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="text-gray-400 text-center py-15">
+                                            <div className="text-center py-15">
                                                 <span>
                                                     No tasks available
                                                 </span>

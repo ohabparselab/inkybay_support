@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Separator } from "@/components/ui/separator"
 import { Suspense, useState } from "react";
 import { Search } from "lucide-react";
+import { Input } from "./ui/input";
 
 export function DashboardHeader() {
     const [searchModalOpen, setSearchModalOpen] = useState(false);
@@ -19,10 +20,10 @@ export function DashboardHeader() {
                 />
                 <div className="flex flex-1 justify-center px-4">
                     <div className="relative w-full max-w-md">
-                        <input
+                        <Input
                             type="text"
                             placeholder="Search..."
-                            className="w-full cursor-pointer rounded-lg border border-gray-300 bg-gray-50 px-4 pr-10 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                            className="cursor-pointer"
                             readOnly
                             onClick={() => setSearchModalOpen(true)}
                         />

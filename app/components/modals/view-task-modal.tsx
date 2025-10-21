@@ -35,7 +35,7 @@ export function ViewTaskDetailsModal({ open, onOpenChange, task }: ViewTaskDetai
                     <h3 className="text-base font-semibold mb-3">Task Info</h3>
                     <Separator />
 
-                    <div className="grid grid-cols-2 gap-x-6 space-y-2 text-sm text-gray-700">
+                    <div className="grid grid-cols-2 gap-x-6 space-y-2 text-sm">
                         <p><strong>Client:</strong> {task.client?.shopName || "-"}</p>
                         <p><strong>Provided By:</strong> {task.providedByUser?.fullName || "-"}</p>
                         <p><strong>Solved By:</strong> {task.solvedByUser?.fullName || "N/A"}</p>

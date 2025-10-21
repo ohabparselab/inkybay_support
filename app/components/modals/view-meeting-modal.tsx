@@ -34,7 +34,7 @@ export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMee
                     <h3 className="text-base font-semibold mb-3">Meeting Info</h3>
                     <Separator />
 
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-700">
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                         <p><strong>Store URL:</strong> {meeting.storeUrl || "N/A"}</p>
                         <p><strong>Agent:</strong> {meeting.user?.fullName || "N/A"}</p>
                         <p><strong>Meeting Date & Time:</strong> {formatDate(meeting.meetingDateTime)}</p>
@@ -56,7 +56,7 @@ export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMee
                                     View Recording
                                 </a>
                             ) : (
-                                <span className="text-gray-500">N/A</span>
+                                <span>N/A</span>
                             )}
                         </p>
 
@@ -77,7 +77,7 @@ export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMee
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-gray-500">No associated emails.</p>
+                            <p>No associated emails.</p>
                         )}
                     </section>
 
@@ -85,7 +85,7 @@ export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMee
 
                     <section>
                         <h3 className="text-base font-semibold mb-2">Meeting Details</h3>
-                        <p className="text-gray-700 whitespace-pre-line">
+                        <p className="whitespace-pre-line">
                             {meeting.meetingDetails || "N/A"}
                         </p>
                     </section>
@@ -94,7 +94,7 @@ export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMee
 
                     <section>
                         <h3 className="text-base font-semibold mb-2">Meeting Notes</h3>
-                        <p className="text-gray-700 whitespace-pre-line">
+                        <p className="whitespace-pre-line">
                             {meeting.meetingNotes || "N/A"}
                         </p>
                     </section>
@@ -103,7 +103,7 @@ export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMee
 
                     <section>
                         <h3 className="text-base font-semibold mb-2">Reviews Info</h3>
-                        <p className="text-gray-700 whitespace-pre-line">
+                        <p className="whitespace-pre-line">
                             {meeting.reviewsInfo || "N/A"}
                         </p>
                     </section>

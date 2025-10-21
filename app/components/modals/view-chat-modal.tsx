@@ -32,7 +32,7 @@ export function ViewChatDetailsModal({ open, onOpenChange, chat }: ViewChatDetai
                 <section className="space-y-5 border rounded p-3">
                     <h3 className="text-base font-semibold mb-3">Chat Info</h3>
                     <Separator />
-                    <div className="grid grid-cols-2 gap-x-6 space-y-2 text-sm text-gray-700">
+                    <div className="grid grid-cols-2 gap-x-6 space-y-2 text-sm">
                         <p><strong>Chat Date:</strong> {formatDate(chat.chatDate)}</p>
                         <p><strong>Handled By:</strong> {chat.handleByUser?.fullName || "-"}</p>
                         <p className="break-words">

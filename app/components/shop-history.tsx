@@ -50,7 +50,7 @@ export function ShopHistory({ shopUrl }: ShopifyHistoryProps) {
     return (
         <section>
             <h2 className="text-lg font-semibold">Shop History Details</h2>
-            <div className="grid grid-cols-2 rounded-md p-3 gap-y-1 text-sm text-gray-700 ">
+            <div className="grid grid-cols-2 rounded-md p-3 gap-y-1 text-sm">
                 <p>
                     <span className="font-bold">Use Second:</span>{" "}
                     {historyData.inkybay_used_second}

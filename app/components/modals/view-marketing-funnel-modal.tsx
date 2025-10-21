@@ -42,7 +42,7 @@ export function ViewMarketingFunnelDetailsModal({
                     <h3 className="text-base font-semibold mb-3">Marketing Funnel Info</h3>
                     <Separator />
 
-                    <div className="grid grid-cols-2 gap-x-6 space-y-2 text-sm text-gray-700">
+                    <div className="grid grid-cols-2 gap-x-6 space-y-2 text-sm">
                         <p>
                             <strong>Install Phase:</strong> {funnel.installPhase || "N/A"}
                         </p>
@@ -91,7 +91,7 @@ export function ViewMarketingFunnelDetailsModal({
                                         ))}
                                     </ul>
                                 ) : (
-                                    <p className="text-gray-500 italic">No follow-ups recorded.</p>
+                                    <p className="italic">No follow-ups recorded.</p>
                                 )}
                             </div>
                             <div>
@@ -108,7 +108,7 @@ export function ViewMarketingFunnelDetailsModal({
                                         ))}
                                     </ul>
                                 ) : (
-                                    <p className="text-gray-500 italic">No follow-ups recorded.</p>
+                                    <p className="italic">No follow-ups recorded.</p>
                                 )}
                             </div>
                         </div>

@@ -50,11 +50,11 @@ export function ShopDetails({ shopUrl }: ShopDetailsProps) {
         <section>
             <h2 className="text-lg font-semibold mb-3">Shop Details</h2>
             {isShopEmpty ? (
-                <div className="text-gray-400 text-center py-4">
+                <div className="text-center py-4">
                     No shop details found
                 </div>
             ) : (
-                <div className="grid grid-cols-3 gap-y-1 text-sm text-gray-700">
+                <div className="grid grid-cols-3 gap-y-1 text-sm">
                     <p><span className="font-bold">Shop ID:</span> {shop.id}</p>
                     <p><span className="font-bold">Shop Name:</span> {shop.shop_name}</p>
                     <p><span className="font-bold">Plan:</span> {shop.plan}</p>

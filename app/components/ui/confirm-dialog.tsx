@@ -38,7 +38,7 @@ export function DeleteConfirmDialog({
                 <AlertDialogFooter>
                     <AlertDialogCancel>{cancelText}</AlertDialogCancel>
                     <AlertDialogAction
-                        className="bg-red-600 hover:bg-red-700"
+                        className="bg-red-600 hover:bg-red-700 dark:text-white"
                         onClick={async () => {
                             await onConfirm();
                             onOpenChange(false);
