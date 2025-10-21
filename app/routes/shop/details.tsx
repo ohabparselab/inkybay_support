@@ -260,7 +260,16 @@ export default function ShopDetailsPage() {
                             <div className="w-1/2 flex flex-row justify-center items-center gap-2">
                                 {
                                     canChatCreate && (
-                                        <Button onClick={() => { setClientId(clientId); setChatModalOpen(true); }}>
+                                        <Button onClick={() => {
+                                            setClientId(clientId);
+                                            setChatModalOpen(true);
+                                            setSelectedChat({
+                                                client: {
+                                                    shopName: shopify['shop_name'],
+                                                    shopDomain: shop.url
+                                                }
+                                            })
+                                        }}>
                                             <Plus /> Add Chat
                                         </Button>
                                     )
@@ -450,6 +459,12 @@ export default function ShopDetailsPage() {
                                                                     onClick={() => {
                                                                         setClientId(clientId);
                                                                         setChatModalOpen(true);
+                                                                        setSelectedChat({
+                                                                            client: {
+                                                                                shopName: shopify['shop_name'],
+                                                                                shopDomain: shop.url
+                                                                            }
+                                                                        })
                                                                     }}
                                                                 >
                                                                     <Plus /> Add Chat
@@ -558,6 +573,8 @@ export default function ShopDetailsPage() {
                                                                                             <DropdownMenuItem onClick={() => {
                                                                                                 setClientId(chat.clientId);
                                                                                                 setChatModalOpen(true);
+                                                                                                setSelectedChat(chat);
+
                                                                                             }}>
                                                                                                 <Plus /> Add Chat
                                                                                             </DropdownMenuItem>
@@ -619,6 +636,12 @@ export default function ShopDetailsPage() {
                                                             className="ml-5"
                                                             onClick={() => {
                                                                 setChatModalOpen(true);
+                                                                setSelectedChat({
+                                                                    client: {
+                                                                        shopName: shopify['shop_name'],
+                                                                        shopDomain: shop.url
+                                                                    }
+                                                                })
                                                             }}
                                                         >
                                                             <Plus /> Add Chat
@@ -1111,13 +1134,14 @@ export default function ShopDetailsPage() {
 
             {/* =========chats modals============= */}
             {/* Modals */}
-            {chatModalOpen && clientId && (
+            {chatModalOpen && clientId && selectedChat && (
                 <Suspense fallback={<CenterSpinner />}>
                     <AddChatModal
                         clientId={clientId}
                         open={chatModalOpen}
                         onOpenChange={setChatModalOpen}
                         refreshPage={refreshPage}
+                        chat={selectedChat}
                     />
                 </Suspense>
             )}

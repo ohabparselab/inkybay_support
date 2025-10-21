@@ -1,7 +1,7 @@
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { addChatSchema, type AddChatFormInput } from "~/lib/validations";
-import { CalendarIcon, ListRestart, Plus, Star, X } from "lucide-react";
+import { Badge, CalendarIcon, ListRestart, Plus, Star, X } from "lucide-react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -34,9 +34,10 @@ interface AddChatModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     refreshPage?: () => void;
+    chat?: any;
 }
 
-export function AddChatModal({ clientId, open, onOpenChange, refreshPage }: AddChatModalProps) {
+export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat }: AddChatModalProps) {
 
     const [users, setUsers] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
@@ -125,7 +126,7 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage }: AddC
             toast.success('New chat added successfully.');
             onOpenChange(false);
             reset();
-            if(refreshPage) refreshPage();
+            if (refreshPage) refreshPage();
         } else {
             toast.error('Something is wrong, please again.');
         }
@@ -135,8 +136,20 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage }: AddC
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
-                <DialogHeader>
-                    <DialogTitle>Add New Chat</DialogTitle>
+                <DialogHeader >
+                    <DialogTitle>
+                        Add New Chat (
+                        <span className="font-semibold text-foreground">{chat.client.shopName}</span>,{" "}
+                        <a
+                            href={`https://${chat.client.shopDomain}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                        >
+                            {chat.client.shopDomain}
+                        </a>
+                        )
+                    </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-3">

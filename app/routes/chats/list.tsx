@@ -349,6 +349,7 @@ export default function ChatsListPage() {
                                                                 canCreate && (
                                                                     <DropdownMenuItem onClick={() => {
                                                                         setClientId(chat.clientId);
+                                                                        setSelectedChat(chat);
                                                                         setChatModalOpen(true);
                                                                     }}>
                                                                         <Plus /> Add Chat
@@ -422,13 +423,14 @@ export default function ChatsListPage() {
             </div>
 
             {/* Modals */}
-            {chatModalOpen && (
+            {chatModalOpen && selectedChat && (
                 <Suspense fallback={<CenterSpinner />}>
                     <AddChatModal
                         clientId={clientId}
                         open={chatModalOpen}
                         onOpenChange={setChatModalOpen}
                         refreshPage={refreshPage}
+                        chat={selectedChat}
                     />
                 </Suspense>
             )}
