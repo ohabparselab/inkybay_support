@@ -1,5 +1,6 @@
 import { uploadFile } from "~/lib/upload.server"
 import { prisma } from "~/lib/prisma.server"
+import { parseDate } from "~/lib/helper.sever"
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
 
@@ -47,15 +48,14 @@ const createMeeting = async (request: Request) => {
 
         const storeUrl = formData.get("storeUrl")?.toString() ?? ""
 
-        // Build chat data
         const meetingData: any = {
             storeUrl: storeUrl.trim(),
             isExternalMeeting: formData.get("isExternalMeeting") === "true",
             meetingDetails: formData.get("meetingDetails")?.toString() ?? null,
-            meetingDateTime: new Date(formData.get("meetingDateTime") as string),
+            meetingDateTime: parseDate(formData.get("meetingDateTime")),
             reviewAsked: formData.get("reviewAsked") === "true",
             reviewGiven: formData.get("reviewGiven") === "true",
-            reviewDate: new Date(formData.get("reviewDate") as string),
+            reviewDate: parseDate(formData.get("reviewDate")),
             reviewsInfo: formData.get("reviewsInfo")?.toString() ?? null,
             joiningStatus: formData.get("joiningStatus") === "true",
             meetingNotes: formData.get("meetingNotes")?.toString() ?? null,

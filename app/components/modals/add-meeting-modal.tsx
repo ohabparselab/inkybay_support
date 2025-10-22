@@ -253,7 +253,7 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                                                         ))}
                                                     </select>
 
-                                                    <span className="text-gray-500">:</span>
+                                                    <span>:</span>
 
                                                     <select
                                                         className="border rounded px-2 py-1 text-sm"
