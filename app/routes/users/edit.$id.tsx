@@ -9,15 +9,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { prisma } from "~/lib/prisma.server"
-import { List } from "lucide-react"
+import { Eye, EyeOff, List } from "lucide-react"
 import { toast } from "sonner"
+import { useState } from "react"
 
 export async function loader({ params }: { params: { id: string } }) {
+
     const user = await prisma.user.findUnique({
         where: { id: Number(params.id) },
         include: {
-            role: true, 
-            modulePermissions: true 
+            role: true,
+            modulePermissions: true
         },
     })
 
@@ -40,8 +42,11 @@ export async function loader({ params }: { params: { id: string } }) {
 export const meta = () => [{ title: "Edit user | InkyBay" }];
 
 export default function EditUser() {
+
     const { user, modules, permissions, userPermMap } = useLoaderData<typeof loader>()
-    const { id } = useParams()
+    const { id } = useParams();
+    const [showPassword, setShowPassword] = useState(false);
+
 
     const { register, handleSubmit, control, formState: { errors } } = useForm<UpdateUserInput>({
         resolver: zodResolver(updateUserSchema),
@@ -83,7 +88,7 @@ export default function EditUser() {
                 </Button>
             </div>
             <Card className="w-full">
-            {/* <Card className="w-full max-w-3xl mx-auto"> */}
+                {/* <Card className="w-full max-w-3xl mx-auto"> */}
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)} method="post" className="flex flex-col gap-6">
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -99,7 +104,26 @@ export default function EditUser() {
                             </div>
                             <div className="flex flex-col gap-1">
                                 <Label>Password</Label>
-                                <Input type="password" placeholder="Leave blank to keep current password" {...register("password")} />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Enter your password"
+                                        className="pr-10"
+                                        {...register("password")}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+                                    >
+                                        {showPassword ? (
+                                            <Eye className="h-5 w-5" />
+                                        ) : (
+                                            <EyeOff className="h-5 w-5" />
+                                        )}
+                                    </button>
+                                </div>
                                 {errors.password && <span className="text-destructive">{errors.password.message}</span>}
                             </div>
                             <div className="flex flex-col gap-1">

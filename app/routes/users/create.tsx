@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { prisma } from "~/lib/prisma.server"
-import { List } from "lucide-react"
+import { Eye, EyeOff, List } from "lucide-react"
 import { toast } from "sonner"
+import { useState } from "react"
 
 export async function loader() {
     const modules = await prisma.module.findMany({
@@ -25,7 +26,9 @@ export async function loader() {
 export const meta = () => [{ title: "Create User | InkyBay" }];
 
 export default function CreateUser() {
-    const { modules, permissions } = useLoaderData<typeof loader>()
+
+    const { modules, permissions } = useLoaderData<typeof loader>();
+    const [showPassword, setShowPassword] = useState(false);
 
     const {
         register,
@@ -47,7 +50,7 @@ export default function CreateUser() {
         },
     })
 
-    const onSubmit = async (data:CreateUserInput) => { 
+    const onSubmit = async (data: CreateUserInput) => {
         const res = await fetch("/api/users", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -92,7 +95,26 @@ export default function CreateUser() {
 
                             <div className="flex flex-col gap-1">
                                 <Label className="pb-2">Password</Label>
-                                <Input type="password" placeholder="Enter password" {...register("password")} />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Enter your password"
+                                        className="pr-10"
+                                        {...register("password")}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+                                    >
+                                        {showPassword ? (
+                                            <Eye className="h-5 w-5" />
+                                        ) : (
+                                            <EyeOff className="h-5 w-5" />
+                                        )}
+                                    </button>
+                                </div>
                                 {errors.password && <span className="text-destructive text-sm">{errors.password.message}</span>}
                             </div>
 
@@ -155,7 +177,7 @@ export default function CreateUser() {
                                             />
                                         ))}
                                     </div>
-                                </div>                                
+                                </div>
                             ))}
                         </div>
                         <Button type="submit">Create User</Button>
