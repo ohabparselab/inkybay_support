@@ -34,7 +34,7 @@ const getAllMeetings = async (_request: Request) => {
 // [POST] Create new meeting
 //
 
-export const createMeeting = async (request: Request) => {
+const createMeeting = async (request: Request) => {
     try {
 
         const formData = await request.formData();

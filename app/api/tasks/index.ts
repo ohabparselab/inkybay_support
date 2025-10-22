@@ -1,21 +1,16 @@
 import { addTaskSchema } from "~/lib/validations"
 import { prisma } from "~/lib/prisma.server"
 
-
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
 
 //  MAIN CONTROLLER HANDLER
 export const action = async ({ request }: { request: Request }) => {
     const method = request.method.toUpperCase()
     switch (method) {
-        // case "GET":
-        //     return await getAllTasks(request)
+        case "GET":
+            return await getAllTasks(request)
         case "POST":
             return await createTask(request)
-        // case "PUT":
-        //     return await updateProfile(request)
-        // case "PATCH":
-        //     return await changePassword(request)
         default:
             return methodNotAllowed()
     }

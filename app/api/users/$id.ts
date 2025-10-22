@@ -3,7 +3,7 @@ import { prisma } from "~/lib/prisma.server";
 import bcrypt from "bcryptjs";
 
 export async function action({ request, params }: { request: Request; params: any }) {
-    
+
     const userId = Number(params.id);
     if (!userId) return new Response(JSON.stringify({ message: "User ID required" }), { status: 400 });
 
@@ -17,7 +17,7 @@ export async function action({ request, params }: { request: Request; params: an
     }
 }
 
-async function updateUser(userId:number, request: Request) {
+const updateUser = async (userId: number, request: Request) => {
     try {
         const data = await request.json();
         const { permissions } = data
@@ -25,7 +25,6 @@ async function updateUser(userId:number, request: Request) {
         if (!userId) throw new Error("User ID is required")
 
         // Validate against your existing schema but allow optional fields
-        // You can use .partial() if needed
         const parsed = updateUserSchema.partial().parse(data)
 
         // Build update data dynamically
@@ -85,9 +84,9 @@ async function updateUser(userId:number, request: Request) {
 }
 
 
-async function deleteUser(userId: number) {
+const deleteUser = async (userId: number) => {
     try {
-        
+
         if (!userId) throw new Error("User ID is required")
 
         // Check if user exists

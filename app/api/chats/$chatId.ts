@@ -16,7 +16,7 @@ export async function action({ request, params }: { request: Request; params: an
     }
 }
 
-export const updateChat = async (chatId: number, request: Request) => {
+const updateChat = async (chatId: number, request: Request) => {
     try {
 
         const formData = await request.formData();
@@ -138,7 +138,7 @@ export const updateChat = async (chatId: number, request: Request) => {
     }
 };
 
-export const deleteChatHard = async (chatId: number) => {
+const deleteChatHard = async (chatId: number) => {
     try {
 
         // Delete associated tags

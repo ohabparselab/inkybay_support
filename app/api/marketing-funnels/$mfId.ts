@@ -15,7 +15,7 @@ export async function action({ request, params }: { request: Request; params: an
     }
 }
 
-export const updateMarketingFunnel = async (mfId: number, request: Request) => {
+const updateMarketingFunnel = async (mfId: number, request: Request) => {
     try {
         const value = await request.json();
 
@@ -102,7 +102,7 @@ export const updateMarketingFunnel = async (mfId: number, request: Request) => {
 };
 
 
-export const deleteMarketingFunnelHard = async (funnelId: number) => {
+const deleteMarketingFunnelHard = async (funnelId: number) => {
     try {
         if (!funnelId) {
             return Response.json({ success: false, message: "Funnel ID is required." }, { status: 400 });

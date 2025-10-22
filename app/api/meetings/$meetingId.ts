@@ -17,7 +17,7 @@ export async function action({ request, params }: { request: Request; params: an
     }
 }
 
-export const updateMeeting = async (meetingId: number, request: Request) => {
+const updateMeeting = async (meetingId: number, request: Request) => {
     try {
         const formData = await request.formData();
 
@@ -108,7 +108,7 @@ export const updateMeeting = async (meetingId: number, request: Request) => {
     }
 };
 
-export const deleteMeetingHard = async (meetingId: number) => {
+const deleteMeetingHard = async (meetingId: number) => {
     try {
         // Delete all associated meeting emails first
         await prisma.meetingEmail.deleteMany({

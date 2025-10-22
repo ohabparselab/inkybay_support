@@ -40,7 +40,7 @@ export const action = async ({ request }: { request: Request }) => {
 //
 // [GET] Fetch all users
 //
-async function getUsers(_request: Request) {
+const getUsers = async (_request: Request) => {
     const users = await prisma.user.findMany({
         include: {
             modulePermissions: {
@@ -55,7 +55,7 @@ async function getUsers(_request: Request) {
 //
 // [POST] Create new user
 //
-async function createUser(request: Request) {
+const createUser = async (request: Request) => {
     try {
         const data = await request.json()
         const parsed = createUserSchema.parse(data)
@@ -88,7 +88,7 @@ async function createUser(request: Request) {
 }
 
 // Update profile
-async function updateProfile(request: Request) {
+const updateProfile = async (request: Request) => {
     try {
         const currentUser = await getUser(request);
         if (!currentUser) return new Response("Unauthorized", { status: 401 });
@@ -114,7 +114,7 @@ async function updateProfile(request: Request) {
 }
 
 // Change password
-async function changePassword(request: Request) {
+const changePassword = async (request: Request) => {
     try {
         const userId = await getUserId(request);
         if (!userId) return new Response("UserId not found.", { status: 401 });

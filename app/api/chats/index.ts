@@ -1,24 +1,7 @@
-import { addChatSchema, changePasswordSchema, createUserSchema } from "~/lib/validations"
-import type { LoaderFunctionArgs } from "react-router"
 import { uploadFile } from "~/lib/upload.server"
-import { getUserId } from "~/session.server"
 import { prisma } from "~/lib/prisma.server"
-import { getUser } from "~/lib/user.server"
-import bcrypt from "bcryptjs"
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
-// loader to fetch all users for listing
-// export const loader = async ({ request }: LoaderFunctionArgs) => {
-//   try {
-//     const users = await prisma.user.findMany({
-//         where: {role: { slug: 'user' }},
-//       select: { id: true, fullName: true, email: true },
-//     });
-//     return Response.json({ users });
-//   } catch (err: any) {
-//     return Response.json({ users: [], error: err.message }, { status: 500 });
-//   }
-// };
 
 //  MAIN CONTROLLER HANDLER
 export const action = async ({ request }: { request: Request }) => {
@@ -28,10 +11,6 @@ export const action = async ({ request }: { request: Request }) => {
             return await getAllChats(request)
         case "POST":
             return await createChat(request)
-        // case "PUT":
-        //     return await updateChat(request)
-        // case "DELETE":
-        //     return await deleteChat(request)
         default:
             return methodNotAllowed()
     }
@@ -55,7 +34,7 @@ const getAllChats = async (_request: Request) => {
 // [POST] Create new chats
 //
 
-export const createChat = async (request: Request) => {
+const createChat = async (request: Request) => {
     try {
         const formData = await request.formData();
 

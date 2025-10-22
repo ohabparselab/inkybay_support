@@ -32,7 +32,7 @@ const getAllMarketingFunnels = async (_request: Request) => {
 //
 // [POST] Create new marketing funnels
 //
-export const createMarketingFunnel = async (request: Request) => {
+const createMarketingFunnel = async (request: Request) => {
     try {
         const value = await request.json();
 
