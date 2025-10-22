@@ -29,10 +29,11 @@ interface AddTaskModalProps {
     clientId: number;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    refreshPage: () => void;
     task:any
 }
 
-export function AddTaskModal({ clientId, open, onOpenChange, task }: AddTaskModalProps) {
+export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }: AddTaskModalProps) {
 
     const [users, setUsers] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
@@ -95,6 +96,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task }: AddTaskModa
             toast.success("Task created successfully!")
             onOpenChange(false);
             reset()
+            if(refreshPage) refreshPage();
         } else {
             toast.error("Failed to create task.")
         }

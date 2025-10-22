@@ -283,7 +283,7 @@ export default function TasksListPage() {
                                         </TableRow>
                                     )
                                 ) : (
-                                     <TableRow>
+                                    <TableRow>
                                         <TableCell colSpan={10}>
                                             <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
                                                 <div className="flex items-center gap-2">
@@ -311,11 +311,12 @@ export default function TasksListPage() {
             {/* Add Task Modal */}
             {taskModalOpen && selectedClientId && selectedTask && (
                 <Suspense fallback={<CenterSpinner />}>
-                    <AddTaskModal 
-                    clientId={selectedClientId} 
-                    open={taskModalOpen} 
-                    onOpenChange={setTaskModalOpen} 
-                    task={selectedTask}
+                    <AddTaskModal
+                        clientId={selectedClientId}
+                        open={taskModalOpen}
+                        onOpenChange={setTaskModalOpen}
+                        task={selectedTask}
+                        refreshPage={refreshPage}
                     />
                 </Suspense>
             )}
