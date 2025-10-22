@@ -11,14 +11,22 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Search, SquarePen } from "lucide-react";
+import { Eye, Search, SquarePen, Trash2 } from "lucide-react";
 import {
     Avatar,
-    AvatarFallback,
     AvatarImage,
 } from "@/components/ui/avatar"
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { PaginationBar } from "../pagination-bar";
+import { ButtonGroup } from "../ui/button-group";
+import { lazy, Suspense, useState } from "react";
+import { CenterSpinner } from "../ui/center-spinner";
+import { DeleteConfirmDialog } from "../ui/confirm-dialog";
+import { toast } from "sonner";
+
+const ViewUserModal = lazy(() =>
+    import("~/components/modals/view-user-modal").then((m) => ({ default: m.UserInfoModal }))
+);
 
 interface Meta {
     total: number;
@@ -51,7 +59,13 @@ interface DataTableProps {
 }
 
 export function DataTable({ data, meta, onPageChange, onSearch, handleLimitChange }: DataTableProps) {
-    const [search, setSearch] = React.useState(meta.search ?? "");
+
+    const [search, setSearch] = useState(meta.search ?? "");
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<any | null>(null);
+    const [viewUserModalOpen, setViewUserModalOpen] = useState(false);
+
+    const navigate = useNavigate();
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -60,6 +74,21 @@ export function DataTable({ data, meta, onPageChange, onSearch, handleLimitChang
         clearTimeout((window as any)._searchTimeout);
         (window as any)._searchTimeout = setTimeout(() => onSearch(value), delay);
     };
+
+    const handleDelete = async () => {
+        if (!selectedUser) return;
+
+        try {
+            const res = await fetch(`/api/users/${selectedUser.id}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) toast.error("Failed to delete users");
+            toast.success("Users deleted successfully.");
+            navigate(0);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to delete user.");
+        }
+    }
 
     return (
         <div className="w-full space-y-4">
@@ -109,7 +138,28 @@ export function DataTable({ data, meta, onPageChange, onSearch, handleLimitChang
                                         {new Date(user.createdAt).toLocaleDateString()}
                                     </TableCell>
                                     <TableCell>
-                                        <Link to={`/users/edit/${user.id}`}><SquarePen /></Link>
+                                        <ButtonGroup>
+                                            <Button variant="outline"><Link to={`/users/edit/${user.id}`}><SquarePen /></Link></Button>
+                                            <Button variant="outline"
+                                                onClick={() => {
+                                                    setSelectedUser(user);
+                                                    setViewUserModalOpen(true);
+                                                }}
+                                            ><Eye /> </Button>
+                                            {
+                                                user.role.slug === 'user' && (
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            setSelectedUser(user);
+                                                            setDeleteDialogOpen(true);
+                                                        }}
+                                                    >
+                                                        <Trash2 />
+                                                    </Button>
+                                                )
+                                            }
+                                        </ButtonGroup>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -130,7 +180,27 @@ export function DataTable({ data, meta, onPageChange, onSearch, handleLimitChang
                 />
             </div>
 
+            {viewUserModalOpen && selectedUser && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <ViewUserModal
+                        open={viewUserModalOpen}
+                        onOpenChange={setViewUserModalOpen}
+                        user={selectedUser}
+                    />
+                </Suspense>
+            )}
 
+            {deleteDialogOpen && selectedUser && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <DeleteConfirmDialog
+                        open={deleteDialogOpen}
+                        onOpenChange={setDeleteDialogOpen}
+                        title="Delete User?"
+                        description="Are you sure you want to permanently delete this chat? This action cannot be undone."
+                        onConfirm={async () => handleDelete()}
+                    />
+                </Suspense>
+            )}
         </div>
     );
 }

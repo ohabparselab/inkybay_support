@@ -4,11 +4,13 @@ import { DataTable } from "@/components/tables/user-data-table";
 import { Button } from "~/components/ui/button";
 import { prisma } from "~/lib/prisma.server";
 import { Plus } from "lucide-react";
+import { lazy } from "react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page") || 1);
-    const limit = Number(url.searchParams.get("limit") || 5);
+    const limit = Number(url.searchParams.get("limit") || 10);
     const search = url.searchParams.get("search") || "";
 
     const skip = (page - 1) * limit;
