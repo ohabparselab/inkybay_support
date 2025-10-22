@@ -4,12 +4,12 @@ import { AlertTriangle, ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, 
 import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
-import { lazy, Suspense, useState } from "react";
+import { PaginationBar } from "~/components/pagination-bar";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
-import { PaginationBar } from "~/components/pagination-bar";
 
 const AddMeetingModal = lazy(() =>
     import("~/components/modals/add-meeting-modal").then((m) => ({ default: m.AddMeetingModal }))
@@ -73,6 +73,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function MeetingListPage() {
 
+    const [loading, setLoading] = useState(true);
     const { meetings, meta } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
     const [meetingModalOpen, setMeetingModalOpen] = useState(false);
@@ -89,17 +90,22 @@ export default function MeetingListPage() {
     const canDelete = permissions.includes("meetings.delete");
     const canCreate = permissions.includes("meetings.create");
 
+    const navigateWithLoading = (url: string) => {
+        setLoading(true);
+        navigate(url, { replace: true });
+    };
+
     const handlePageChange = (newPage: number) => {
         const params = new URLSearchParams(window.location.search);
         params.set("page", newPage.toString());
-        navigate(`?${params.toString()}`);
+        navigateWithLoading(`?${params.toString()}`);
     };
 
     const handleLimitChange = (newLimit: number) => {
         const params = new URLSearchParams(window.location.search);
         params.set("limit", newLimit.toString());
         params.set("page", "1"); // reset to first page
-        navigate(`?${params.toString()}`);
+        navigateWithLoading(`?${params.toString()}`);
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,7 +116,7 @@ export default function MeetingListPage() {
             const params = new URLSearchParams(window.location.search);
             params.set("search", value);
             params.set("page", "1");
-            navigate(`?${params.toString()}`);
+            navigateWithLoading(`?${params.toString()}`);
         }, 400);
     };
 
@@ -123,15 +129,19 @@ export default function MeetingListPage() {
             });
             if (!res.ok) toast.error("Failed to delete meeting.");
             toast.success("Meeting deleted successfully.");
-            navigate(0);
+            refreshPage();
         } catch (err: any) {
             toast.error(err.message || "Failed to delete meeting.");
         }
     }
 
     const refreshPage = () => {
-        navigate(window.location.pathname + window.location.search, { replace: true });
+        navigateWithLoading(window.location.pathname + window.location.search);
     };
+
+    useEffect(() => {
+        if (loading) setLoading(false);
+    }, [meetings]);
 
     return (
         <div className="px-6 space-y-2">
@@ -183,85 +193,96 @@ export default function MeetingListPage() {
                         </TableHeader>
                         <TableBody>
                             {
-                                canView ? (
-                                    meetings.length > 0 ? (
-                                        meetings.map((meeting, idx) => (
-                                            <TableRow key={meeting.id}>
-                                                <TableCell>{idx + 1}</TableCell>
-                                                <TableCell className="max-w-xs truncate">{meeting.storeUrl}</TableCell>
-                                                <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
-                                                <TableCell className="flex flex-wrap gap-1">
-                                                    {meeting.joiningStatus ? 'Yes' : 'No'}
-                                                </TableCell>
-                                                <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
-                                                <TableCell>{meeting.isExternalMeeting ? "Yes" : "No"}</TableCell>
-                                                <TableCell>{meeting.reviewAsked ? "Yes" : "No"}</TableCell>
-                                                <TableCell>{meeting.reviewGiven ? "Yes" : "No"}</TableCell>
-                                                <TableCell>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="icon">
-                                                                <Ellipsis />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onClick={() => {
-                                                                setSelectedMeeting(meeting);
-                                                                setViewMeetingModalOpen(true);
-                                                            }}>
-                                                                <Eye /> View Details
-                                                            </DropdownMenuItem>
-                                                            {
-                                                                canEdit && (
-                                                                    <DropdownMenuItem
-                                                                        onClick={() => {
-                                                                            setSelectedMeeting(meeting);
-                                                                            setEditMeetingModalOpen(true);
-                                                                        }}
-                                                                    >
-                                                                        <PenBox /> Edit Meeting
-                                                                    </DropdownMenuItem>
-                                                                )
-                                                            }
-                                                            {
-                                                                canDelete && (
-                                                                    <>
-                                                                        <DropdownMenuSeparator />
+
+                                loading ? (
+                                    Array.from({ length: 10 }).map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell colSpan={9} className="py-4">
+                                                <div className="animate-pulse h-5 bg-accent rounded" />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    canView ? (
+                                        meetings.length > 0 ? (
+                                            meetings.map((meeting, idx) => (
+                                                <TableRow key={meeting.id}>
+                                                    <TableCell>{idx + 1}</TableCell>
+                                                    <TableCell className="max-w-xs truncate">{meeting.storeUrl}</TableCell>
+                                                    <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
+                                                    <TableCell className="flex flex-wrap gap-1">
+                                                        {meeting.joiningStatus ? 'Yes' : 'No'}
+                                                    </TableCell>
+                                                    <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
+                                                    <TableCell>{meeting.isExternalMeeting ? "Yes" : "No"}</TableCell>
+                                                    <TableCell>{meeting.reviewAsked ? "Yes" : "No"}</TableCell>
+                                                    <TableCell>{meeting.reviewGiven ? "Yes" : "No"}</TableCell>
+                                                    <TableCell>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="icon">
+                                                                    <Ellipsis />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem onClick={() => {
+                                                                    setSelectedMeeting(meeting);
+                                                                    setViewMeetingModalOpen(true);
+                                                                }}>
+                                                                    <Eye /> View Details
+                                                                </DropdownMenuItem>
+                                                                {
+                                                                    canEdit && (
                                                                         <DropdownMenuItem
-                                                                            variant="destructive"
                                                                             onClick={() => {
                                                                                 setSelectedMeeting(meeting);
-                                                                                setDeleteDialogOpen(true);
+                                                                                setEditMeetingModalOpen(true);
                                                                             }}
                                                                         >
-                                                                            <Trash2 /> Delete
+                                                                            <PenBox /> Edit Meeting
                                                                         </DropdownMenuItem>
-                                                                    </>
-                                                                )
-                                                            }
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
+                                                                    )
+                                                                }
+                                                                {
+                                                                    canDelete && (
+                                                                        <>
+                                                                            <DropdownMenuSeparator />
+                                                                            <DropdownMenuItem
+                                                                                variant="destructive"
+                                                                                onClick={() => {
+                                                                                    setSelectedMeeting(meeting);
+                                                                                    setDeleteDialogOpen(true);
+                                                                                }}
+                                                                            >
+                                                                                <Trash2 /> Delete
+                                                                            </DropdownMenuItem>
+                                                                        </>
+                                                                    )
+                                                                }
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={9} className="text-center py-30 text-muted-foreground">
+                                                    No meetings found.
                                                 </TableCell>
                                             </TableRow>
-                                        ))
+                                        )
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={9} className="text-center py-30 text-muted-foreground">
-                                                No meetings found.
+                                            <TableCell colSpan={9}>
+                                                <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
+                                                    <div className="flex items-center gap-2">
+                                                        <AlertTriangle className="w-5 h-5" />
+                                                        <span>You don’t have permission to view meetings data.</span>
+                                                    </div>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     )
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={9}>
-                                            <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
-                                                <div className="flex items-center gap-2">
-                                                    <AlertTriangle className="w-5 h-5" />
-                                                    <span>You don’t have permission to view meetings data.</span>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
                                 )
                             }
                         </TableBody>

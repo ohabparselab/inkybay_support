@@ -18,7 +18,7 @@ import { AlertTriangle, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "luci
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { PaginationBar } from "~/components/pagination-bar";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
@@ -96,6 +96,7 @@ export const meta = () => [{ title: "Tasks | InkyBay" }];
 
 export default function TasksListPage() {
 
+    const [loading, setLoading] = useState(true);
     const { tasks, meta } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
     const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -114,17 +115,22 @@ export default function TasksListPage() {
     const canDelete = permissions.includes("tasks.delete");
     const canCreate = permissions.includes("tasks.create");
 
+    const navigateWithLoading = (url: string) => {
+        setLoading(true);
+        navigate(url, { replace: true });
+    };
+
     const handlePageChange = (newPage: number) => {
         const params = new URLSearchParams(window.location.search);
         params.set("page", newPage.toString());
-        navigate(`?${params.toString()}`);
+        navigateWithLoading(`?${params.toString()}`);
     };
 
     const handleLimitChange = (newLimit: number) => {
         const params = new URLSearchParams(window.location.search);
         params.set("limit", newLimit.toString());
         params.set("page", "1"); // reset to first page
-        navigate(`?${params.toString()}`);
+        navigateWithLoading(`?${params.toString()}`);
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,7 +141,7 @@ export default function TasksListPage() {
             const params = new URLSearchParams(window.location.search);
             params.set("search", value);
             params.set("page", "1");
-            navigate(`?${params.toString()}`);
+            navigateWithLoading(`?${params.toString()}`);
         }, 400);
     };
 
@@ -148,15 +154,19 @@ export default function TasksListPage() {
             });
             if (!res.ok) toast.error("Failed to delete task");
             toast.success("Task deleted successfully.");
-            navigate(0);
+            refreshPage()
         } catch (err: any) {
             toast.error(err.message || "Failed to delete task.");
         }
     }
 
     const refreshPage = () => {
-        navigate(window.location.pathname + window.location.search, { replace: true });
+        navigateWithLoading(window.location.pathname + window.location.search);
     };
+
+    useEffect(() => {
+        if (loading) setLoading(false);
+    }, [tasks]);
 
     return (
         <div className="px-6 space-y-2">
@@ -198,101 +208,111 @@ export default function TasksListPage() {
                         </TableHeader>
                         <TableBody>
                             {
-                                canView ? (
-                                    tasks.length > 0 ? (
-                                        tasks.map((task, idx) => (
-                                            <TableRow key={task.id}>
-                                                <TableCell>{idx + 1}</TableCell>
-                                                <TableCell>{task.client.shopName}</TableCell>
-                                                <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell>
-                                                <TableCell>{task.client?.shopName ?? "—"}</TableCell>
-                                                <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
-                                                <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
-                                                <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>
-                                                <TableCell>{task.status?.name ?? "—"}</TableCell>
-                                                <TableCell>
-                                                    {task.taskAddedDate
-                                                        ? new Date(task.taskAddedDate).toLocaleDateString()
-                                                        : "—"}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="icon">
-                                                                <Ellipsis />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onClick={() => {
-                                                                setSelectedTask(task);
-                                                                setViewTaskModalOpen(true);
-                                                            }}>
-                                                                <Eye /> View Details
-                                                            </DropdownMenuItem>
-                                                            {
-                                                                canCreate && (
-                                                                    <DropdownMenuItem
-                                                                        onClick={() => {
-                                                                            setSelectedClientId(task.clientId);
-                                                                            setTaskModalOpen(true);
-                                                                            setSelectedTask(task);
-                                                                        }}
-                                                                    >
-                                                                        <Plus /> Add Task
-                                                                    </DropdownMenuItem>
-                                                                )
-                                                            }
-                                                            {
-                                                                canEdit && (
-                                                                    <DropdownMenuItem
-                                                                        onClick={() => {
-                                                                            setSelectedTask(task);
-                                                                            setEditTaskModalOpen(true);
-                                                                        }}
-                                                                    >
-                                                                        <PenBox /> Edit Task
-                                                                    </DropdownMenuItem>
-                                                                )
-                                                            }
-                                                            {
-                                                                canDelete && (
-                                                                    <>
-                                                                        <DropdownMenuSeparator />
+                                loading ? (
+                                    Array.from({ length: 10 }).map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell colSpan={10} className="py-4">
+                                                <div className="animate-pulse h-5 bg-accent rounded" />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    canView ? (
+                                        tasks.length > 0 ? (
+                                            tasks.map((task, idx) => (
+                                                <TableRow key={task.id}>
+                                                    <TableCell>{idx + 1}</TableCell>
+                                                    <TableCell>{task.client.shopName}</TableCell>
+                                                    <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell>
+                                                    <TableCell>{task.client?.shopName ?? "—"}</TableCell>
+                                                    <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
+                                                    <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
+                                                    <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>
+                                                    <TableCell>{task.status?.name ?? "—"}</TableCell>
+                                                    <TableCell>
+                                                        {task.taskAddedDate
+                                                            ? new Date(task.taskAddedDate).toLocaleDateString()
+                                                            : "—"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="icon">
+                                                                    <Ellipsis />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem onClick={() => {
+                                                                    setSelectedTask(task);
+                                                                    setViewTaskModalOpen(true);
+                                                                }}>
+                                                                    <Eye /> View Details
+                                                                </DropdownMenuItem>
+                                                                {
+                                                                    canCreate && (
                                                                         <DropdownMenuItem
-                                                                            variant="destructive"
                                                                             onClick={() => {
+                                                                                setSelectedClientId(task.clientId);
+                                                                                setTaskModalOpen(true);
                                                                                 setSelectedTask(task);
-                                                                                setDeleteDialogOpen(true);
                                                                             }}
                                                                         >
-                                                                            <Trash2 /> Delete
+                                                                            <Plus /> Add Task
                                                                         </DropdownMenuItem>
-                                                                    </>
-                                                                )
-                                                            }
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
+                                                                    )
+                                                                }
+                                                                {
+                                                                    canEdit && (
+                                                                        <DropdownMenuItem
+                                                                            onClick={() => {
+                                                                                setSelectedTask(task);
+                                                                                setEditTaskModalOpen(true);
+                                                                            }}
+                                                                        >
+                                                                            <PenBox /> Edit Task
+                                                                        </DropdownMenuItem>
+                                                                    )
+                                                                }
+                                                                {
+                                                                    canDelete && (
+                                                                        <>
+                                                                            <DropdownMenuSeparator />
+                                                                            <DropdownMenuItem
+                                                                                variant="destructive"
+                                                                                onClick={() => {
+                                                                                    setSelectedTask(task);
+                                                                                    setDeleteDialogOpen(true);
+                                                                                }}
+                                                                            >
+                                                                                <Trash2 /> Delete
+                                                                            </DropdownMenuItem>
+                                                                        </>
+                                                                    )
+                                                                }
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={10} className="text-center py-30 text-muted-foreground">
+                                                    No tasks found.
                                                 </TableCell>
                                             </TableRow>
-                                        ))
+                                        )
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={10} className="text-center py-30 text-muted-foreground">
-                                                No tasks found.
+                                            <TableCell colSpan={10}>
+                                                <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
+                                                    <div className="flex items-center gap-2">
+                                                        <AlertTriangle className="w-5 h-5" />
+                                                        <span>You don't have permission view task data.</span>
+                                                    </div>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     )
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={10}>
-                                            <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
-                                                <div className="flex items-center gap-2">
-                                                    <AlertTriangle className="w-5 h-5" />
-                                                    <span>You don't have permission view task data.</span>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
                                 )
                             }
                         </TableBody>

@@ -3,15 +3,15 @@ import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMe
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
-import { AlertTriangle, Ellipsis, Eye, Filter, PenBox, Plus, Search, Trash2, TriangleAlert } from "lucide-react";
+import { AlertTriangle, Ellipsis, Eye, Filter, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { PaginationBar } from "~/components/pagination-bar";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
-import { toast } from "sonner";
 import { cn } from "~/lib/utils";
+import { toast } from "sonner";
 
 const AddChatModal = lazy(() =>
     import("~/components/modals/add-chat-modal").then((m) => ({
@@ -119,6 +119,7 @@ export const meta = () => [{ title: "Chats | InkyBay" }];
 
 export default function ChatsListPage() {
 
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { chats, meta, tags } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
@@ -139,24 +140,29 @@ export default function ChatsListPage() {
     const canDelete = permissions.includes("chats.delete");
     const canCreate = permissions.includes("chats.create");
 
+    const navigateWithLoading = (url: string) => {
+        setLoading(true);
+        navigate(url, { replace: true });
+    };
+
     const handlePageChange = (newPage: number) => {
         const params = new URLSearchParams(window.location.search);
         params.set("page", newPage.toString());
-        navigate(`?${params.toString()}`);
+        navigateWithLoading(`?${params.toString()}`);
     };
 
     const handleLimitChange = (newLimit: number) => {
         const params = new URLSearchParams(window.location.search);
         params.set("limit", newLimit.toString());
-        params.set("page", "1"); // reset to first page
-        navigate(`?${params.toString()}`);
+        params.set("page", "1");
+        navigateWithLoading(`?${params.toString()}`);
     };
 
     const handleSearch = (value: string) => {
         const params = new URLSearchParams(window.location.search);
         params.set("search", value);
         params.set("page", "1");
-        navigate(`?${params.toString()}`);
+        navigateWithLoading(`?${params.toString()}`);
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,14 +181,14 @@ export default function ChatsListPage() {
             });
             if (!res.ok) toast.error("Failed to delete chat");
             toast.success("Chat deleted successfully.");
-            navigate(0);
+            refreshPage();
         } catch (err: any) {
             toast.error(err.message || "Failed to delete chat.");
         }
     }
 
     const refreshPage = () => {
-        navigate(window.location.pathname + window.location.search, { replace: true });
+        navigateWithLoading(window.location.pathname + window.location.search);
     };
 
     const handleTagToggle = (tagName: string, checked: boolean) => {
@@ -199,8 +205,12 @@ export default function ChatsListPage() {
         else params.delete("tags");
 
         params.set("page", "1"); // reset pagination
-        navigate(`?${params.toString()}`);
+        navigateWithLoading(`?${params.toString()}`);
     };
+
+    useEffect(() => {
+        if (loading) setLoading(false);
+    }, [chats]);
 
     return (
         <div className="px-6 space-y-2">
@@ -268,148 +278,160 @@ export default function ChatsListPage() {
                         </TableHeader>
                         <TableBody>
                             {
-                                canView ? (
-                                    chats.length > 0 ? (
-                                        chats.map((chat, index) => (
-                                            <TableRow key={chat.id}>
-                                                <TableCell>{index + 1}</TableCell>
-                                                <TableCell>{chat.client.shopName}</TableCell>
-                                                <TableCell className="max-w-[20px] truncate">
-                                                    <TooltipProvider>
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <span className="block truncate cursor-pointer">
-                                                                    {chat.clientQuery || "-"}
+                                loading ? (
+                                    Array.from({ length: 10 }).map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell colSpan={9} className="py-4">
+                                                <div className="animate-pulse h-5 bg-accent rounded" />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    canView ? (
+                                        chats.length > 0 ? (
+                                            chats.map((chat, index) => (
+                                                <TableRow key={chat.id}>
+                                                    <TableCell>{index + 1}</TableCell>
+                                                    <TableCell>{chat.client.shopName}</TableCell>
+                                                    <TableCell className="max-w-[20px] truncate">
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <span className="block truncate cursor-pointer">
+                                                                        {chat.clientQuery || "-"}
+                                                                    </span>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p className="max-w-sm break-words">
+                                                                        {chat.clientQuery}
+                                                                    </p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    </TableCell>
+                                                    <TableCell>{chat.handleByUser?.fullName ?? "—"}</TableCell>
+                                                    <TableCell className="flex flex-wrap gap-1">
+                                                        {chat.chatTags && chat.chatTags.length > 0 ? (
+                                                            chat.chatTags.map((ct: any) => (
+                                                                <span
+                                                                    key={ct.tag.name}
+                                                                    className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs"
+                                                                >
+                                                                    {ct.tag.name}
                                                                 </span>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>
-                                                                <p className="max-w-sm break-words">
-                                                                    {chat.clientQuery}
-                                                                </p>
-                                                            </TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                </TableCell>
-                                                <TableCell>{chat.handleByUser?.fullName ?? "—"}</TableCell>
-                                                <TableCell className="flex flex-wrap gap-1">
-                                                    {chat.chatTags && chat.chatTags.length > 0 ? (
-                                                        chat.chatTags.map((ct: any) => (
-                                                            <span
-                                                                key={ct.tag.name}
-                                                                className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs"
-                                                            >
-                                                                {ct.tag.name}
-                                                            </span>
-                                                        ))
-                                                    ) : (
-                                                        <span>N/A</span>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {chat.reviewAsked == true ? "Yes" : "No"}
-                                                </TableCell>
-                                                <TableCell className="max-w-[20px] truncate">
-                                                    <TooltipProvider>
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <span className="block truncate cursor-pointer">
-                                                                    {chat.clientFeedback || "N/A"}
-                                                                </span>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>
-                                                                <p className="max-w-sm break-words">
-                                                                    {chat.clientFeedback}
-                                                                </p>
-                                                            </TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {new Date(chat.createdAt).toLocaleDateString()}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button
-                                                                variant="ghost"
-                                                                className="data-[state=open]:bg-muted text-muted-foreground flex size-8 cursor-pointer"
-                                                                size="icon"
-                                                            >
-                                                                <Ellipsis />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onClick={() => {
-                                                                setSelectedChat(chat);
-                                                                setViewChatModal(true);
-                                                            }}>
-                                                                <Eye /> View Details
-                                                            </DropdownMenuItem>
-                                                            {
-                                                                canCreate && (
-                                                                    <DropdownMenuItem onClick={() => {
-                                                                        setClientId(chat.clientId);
-                                                                        setSelectedChat(chat);
-                                                                        setChatModalOpen(true);
-                                                                    }}>
-                                                                        <Plus /> Add Chat
-                                                                    </DropdownMenuItem>
-                                                                )
-                                                            }
-                                                            {
-                                                                canEdit && (
-                                                                    <DropdownMenuItem onClick={() => {
-                                                                        setSelectedChat(chat);
-                                                                        setEditChatModal(true);
-                                                                    }}>
-                                                                        <PenBox /> Edit Chat
-                                                                    </DropdownMenuItem>
-                                                                )
-                                                            }
-
-                                                            {
-                                                                canDelete && (
-                                                                    <>
-                                                                        <DropdownMenuSeparator />
-                                                                        <DropdownMenuItem
-                                                                            variant="destructive"
-                                                                            onClick={() => {
-                                                                                setChatToDelete(chat);
-                                                                                setDeleteDialogOpen(true);
-                                                                            }}
-                                                                        >
-                                                                            <Trash2 /> Delete
+                                                            ))
+                                                        ) : (
+                                                            <span>N/A</span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {chat.reviewAsked == true ? "Yes" : "No"}
+                                                    </TableCell>
+                                                    <TableCell className="max-w-[20px] truncate">
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <span className="block truncate cursor-pointer">
+                                                                        {chat.clientFeedback || "N/A"}
+                                                                    </span>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p className="max-w-sm break-words">
+                                                                        {chat.clientFeedback}
+                                                                    </p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {new Date(chat.createdAt).toLocaleDateString()}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    className="data-[state=open]:bg-muted text-muted-foreground flex size-8 cursor-pointer"
+                                                                    size="icon"
+                                                                >
+                                                                    <Ellipsis />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem onClick={() => {
+                                                                    setSelectedChat(chat);
+                                                                    setViewChatModal(true);
+                                                                }}>
+                                                                    <Eye /> View Details
+                                                                </DropdownMenuItem>
+                                                                {
+                                                                    canCreate && (
+                                                                        <DropdownMenuItem onClick={() => {
+                                                                            setClientId(chat.clientId);
+                                                                            setSelectedChat(chat);
+                                                                            setChatModalOpen(true);
+                                                                        }}>
+                                                                            <Plus /> Add Chat
                                                                         </DropdownMenuItem>
-                                                                    </>
-                                                                )
-                                                            }
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
+                                                                    )
+                                                                }
+                                                                {
+                                                                    canEdit && (
+                                                                        <DropdownMenuItem onClick={() => {
+                                                                            setSelectedChat(chat);
+                                                                            setEditChatModal(true);
+                                                                        }}>
+                                                                            <PenBox /> Edit Chat
+                                                                        </DropdownMenuItem>
+                                                                    )
+                                                                }
+
+                                                                {
+                                                                    canDelete && (
+                                                                        <>
+                                                                            <DropdownMenuSeparator />
+                                                                            <DropdownMenuItem
+                                                                                variant="destructive"
+                                                                                onClick={() => {
+                                                                                    setChatToDelete(chat);
+                                                                                    setDeleteDialogOpen(true);
+                                                                                }}
+                                                                            >
+                                                                                <Trash2 /> Delete
+                                                                            </DropdownMenuItem>
+                                                                        </>
+                                                                    )
+                                                                }
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell
+                                                    colSpan={9}
+                                                    className="text-center py-30 text-muted-foreground"
+                                                >
+                                                    No chats found.
                                                 </TableCell>
                                             </TableRow>
-                                        ))
+                                        )
                                     ) : (
                                         <TableRow>
-                                            <TableCell
-                                                colSpan={9}
-                                                className="text-center py-30 text-muted-foreground"
-                                            >
-                                                No chats found.
+                                            <TableCell colSpan={9}>
+                                                <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
+                                                    <div className="flex items-center gap-2">
+                                                        <AlertTriangle className="w-5 h-5" />
+                                                        <span>You don't have permission view chats data.</span>
+                                                    </div>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     )
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={9}>
-                                            <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
-                                                <div className="flex items-center gap-2">
-                                                    <AlertTriangle className="w-5 h-5" />
-                                                    <span>You don't have permission view chats data.</span>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
                                 )
+
+
                             }
                         </TableBody>
                     </Table>
