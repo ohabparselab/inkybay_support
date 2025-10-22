@@ -1,12 +1,12 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Link, useLoaderData, useNavigate, type LoaderFunctionArgs } from "react-router";
-import { ChevronLeft, ChevronRight, Ellipsis, Eye, Plus, Search } from "lucide-react";
+import { PaginationBar } from "~/components/pagination-bar";
+import { Ellipsis, Eye, Plus, Search } from "lucide-react";
 import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
-import { PaginationBar } from "~/components/pagination-bar";
 
 const ClientViewModal = lazy(() =>
     import('~/components/modals/client-view-modal').then(module => ({ default: module.ClientViewModal }))
@@ -196,7 +196,7 @@ export default function ClientsList() {
                                             )}
                                             {taskModalOpen && (
                                                 <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
-                                                    <AddTaskModal clientId={client.id} open={taskModalOpen} onOpenChange={setTaskModalOpen} />
+                                                    <AddTaskModal task="task" clientId={client.id} open={taskModalOpen} onOpenChange={setTaskModalOpen} />
                                                 </Suspense>
                                             )}
                                             {meetingModalOpen && (
@@ -206,7 +206,7 @@ export default function ClientsList() {
                                             )}
                                             {marketingFunnelModalOpen && (
                                                 <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
-                                                    <AddMarketingFunnelModal clientId={client.id} open={marketingFunnelModalOpen} onOpenChange={setMarketingFunnelModalOpen} />
+                                                    <AddMarketingFunnelModal funnel="funnel" clientId={client.id} open={marketingFunnelModalOpen} onOpenChange={setMarketingFunnelModalOpen} />
                                                 </Suspense>
                                             )}
                                         </TableCell>
