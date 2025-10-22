@@ -55,6 +55,7 @@ export default function EditUser() {
             email: user?.email || "",
             password: "",
             role: user?.role.slug || "user",
+            isActive: user?.isActive,
             permissions: modules.reduce((acc, mod) => {
                 acc[mod.id] = userPermMap[mod.id] || []
                 return acc
@@ -144,6 +145,23 @@ export default function EditUser() {
                                     )}
                                 />
                                 {errors.role && <span className="text-destructive">{errors.role.message}</span>}
+                            </div>
+                            <div className="flex flex-col justify-end">
+                                <div className="flex items-center space-x-2">
+                                    <Label htmlFor="isActive">isActive?</Label>
+                                    <Controller
+                                        control={control}
+                                        name="isActive"
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                id="isActive"
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+
+                                </div>
                             </div>
                         </div>
 

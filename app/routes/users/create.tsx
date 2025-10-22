@@ -43,6 +43,7 @@ export default function CreateUser() {
             email: "",
             password: "",
             role: "user",
+            isActive: true,
             permissions: modules.reduce((acc, mod) => {
                 acc[mod.id] = []
                 return acc
@@ -140,6 +141,23 @@ export default function CreateUser() {
                                     )}
                                 />
                                 {errors.role && <span className="text-destructive text-sm">{errors.role.message}</span>}
+                            </div>
+                            <div className="flex flex-col justify-end">
+                                <div className="flex items-center space-x-2">
+                                    <Label htmlFor="isActive">isActive?</Label>
+                                    <Controller
+                                        control={control}
+                                        name="isActive"
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                id="isActive"
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                    
+                                </div>
                             </div>
                         </div>
                         <div className="flex flex-col gap-4">

@@ -48,6 +48,7 @@ async function updateUser(userId:number, request: Request) {
         }
 
         // Update user
+        updateData.isActive = parsed.isActive;
         const user = await prisma.user.update({
             where: { id: userId },
             data: updateData,

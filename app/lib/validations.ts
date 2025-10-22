@@ -61,6 +61,7 @@ export const createUserSchema = z.object({
         }
     }),
     role: z.string(),
+    isActive: z.boolean(),
     permissions: z.record(z.string(), z.array(z.number())).optional(),
 })
 
@@ -92,6 +93,7 @@ export const updateUserSchema = z.object({
             }
         }),
     role: z.string(),
+    isActive: z.boolean(),
     permissions: z.record(z.string(), z.array(z.number())).optional(),
 })
 

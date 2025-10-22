@@ -136,7 +136,7 @@ export function DataTable({ data, meta, onPageChange, onSearch, handleLimitChang
                                     <TableCell>{user.fullName}</TableCell>
                                     <TableCell>{user.email}</TableCell>
                                     <TableCell>{user.role.name}</TableCell>
-                                    <TableCell>{user.isActive ? <CircleCheck className="text-green-600" /> : <CircleX />}</TableCell>
+                                    <TableCell>{user.isActive ? <CircleCheck className="text-green-700" /> : <CircleX  className="text-red-700"/>}</TableCell>
                                     <TableCell>
                                         {new Date(user.createdAt).toLocaleDateString()}
                                     </TableCell>
