@@ -42,8 +42,8 @@ export default function LoginPage() {
             });
 
             if (res.ok) {
-                toast.success("Login successful!");
                 navigate("/dashboard");
+                toast.success("Login successful!");
             } else {
                 const err = await res.json();
                 setServerError(err.message || "Invalid credentials")

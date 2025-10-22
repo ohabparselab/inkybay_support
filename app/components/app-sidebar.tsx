@@ -54,11 +54,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 url: "/dashboard",
                 icon: House,
             },
-            {
-                title: "Clients",
-                url: "/clients",
-                icon: Contact,
-            },
+            // {
+            //     title: "Clients",
+            //     url: "/clients",
+            //     icon: Contact,
+            // },
             {
                 title: "Chats",
                 url: "/chats",
