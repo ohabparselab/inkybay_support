@@ -35,15 +35,55 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 avatar: true,
                 fullName: true,
                 email: true,
-                role: { select: { name: true, slug: true } },
                 createdAt: true,
+                role: {
+                    select: { name: true, slug: true },
+                },
+                modulePermissions: {
+                    where: { isDeleted: false },
+                    select: {
+                        module: {
+                            select: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                            },
+                        },
+                        permission: {
+                            select: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                            },
+                        },
+                    },
+                },
             },
         }),
+
         prisma.user.count({ where }),
-    ]);
+    ])
+
+    const formattedUsers = users.map(user => {
+        const modulesMap: Record<string, { name: string; permissions: string[] }> = {}
+
+        user.modulePermissions.forEach(mp => {
+            const moduleName = mp.module.name
+            if (!modulesMap[moduleName]) {
+                modulesMap[moduleName] = { name: moduleName, permissions: [] }
+            }
+            modulesMap[moduleName].permissions.push(mp.permission.name)
+        })
+
+        return {
+            ...user,
+            modules: Object.values(modulesMap),
+        }
+    })
+
 
     return json({
-        users,
+        users: formattedUsers,
         meta: {
             total,
             page,

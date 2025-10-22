@@ -13,18 +13,7 @@ import { Button } from "../ui/button";
 interface UserInfoModalProps {
     open: boolean
     onOpenChange: (open: boolean) => void;
-    user: {
-        fullName: string
-        email: string
-        role: {
-            name: string,
-            slug: string
-        }
-        modules?: {
-            name: string
-            permissions: { name: string }[]
-        }[]
-    } | null
+    user: any | null
 }
 
 export function UserInfoModal({ open, onOpenChange, user }: UserInfoModalProps) {
@@ -37,6 +26,14 @@ export function UserInfoModal({ open, onOpenChange, user }: UserInfoModalProps) 
                 <DialogHeader className="pb-5 border-b">
                     <DialogTitle>User Details</DialogTitle>
                 </DialogHeader>
+
+                <div className="flex justify-center">
+                    <img
+                        src={user.avatar || "/avatar-default.svg"}
+                        alt={user.fullName}
+                        className="w-1/4 h-auto rounded-full border-4 border-background shadow-lg object-cover"
+                    />
+                </div>
 
                 <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -61,13 +58,13 @@ export function UserInfoModal({ open, onOpenChange, user }: UserInfoModalProps) 
                     <div>
                         <h3 className="font-semibold mb-2">Module Permissions</h3>
                         {user.modules?.length ? (
-                            <div className="space-y-3">
-                                {user.modules.map((mod, i) => (
+                            <div className="space-y-3 p-5">
+                                {user.modules.map((module: any, i: number) => (
                                     <div key={i}>
-                                        <p className="font-medium">{mod.name}</p>
+                                        <p className="font-medium">{module.name}</p>
                                         <div className="flex flex-wrap gap-2 mt-1">
-                                            {mod.permissions.map((perm, j) => (
-                                                <Badge key={j} variant="outline">{perm.name}</Badge>
+                                            {module.permissions.map((permission: any, j: number) => (
+                                                <Badge variant="outline">{permission}</Badge>
                                             ))}
                                         </div>
                                     </div>
