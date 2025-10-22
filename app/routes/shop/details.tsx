@@ -460,7 +460,7 @@ export default function ShopDetailsPage() {
                             </TabsContent>
 
                             {/* chats Tabs */}
-                            <TabsContent value="chats" className="mt-4 text-gray-500 text-sm">
+                            <TabsContent value="chats" className="mt-4 text-sm">
                                 {
                                     canChatView ? (
                                         loadingChats ? (
@@ -543,7 +543,7 @@ export default function ShopDetailsPage() {
                                                                                     </span>
                                                                                 ))
                                                                             ) : (
-                                                                                <span className="text-gray-500">N/A</span>
+                                                                                <span>N/A</span>
                                                                             )}
                                                                         </TableCell>
                                                                         <TableCell>
@@ -679,7 +679,7 @@ export default function ShopDetailsPage() {
                                 }
                             </TabsContent>
                             {/* task Tabs */}
-                            <TabsContent value="tasks" className="mt-4 text-gray-500 text-sm">
+                            <TabsContent value="tasks" className="mt-4 text-sm">
                                 {
 
                                     canTaskView ? (
@@ -854,7 +854,7 @@ export default function ShopDetailsPage() {
                                     )
                                 }
                             </TabsContent>
-                            <TabsContent value="marketingFunnels" className="mt-4 text-gray-500 text-sm">
+                            <TabsContent value="marketingFunnels" className="mt-4 text-sm">
                                 {
                                     canMFunnelView ? (
                                         loadingMarketingFunnels ? (
@@ -1025,7 +1025,7 @@ export default function ShopDetailsPage() {
 
                                 }
                             </TabsContent>
-                            <TabsContent value="meetings" className="mt-4 text-gray-500 text-sm">
+                            <TabsContent value="meetings" className="mt-4 text-sm">
                                 {
                                     canMeetingView ? (
                                         loadingMeetings ? (

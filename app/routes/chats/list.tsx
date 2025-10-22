@@ -302,7 +302,7 @@ export default function ChatsListPage() {
                                                             </span>
                                                         ))
                                                     ) : (
-                                                        <span className="text-gray-500">N/A</span>
+                                                        <span>N/A</span>
                                                     )}
                                                 </TableCell>
                                                 <TableCell>
