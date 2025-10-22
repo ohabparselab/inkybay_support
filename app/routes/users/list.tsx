@@ -35,6 +35,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 avatar: true,
                 fullName: true,
                 email: true,
+                isActive: true,
                 createdAt: true,
                 role: {
                     select: { name: true, slug: true },

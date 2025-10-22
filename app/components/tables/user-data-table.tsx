@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, Search, SquarePen, Trash2 } from "lucide-react";
+import { CircleCheck, CircleX, Eye, Search, SquarePen, Trash2 } from "lucide-react";
 import {
     Avatar,
     AvatarImage,
@@ -42,6 +42,7 @@ interface User {
     fullName: string;
     email: string;
     role: Role;
+    isActive: boolean;
     createdAt: string;
 }
 
@@ -117,6 +118,7 @@ export function DataTable({ data, meta, onPageChange, onSearch, handleLimitChang
                             <TableHead>Full Name</TableHead>
                             <TableHead>Email</TableHead>
                             <TableHead>Role</TableHead>
+                            <TableHead>isActive?</TableHead>
                             <TableHead>Created At</TableHead>
                             <TableHead>Actions</TableHead>
                         </TableRow>
@@ -134,6 +136,7 @@ export function DataTable({ data, meta, onPageChange, onSearch, handleLimitChang
                                     <TableCell>{user.fullName}</TableCell>
                                     <TableCell>{user.email}</TableCell>
                                     <TableCell>{user.role.name}</TableCell>
+                                    <TableCell>{user.isActive ? <CircleCheck className="text-green-600" /> : <CircleX />}</TableCell>
                                     <TableCell>
                                         {new Date(user.createdAt).toLocaleDateString()}
                                     </TableCell>
