@@ -7,6 +7,7 @@
     "dev": "react-router dev",
     "dev:beta": "PARSETRACK_NODE_ENV=beta react-router dev",
     "start": "react-router-serve ./build/server/index.js",
+    "start:beta": "./scripts/start-beta.sh",
     "typecheck": "react-router typegen && tsc",
     "migrate": "prisma migrate dev --name",
     "seed": "tsx prisma/seed.ts",
