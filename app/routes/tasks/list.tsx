@@ -296,7 +296,7 @@ export default function TasksListPage() {
                                             ))
                                         ) : (
                                             <TableRow>
-                                                <TableCell colSpan={10} className="text-center py-30 text-muted-foreground">
+                                                <TableCell colSpan={10} className="text-center py-50 text-muted-foreground">
                                                     No tasks found.
                                                 </TableCell>
                                             </TableRow>

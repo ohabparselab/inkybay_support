@@ -266,7 +266,7 @@ export default function MeetingListPage() {
                                             ))
                                         ) : (
                                             <TableRow>
-                                                <TableCell colSpan={9} className="text-center py-30 text-muted-foreground">
+                                                <TableCell colSpan={9} className="text-center py-50 text-muted-foreground">
                                                     No meetings found.
                                                 </TableCell>
                                             </TableRow>

@@ -179,7 +179,7 @@ export function DataTable({ users, meta, onPageChange, onSearch, handleLimitChan
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
+                                        <TableCell colSpan={8} className="text-center py-50 text-muted-foreground">
                                             No users result found.
                                         </TableCell>
                                     </TableRow>

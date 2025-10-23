@@ -411,7 +411,7 @@ export default function ChatsListPage() {
                                             <TableRow>
                                                 <TableCell
                                                     colSpan={9}
-                                                    className="text-center py-30 text-muted-foreground"
+                                                    className="text-center py-50 text-muted-foreground"
                                                 >
                                                     No chats found.
                                                 </TableCell>
