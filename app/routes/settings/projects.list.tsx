@@ -37,7 +37,7 @@ export default function ModuleListPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>ID</TableHead>
-                            <TableHead>Name</TableHead>
+                            <TableHead>Project</TableHead>
                             <TableHead>Slug</TableHead>
                             <TableHead>Created At</TableHead>
                             <TableHead>Updated At</TableHead>
