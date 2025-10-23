@@ -8,16 +8,8 @@
     "seed": "tsx prisma/seed.ts",
     "prisma": "npx prisma studio",
     "dev": "PARSETRACK_NODE_ENV=development react-router dev",
-    "dev:beta": "PARSETRACK_NODE_ENV=beta react-router dev",
-    "dev:live": "PARSETRACK_NODE_ENV=production react-router dev",
-    "build": "PARSETRACK_NODE_ENV=production react-router build",
-    "start": "PARSETRACK_NODE_ENV=production react-router-serve ./build/server/index.js",
-    "migrate:dev": "PARSETRACK_NODE_ENV=development DATABASE_URL=$DATABASE_URL npx prisma migrate dev --name init",
-    "migrate:beta": "PARSETRACK_NODE_ENV=beta npx prisma migrate dev --name init",
-    "migrate:live": "PARSETRACK_NODE_ENV=production DATABASE_URL=$PARSETRACK_LIVE_DATABASE_URL npx prisma migrate deploy",
-    "seed:dev": "PARSETRACK_NODE_ENV=development tsx prisma/seed.ts",
-    "seed:beta": "PARSETRACK_NODE_ENV=beta tsx prisma/seed.ts",
-    "seed:live": "PARSETRACK_NODE_ENV=production tsx prisma/seed.ts"
+    "migrate:beta": "./scripts/migrate-beta.sh",
+    "seed:beta": "./scripts/seed-beta.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
