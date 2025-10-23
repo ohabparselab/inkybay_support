@@ -124,7 +124,7 @@ model Platform {
     id        Int       @id @default(autoincrement())
     projectId Int
     name      String
-    slug      String
+    slug      String    @unique
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
     isDeleted Boolean   @default(false)
@@ -140,7 +140,7 @@ model Platform {
 model Project {
     id        Int       @id @default(autoincrement())
     name      String
-    slug      String
+    slug      String    @unique
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
     isDeleted Boolean   @default(false)
