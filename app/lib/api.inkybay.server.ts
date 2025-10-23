@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-const hmacSecret = process.env.HMAC_SECRET || "ds9f9dsa98798sdf"
+const hmacSecret = process.env.PARSETRACK_HMAC_SECRET || "ds9f9dsa98798sdf"
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
