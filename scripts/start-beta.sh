@@ -5,6 +5,7 @@ source /etc/environment
 
 # Make local node_modules/.bin available
 export PATH=$PATH:$(npm bin)
+export DATABASE_URL=$PARSETRACK_BETA_DATABASE_URL
 
 # Set environment
 export PARSETRACK_NODE_ENV=beta
