@@ -15,9 +15,9 @@
     "build": "PARSETRACK_NODE_ENV=production react-router build",
     "start": "PARSETRACK_NODE_ENV=production react-router-serve ./build/server/index.js",
     
-    "migrate:dev": "PARSETRACK_NODE_ENV=development npx prisma migrate dev --name init",
-    "migrate:beta": "PARSETRACK_NODE_ENV=beta npx prisma migrate dev --name init",
-    "migrate:live": "PARSETRACK_NODE_ENV=production npx prisma migrate deploy",
+    "migrate:dev": "PARSETRACK_NODE_ENV=development DATABASE_URL=$DATABASE_URL npx prisma migrate dev --name init",
+    "migrate:beta": "PARSETRACK_NODE_ENV=beta DATABASE_URL=$PARSETRACK_BETA_DATABASE_URL npx prisma migrate dev --name init",
+    "migrate:live": "PARSETRACK_NODE_ENV=production DATABASE_URL=$PARSETRACK_LIVE_DATABASE_URL npx prisma migrate deploy",
     
     "seed:dev": "PARSETRACK_NODE_ENV=development tsx prisma/seed.ts",
     "seed:beta": "PARSETRACK_NODE_ENV=beta tsx prisma/seed.ts",
