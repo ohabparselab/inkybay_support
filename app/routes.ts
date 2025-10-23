@@ -30,6 +30,8 @@ export default [
         // settings routes
         route("settings/permissions", "./routes/settings/permission.list.tsx"),
         route("settings/modules", "./routes/settings/modules.list.tsx"),
+        route("settings/projects", "./routes/settings/projects.list.tsx"),
+        route("settings/platforms", "./routes/settings/platforms.list.tsx"),
 
     ]),
     // api routes

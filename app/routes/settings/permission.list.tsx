@@ -1,9 +1,4 @@
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
+
 import {
     Table,
     TableBody,
@@ -12,11 +7,9 @@ import {
     TableHeader,
     TableRow,
 } from "~/components/ui/table";
-import { Ellipsis, Eye, Edit } from "lucide-react";
-import { useState, lazy, Suspense } from "react";
-import { Button } from "~/components/ui/button";
 import { prisma } from "~/lib/prisma.server";
 import { useLoaderData } from "react-router";
+import { useState } from "react";
 
 // const EditPermissionModal = lazy(() =>
 //   import("~/components/modals/edit-permission-modal").then((m) => ({

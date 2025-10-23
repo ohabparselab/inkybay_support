@@ -1,7 +1,10 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import { ButtonGroup } from "~/components/ui/button-group";
+import { Button } from "~/components/ui/button";
+import { PenBox, Trash2 } from "lucide-react";
 import { prisma } from "~/lib/prisma.server";
 import { useLoaderData } from "react-router";
-import { useState} from "react";
+import { useState } from "react";
 
 // const EditModuleModal = lazy(() =>
 //     import("~/components/modals/edit-module-modal").then((m) => ({
@@ -10,24 +13,24 @@ import { useState} from "react";
 // ));
 
 export async function loader() {
-    const modules = await prisma.module.findMany({
+    const projects = await prisma.project.findMany({
         orderBy: { createdAt: "desc" },
     });
 
-    return { modules };
+    return { projects };
 }
 
 export const meta = () => [{ title: "Settings | InkyBay" }];
 
 export default function ModuleListPage() {
 
-    const { modules } = useLoaderData<typeof loader>();
+    const { projects } = useLoaderData<typeof loader>();
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
 
     return (
         <div className="px-6 space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight">Modules</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
 
             <div className="rounded-md border bg-card shadow-sm">
                 <Table>
@@ -37,42 +40,35 @@ export default function ModuleListPage() {
                             <TableHead>Name</TableHead>
                             <TableHead>Slug</TableHead>
                             <TableHead>Created At</TableHead>
-                            {/* <TableHead>Actions</TableHead> */}
+                            <TableHead>Updated At</TableHead>
+                            <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {modules.length > 0 ? (
-                            modules.map((mod, idx) => (
-                                <TableRow key={mod.id}>
+                        {projects.length > 0 ? (
+                            projects.map((project, idx) => (
+                                <TableRow key={idx}>
                                     <TableCell>{idx + 1}</TableCell>
-                                    <TableCell>{mod.name}</TableCell>
-                                    <TableCell>{mod.slug}</TableCell>
-                                    <TableCell>{new Date(mod.createdAt).toLocaleDateString()}</TableCell>
-                                    {/* <TableCell>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon">
-                                                    <Ellipsis />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem
-                                                    onClick={() => {
-                                                        setSelectedModuleId(mod.id);
-                                                        setEditModalOpen(true);
-                                                    }}
-                                                >
-                                                    <Edit /> Edit
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell> */}
+                                    <TableCell>{project.name}</TableCell>
+                                    <TableCell>{project.slug}</TableCell>
+                                    <TableCell>{new Date(project.createdAt).toLocaleDateString()}</TableCell>
+                                    <TableCell>{new Date(project.updatedAt).toLocaleDateString()}</TableCell>
+                                    <TableCell>
+                                        <ButtonGroup>
+                                            <Button variant="outline">
+                                                <PenBox/>
+                                            </Button>
+                                             <Button variant="destructive">
+                                                <Trash2/>
+                                            </Button>
+                                        </ButtonGroup>
+                                    </TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
-                                    No modules found.
+                                    No projects found.
                                 </TableCell>
                             </TableRow>
                         )}
