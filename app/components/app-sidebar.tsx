@@ -2,25 +2,17 @@
 import { Link } from "react-router";
 import * as React from "react"
 import {
-    AudioWaveform,
-    BookOpen,
-    Bot,
-    Command,
-    Frame,
-    GalleryVerticalEnd,
-    Map,
-    PieChart,
     Settings2,
-    SquareTerminal,
     House,
     Users,
-    Contact,
     Video,
     MessageCircle,
     Megaphone,
     List,
     LockKeyholeOpen,
-    Component
+    Component,
+    Columns3Cog,
+    FileStack
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -97,6 +89,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             title: "Modules",
                             url: "/settings/modules",
                             icon: Component
+                        },
+                        {
+                            title: "Projects",
+                            url: "/settings/projects",
+                            icon: Columns3Cog
+                        },
+                        {
+                            title: "Platforms",
+                            url: "/settings/platforms",
+                            icon: FileStack
                         }
                     ],
                 },
@@ -110,7 +112,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <img
                         src="/inkybay-logo.svg"
                         alt="InkyBay Support"
-                        className="h-20 w-auto"
+                        className="h-20 w-auto cursor-pointer"
                     />
                 </Link>
             </SidebarHeader>
