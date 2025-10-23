@@ -4,17 +4,15 @@ import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 const port =
-    process.env.PARSETRACK_NODE_ENV === "beta"
-        ? process.env.PARSETRACK_BETA_PORT
-        : process.env.PARSETRACK_LIVE_PORT;
-
-const serverPort = Number(port) || 5001; // fallback if undefined
-
-console.log("=======port=======>>", serverPort);
+  process.env.PARSETRACK_NODE_ENV === "beta"
+    ? Number(process.env.PARSETRACK_BETA_PORT)
+    : process.env.PARSETRACK_NODE_ENV === "production"
+    ? Number(process.env.PARSETRACK_LIVE_PORT)
+    : 3000;
 
 export default defineConfig({
     server: {
-        port: serverPort,
+        port: port,
         allowedHosts: ["otelia-unbrightened-sully.ngrok-free.dev", "parsetrack.com"],
         hmr: { overlay: true },
     },
