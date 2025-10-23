@@ -4,7 +4,7 @@ import { DataTable } from "@/components/tables/user-data-table";
 import { Button } from "~/components/ui/button";
 import { prisma } from "~/lib/prisma.server";
 import { Plus } from "lucide-react";
-import { lazy } from "react";
+import { lazy, useEffect, useState } from "react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
 
@@ -99,28 +99,38 @@ export const meta = () => [{ title: "Users List | InkyBay" }];
 
 export default function UsersList() {
 
+    const [loading, setLoading] = useState(true);
     const { users, meta } = useLoaderData<typeof loader>();
     const navigate = useNavigate();
 
-    function handlePageChange(newPage: number) {
+    const navigateWithLoading = (url: string) => {
+        setLoading(true);
+        navigate(url, { replace: true });
+    };
+
+    const handlePageChange = (newPage: number) => {
         const params = new URLSearchParams(window.location.search);
         params.set("page", newPage.toString());
-        navigate(`?${params.toString()}`);
+        navigateWithLoading(`?${params.toString()}`);
     }
 
     const handleLimitChange = (newLimit: number) => {
         const params = new URLSearchParams(window.location.search);
         params.set("limit", newLimit.toString());
         params.set("page", "1"); // reset to first page
-        navigate(`?${params.toString()}`);
+        navigateWithLoading(`?${params.toString()}`);
     };
 
-    function handleSearch(value: string) {
+    const handleSearch = (value: string) => {
         const params = new URLSearchParams(window.location.search);
         params.set("search", value);
         params.set("page", "1");
-        navigate(`?${params.toString()}`);
+        navigateWithLoading(`?${params.toString()}`);
     }
+
+    useEffect(() => {
+        if (loading) setLoading(false);
+    }, [users]);
 
     return (
         <div className="px-6 space-y-2">
@@ -137,11 +147,12 @@ export default function UsersList() {
                 </Button>
             </div>
             <DataTable
-                data={users}
+                users={users}
                 meta={meta}
                 onPageChange={handlePageChange}
                 onSearch={handleSearch}
                 handleLimitChange={handleLimitChange}
+                loading={loading}
             />
         </div>
     );

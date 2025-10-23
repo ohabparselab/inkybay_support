@@ -52,14 +52,15 @@ interface Role {
 }
 
 interface DataTableProps {
-    data: User[];
+    users: User[];
     meta: Meta;
     onPageChange: (page: number) => void;
     onSearch: (term: string) => void;
     handleLimitChange: (limit: number) => void;
+    loading: boolean;
 }
 
-export function DataTable({ data, meta, onPageChange, onSearch, handleLimitChange }: DataTableProps) {
+export function DataTable({ users, meta, onPageChange, onSearch, handleLimitChange, loading }: DataTableProps) {
 
     const [search, setSearch] = useState(meta.search ?? "");
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -124,55 +125,67 @@ export function DataTable({ data, meta, onPageChange, onSearch, handleLimitChang
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {data.length > 0 ? (
-                            data.map((user, index) => (
-                                <TableRow key={index}>
-                                    <TableCell>{index + 1}</TableCell>
-                                    <TableCell>
-                                        <Avatar className="h-8 w-8 rounded-lg">
-                                            <AvatarImage src={user.avatar || '/avatar-default.svg'} alt={user.fullName} />
-                                        </Avatar>
-                                    </TableCell>
-                                    <TableCell>{user.fullName}</TableCell>
-                                    <TableCell>{user.email}</TableCell>
-                                    <TableCell>{user.role.name}</TableCell>
-                                    <TableCell>{user.isActive ? <CircleCheck className="text-green-700" /> : <CircleX  className="text-red-700"/>}</TableCell>
-                                    <TableCell>
-                                        {new Date(user.createdAt).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell>
-                                        <ButtonGroup>
-                                            <Button variant="outline"><Link to={`/users/edit/${user.id}`}><SquarePen /></Link></Button>
-                                            <Button variant="outline"
-                                                onClick={() => {
-                                                    setSelectedUser(user);
-                                                    setViewUserModalOpen(true);
-                                                }}
-                                            ><Eye /> </Button>
-                                            {
-                                                user.role.slug === 'user' && (
-                                                    <Button
-                                                        variant="outline"
+                        {
+                            loading ? (
+                                Array.from({ length: 10 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell colSpan={8} className="py-4">
+                                            <div className="animate-pulse h-5 bg-accent rounded" />
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                users.length > 0 ? (
+                                    users.map((user, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell>{index + 1}</TableCell>
+                                            <TableCell>
+                                                <Avatar className="h-8 w-8 rounded-lg">
+                                                    <AvatarImage src={user.avatar || '/avatar-default.svg'} alt={user.fullName} />
+                                                </Avatar>
+                                            </TableCell>
+                                            <TableCell>{user.fullName}</TableCell>
+                                            <TableCell>{user.email}</TableCell>
+                                            <TableCell>{user.role.name}</TableCell>
+                                            <TableCell>{user.isActive ? <CircleCheck className="text-green-700" /> : <CircleX className="text-red-700" />}</TableCell>
+                                            <TableCell>
+                                                {new Date(user.createdAt).toLocaleDateString()}
+                                            </TableCell>
+                                            <TableCell>
+                                                <ButtonGroup>
+                                                    <Button variant="outline"><Link to={`/users/edit/${user.id}`}><SquarePen /></Link></Button>
+                                                    <Button variant="outline"
                                                         onClick={() => {
                                                             setSelectedUser(user);
-                                                            setDeleteDialogOpen(true);
+                                                            setViewUserModalOpen(true);
                                                         }}
-                                                    >
-                                                        <Trash2 />
-                                                    </Button>
-                                                )
-                                            }
-                                        </ButtonGroup>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                                    No results found.
-                                </TableCell>
-                            </TableRow>
-                        )}
+                                                    ><Eye /> </Button>
+                                                    {
+                                                        user.role.slug === 'user' && (
+                                                            <Button
+                                                                variant="outline"
+                                                                onClick={() => {
+                                                                    setSelectedUser(user);
+                                                                    setDeleteDialogOpen(true);
+                                                                }}
+                                                            >
+                                                                <Trash2 />
+                                                            </Button>
+                                                        )
+                                                    }
+                                                </ButtonGroup>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
+                                            No users result found.
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            )
+                        }
                     </TableBody>
                 </Table>
                 {/* 🔢 Pagination */}
