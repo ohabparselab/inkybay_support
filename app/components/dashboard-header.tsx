@@ -24,7 +24,7 @@ export function DashboardHeader() {
                         <Input
                             type="text"
                             placeholder="Search..."
-                            className="cursor-pointer"
+                            className="cursor-pointer rounded-full"
                             readOnly
                             onClick={() => setSearchModalOpen(true)}
                         />

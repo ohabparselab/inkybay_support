@@ -75,7 +75,6 @@ export default [
     route("api/dashboard", "./api/dashboard/index.ts"),
     route("action/set-theme", "./routes/action.set-theme.ts"),
     
-
     
     // 404 route
     route("*", "./routes/404.tsx"),

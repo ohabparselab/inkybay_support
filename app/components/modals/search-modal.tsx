@@ -19,8 +19,8 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [results, setResults] = useState<any[]>([]);
     const [searchType, setSearchType] = useState('all');
-    const [selectedPlatform, setSelectedPlatform] = useState("")
-
+    const [selectedPlatform, setSelectedPlatform] = useState("");
+    const [projects, setProjects] = useState<any>("");
 
     // Fetch search results when query changes
     useEffect(() => {
@@ -55,6 +55,24 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
 
     const loading = searchFetcher.state !== "idle";
 
+    const fetchProjects = async () => {
+        try {
+            // setLoadingUsers(true);
+            const res = await fetch("api/settings/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error("Failed to fetch users:", err);
+        }
+        // finally {
+        //     setLoadingUsers(false);
+        // }
+    };
+
+    useEffect(() => {
+        fetchProjects()
+    }, []);
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="!max-w-3xl w-full mx-auto rounded-lg shadow-lg">
@@ -67,22 +85,27 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                         </span>
 
                         {/* Right-side Select Dropdown inside Input */}
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                        <div className="absolute inset-y-0 right-0 border rounded-r-4xl flex items-center pr-2">
                             <Select onValueChange={(value) => setSelectedPlatform(value)}>
                                 <SelectTrigger className="h-10 border-none shadow-none focus:ring-0 focus:ring-offset-0 bg-transparent">
                                     <SelectValue placeholder="Select Project / Platform" />
                                 </SelectTrigger>
-                                <SelectContent align="end">
-                                    <SelectGroup>
-                                        <SelectLabel>InkyBay</SelectLabel>
-                                        <SelectItem value="project1-platform1">Shopify</SelectItem>
-                                        <SelectItem value="project1-platform2">BigCommerce</SelectItem>
-                                    </SelectGroup>
-                                    <SelectGroup>
+                                <SelectContent align="end" className="mt-3">
+                                    {projects.map((p:any) => (
+                                        <SelectGroup key={p.projectName}>
+                                            <SelectLabel>{p.projectName}</SelectLabel>
+                                            {p.platforms.map((pf:any) => (
+                                                <SelectItem key={pf.id} value={pf.id}>
+                                                    {pf.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectGroup>
+                                    ))}
+                                    {/* <SelectGroup>
                                         <SelectLabel>Optionia</SelectLabel>
-                                        <SelectItem value="project1-platform1">Shopify</SelectItem>
-                                        <SelectItem value="project1-platform2">BigCommerce</SelectItem>
-                                    </SelectGroup>
+                                        <SelectItem value="project12-platform1">Shopify</SelectItem>
+                                        <SelectItem value="project12-platform2">BigCommerce</SelectItem>
+                                    </SelectGroup> */}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -137,7 +160,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                     {loading ? (
                         Array.from({ length: 3 }).map((_, i) => (
                             <div className="mb-2 border animate-pulse h-28 bg-accent rounded-xl shadow-sm flex justify-center items-center" >
-                                    <Spinner />
+                                <Spinner />
                             </div>
                         ))
                     ) : results.length > 0 ? (
