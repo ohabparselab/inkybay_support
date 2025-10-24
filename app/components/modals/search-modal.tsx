@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../ui/select";
 
 interface SearchModalProps {
     open: boolean;
@@ -18,6 +19,8 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [results, setResults] = useState<any[]>([]);
     const [searchType, setSearchType] = useState('all');
+    const [selectedPlatform, setSelectedPlatform] = useState("")
+
 
     // Fetch search results when query changes
     useEffect(() => {
@@ -57,17 +60,38 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
             <DialogContent className="!max-w-3xl w-full mx-auto rounded-lg shadow-lg">
                 {/* Modal Header */}
                 <div className="sticky top-0 w-full py-5 border-b">
-                    <div className="relative w-full mx-auto">
+                    <div className="relative w-full max-w-3xl mx-auto">
                         {/* Search Icon */}
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <Search className="h-5 w-5" />
+                            <Search className="h-5 w-5 text-gray-400" />
                         </span>
+
+                        {/* Right-side Select Dropdown inside Input */}
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                            <Select onValueChange={(value) => setSelectedPlatform(value)}>
+                                <SelectTrigger className="h-10 border-none shadow-none focus:ring-0 focus:ring-offset-0 bg-transparent">
+                                    <SelectValue placeholder="Select Project / Platform" />
+                                </SelectTrigger>
+                                <SelectContent align="end">
+                                    <SelectGroup>
+                                        <SelectLabel>InkyBay</SelectLabel>
+                                        <SelectItem value="project1-platform1">Shopify</SelectItem>
+                                        <SelectItem value="project1-platform2">BigCommerce</SelectItem>
+                                    </SelectGroup>
+                                    <SelectGroup>
+                                        <SelectLabel>Optionia</SelectLabel>
+                                        <SelectItem value="project1-platform1">Shopify</SelectItem>
+                                        <SelectItem value="project1-platform2">BigCommerce</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
                         {/* Search Input */}
                         <Input
                             type="text"
                             placeholder="Search..."
-                            className="h-14 pl-10 pr-4 text-base"
+                            className="h-14 pl-10 pr-44 text-base rounded-4xl"
                             autoFocus
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -111,9 +135,11 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                 {/* Modal Body */}
                 <div className="max-h-[60vh] overflow-y-auto">
                     {loading ? (
-                        <div className="flex justify-center py-10">
-                            <Spinner />
-                        </div>
+                        Array.from({ length: 3 }).map((_, i) => (
+                            <div className="mb-2 border animate-pulse h-28 bg-accent rounded-xl shadow-sm flex justify-center items-center" >
+                                    <Spinner />
+                            </div>
+                        ))
                     ) : results.length > 0 ? (
                         results.map((item) => (
                             <Link to={`shop-details?shopUrl=${item.url}`} onClick={() => {
@@ -149,7 +175,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                             </Link>
                         ))
                     ) : (
-                        <div className="text-center text-gray-400 py-10">
+                        <div className="text-center text-gray-400 py-40">
                             No results found
                         </div>
                     )}
