@@ -257,7 +257,7 @@ export default function ShopDetailsPage() {
                                     <ExternalLink className="w-4 h-4" />
                                 </a>
                             </div>
-                            <div className="w-1/2 flex flex-row justify-center items-center gap-2">
+                            <div className="w-1/1 flex flex-wrap justify-center items-center gap-2">
                                 {
                                     canChatCreate && (
                                         <Button onClick={() => {
@@ -381,8 +381,8 @@ export default function ShopDetailsPage() {
 
                     {/* Tabs Section */}
                     <section className="border p-3 rounded">
-                        <Tabs defaultValue="history" className="w-full">
-                            <TabsList className="w-full flex border-b">
+                        <Tabs defaultValue="history" className="w-full ">
+                            <TabsList className="w-full flex">
                                 <TabsTrigger
                                     value="history"
                                     className="flex-1 text-center px-6 py-4 text-lg font-medium"
@@ -1227,6 +1227,7 @@ export default function ShopDetailsPage() {
                         open={taskModalOpen}
                         onOpenChange={setTaskModalOpen}
                         task={selectedTask}
+                        refreshPage={refreshPage}
                     />
                 </Suspense>
             )}
