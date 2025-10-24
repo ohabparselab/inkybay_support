@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface AddPlatformModalProps {
@@ -28,23 +28,29 @@ export function AddPlatformModal({ open, onOpenChange, refreshPage, projects }: 
         resolver: zodResolver(addPlatformSchema),
         defaultValues: {
             name: "",
-            slug: ""
+            slug: "",
         },
     });
 
-    // Auto-generate slug from name
+    const [selectedProjectName, setSelectedProjectName] = useState<string>("");
+
     const platformName = watch("name");
 
+    // Auto-generate slug dynamically
     useEffect(() => {
-        if (platformName) {
-            const slug = platformName
+        if (!selectedProjectName && !platformName) return;
+
+        const normalize = (str: string) =>
+            str
                 .toLowerCase()
                 .trim()
                 .replace(/\s+/g, "-")
                 .replace(/[^\w-]+/g, "");
-            setValue("slug", slug);
-        }
-    }, [platformName, setValue]);
+
+        const slugParts = [selectedProjectName, platformName].filter(Boolean);
+        const slug = slugParts.map(normalize).join("-");
+        setValue("slug", slug);
+    }, [selectedProjectName, platformName, setValue]);
 
     const onSubmit = async (data: AddPlatformForm) => {
         try {
@@ -62,6 +68,7 @@ export function AddPlatformModal({ open, onOpenChange, refreshPage, projects }: 
             toast.success("Platform added successfully.");
             if (refreshPage) refreshPage();
             reset();
+            setSelectedProjectName("");
             onOpenChange(false);
         } catch (err: any) {
             toast.error(err.message || "Something went wrong.");
@@ -80,7 +87,11 @@ export function AddPlatformModal({ open, onOpenChange, refreshPage, projects }: 
                     <div>
                         <Label className="pb-2">Select Project</Label>
                         <Select
-                            onValueChange={(val) => setValue("projectId", Number(val))}
+                            onValueChange={(val) => {
+                                const project = projects.find((p) => p.id === Number(val));
+                                setValue("projectId", Number(val));
+                                setSelectedProjectName(project?.name || "");
+                            }}
                             defaultValue={watch("projectId") ? String(watch("projectId")) : undefined}
                         >
                             <SelectTrigger className="w-full">
@@ -94,10 +105,12 @@ export function AddPlatformModal({ open, onOpenChange, refreshPage, projects }: 
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors.projectId && <p className="text-sm text-red-500 mt-1">{errors.projectId.message}</p>}
+                        {errors.projectId && (
+                            <p className="text-sm text-red-500 mt-1">{errors.projectId.message}</p>
+                        )}
                     </div>
 
-                    {/* Name */}
+                    {/* Platform Name */}
                     <div>
                         <Label className="pb-2">Platform Name</Label>
                         <Input placeholder="Enter platform name" {...register("name")} />
@@ -107,7 +120,7 @@ export function AddPlatformModal({ open, onOpenChange, refreshPage, projects }: 
                     {/* Slug */}
                     <div>
                         <Label className="pb-2">Slug</Label>
-                        <Input placeholder="Enter slug" {...register("slug")} />
+                        <Input placeholder="Slug will be auto-generated" {...register("slug")} readOnly />
                         {errors.slug && <p className="text-sm text-red-500 mt-1">{errors.slug.message}</p>}
                     </div>
 

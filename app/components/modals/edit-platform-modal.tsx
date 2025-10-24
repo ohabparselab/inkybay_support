@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface EditPlatformModalProps {
@@ -45,19 +45,24 @@ export function EditPlatformModal({
         },
     });
 
-    // Auto-generate slug when name changes
-    const platformName = watch("name");
+    const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
+    const name = watch("name");
+    const slug = watch("slug");
+
+    // Auto-generate slug from name (only if user hasn't manually edited slug)
     useEffect(() => {
-        if (platformName) {
-            const slug = platformName
+        if (name && !slugManuallyEdited) {
+            const generated = name
                 .toLowerCase()
                 .trim()
                 .replace(/\s+/g, "-")
                 .replace(/[^\w-]+/g, "");
-            setValue("slug", slug);
+            setValue("slug", generated);
         }
-    }, [platformName, setValue]);
+    }, [name, slugManuallyEdited, setValue]);
 
+    // Reset form when modal opens with new platform data
     useEffect(() => {
         if (platform) {
             reset({
@@ -65,6 +70,7 @@ export function EditPlatformModal({
                 slug: platform.slug,
                 projectId: platform.projectId,
             });
+            setSlugManuallyEdited(false);
         }
     }, [platform, reset]);
 
@@ -87,6 +93,8 @@ export function EditPlatformModal({
         } catch (err: any) {
             toast.error(err.message || "Something went wrong.");
         }
+
+
     };
 
     return (
@@ -130,7 +138,15 @@ export function EditPlatformModal({
                     {/* Slug */}
                     <div>
                         <Label className="pb-2">Slug</Label>
-                        <Input placeholder="Enter slug" {...register("slug")} />
+                        <Input
+                            placeholder="Enter slug"
+                            {...register("slug")}
+                            onChange={(e) => {
+                                setValue("slug", e.target.value);
+                                setSlugManuallyEdited(true);
+                            }}
+                            value={slug}
+                        />
                         {errors.slug && <p className="text-sm text-red-500 mt-1">{errors.slug.message}</p>}
                     </div>
 
