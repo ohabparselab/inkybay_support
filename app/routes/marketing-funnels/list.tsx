@@ -203,9 +203,17 @@ export default function MarketingFunnelListPage() {
                                     canView ? (
                                         funnels.length > 0 ? (
                                             funnels.map((funnel, idx) => (
-                                                <TableRow key={funnel.id}>
+                                                <TableRow
+                                                    key={funnel.id}
+                                                    className="cursor-pointer"
+                                                    onClick={() => {
+                                                        setSelectedMarketingFunnel(funnel);
+                                                        setViewMarketingFunnelModalOpen(true);
+                                                    }}
+
+                                                >
                                                     <TableCell>{idx + 1}</TableCell>
-                                                    <TableCell>{funnel.client.shopName}</TableCell>
+                                                    <TableCell className="hover:underline text-blue-700">{funnel.client.shopName}</TableCell>
                                                     <TableCell>{funnel.installPhase}</TableCell>
                                                     <TableCell>{funnel.typeOfProducts ?? 'N/A'}</TableCell>
                                                     <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No'}</TableCell>

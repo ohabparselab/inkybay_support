@@ -206,9 +206,16 @@ export default function MeetingListPage() {
                                     canView ? (
                                         meetings.length > 0 ? (
                                             meetings.map((meeting, idx) => (
-                                                <TableRow key={meeting.id}>
+                                                <TableRow
+                                                    className="cursor-pointer"
+                                                    key={meeting.id}
+                                                    onClick={() => {
+                                                        setSelectedMeeting(meeting);
+                                                        setViewMeetingModalOpen(true);
+                                                    }}
+                                                >
                                                     <TableCell>{idx + 1}</TableCell>
-                                                    <TableCell className="max-w-xs truncate">{meeting.storeUrl}</TableCell>
+                                                    <TableCell className="max-w-xs truncate hover:underline text-blue-700">{meeting.storeUrl}</TableCell>
                                                     <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
                                                     <TableCell className="flex flex-wrap gap-1">
                                                         {meeting.joiningStatus ? 'Yes' : 'No'}

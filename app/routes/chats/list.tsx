@@ -290,9 +290,16 @@ export default function ChatsListPage() {
                                     canView ? (
                                         chats.length > 0 ? (
                                             chats.map((chat, index) => (
-                                                <TableRow key={chat.id}>
+                                                <TableRow 
+                                                    key={chat.id}
+                                                    className="cursor-pointer"
+                                                    onClick={() => {
+                                                        setSelectedChat(chat);
+                                                        setViewChatModal(true);
+                                                    }}
+                                                >
                                                     <TableCell>{index + 1}</TableCell>
-                                                    <TableCell>{chat.client.shopName}</TableCell>
+                                                    <TableCell className="hover:underline text-blue-700">{chat.client.shopName}</TableCell>
                                                     <TableCell className="max-w-[20px] truncate">
                                                         <TooltipProvider>
                                                             <Tooltip>

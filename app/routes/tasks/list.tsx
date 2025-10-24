@@ -220,9 +220,16 @@ export default function TasksListPage() {
                                     canView ? (
                                         tasks.length > 0 ? (
                                             tasks.map((task, idx) => (
-                                                <TableRow key={task.id}>
+                                                <TableRow
+                                                    className="cursor-pointer"
+                                                    key={task.id}
+                                                    onClick={() => {
+                                                        setSelectedTask(task);
+                                                        setViewTaskModalOpen(true);
+                                                    }}
+                                                >
                                                     <TableCell>{idx + 1}</TableCell>
-                                                    <TableCell>{task.client.shopName}</TableCell>
+                                                    <TableCell className="hover:underline text-blue-700">{task.client.shopName}</TableCell>
                                                     <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell>
                                                     <TableCell>{task.client?.shopName ?? "—"}</TableCell>
                                                     <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
