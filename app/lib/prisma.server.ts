@@ -1,7 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 
-console.log("=====PARSETRACK_NODE_ENV====>>", process.env.PARSETRACK_NODE_ENV);
-
 let prisma: PrismaClient;
 
 declare global {
