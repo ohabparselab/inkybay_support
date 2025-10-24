@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { ButtonGroup } from "~/components/ui/button-group";
 import { Button } from "~/components/ui/button";
-import { PenBox, Trash2 } from "lucide-react";
+import { PenBox, Plus, Trash2 } from "lucide-react";
 import { prisma } from "~/lib/prisma.server";
 import { useLoaderData } from "react-router";
 import { useState } from "react";
@@ -25,15 +25,23 @@ export async function loader() {
 
 export const meta = () => [{ title: "Settings | InkyBay" }];
 
-export default function ModuleListPage() {
+export default function PlatformListPage() {
 
     const { platforms } = useLoaderData<typeof loader>();
-    const [editModalOpen, setEditModalOpen] = useState(false);
-    const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
+    const [addPlatformModalOpen, setAddPlatformModalOpen] = useState(false);
 
     return (
         <div className="px-6 space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight">Platforms</h1>
+            <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-semibold tracking-tight">Platforms</h1>
+                <Button
+                    onClick={() => {
+                        setAddPlatformModalOpen(true);
+                    }}
+                >
+                    <Plus /> Add Platform
+                </Button>
+            </div>
 
             <div className="rounded-md border bg-card shadow-sm">
                 <Table>
@@ -61,10 +69,10 @@ export default function ModuleListPage() {
                                     <TableCell>
                                         <ButtonGroup>
                                             <Button variant="outline">
-                                                <PenBox/>
+                                                <PenBox />
                                             </Button>
-                                             <Button variant="destructive">
-                                                <Trash2/>
+                                            <Button variant="destructive">
+                                                <Trash2 />
                                             </Button>
                                         </ButtonGroup>
                                     </TableCell>

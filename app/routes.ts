@@ -62,12 +62,17 @@ export default [
     route("api/marketing-funnels/get-marketing-funnels-by-client-id", "./api/marketing-funnels/get-marketing-funnels-by-client-id.ts"),
     route("api/marketing-funnels/:mfId", "./api/marketing-funnels/$mfId.ts"),
     
+    // settings api
+    route("api/settings/projects", "./api/settings/projects/index.ts"),
+    route("api/settings/projects/:projectId", "./api/settings/projects/$projectId.ts"),
+    
     //inkybay search api
     route("/api/inkybay/:kind", "./api/api.inkybay.$kind.tsx"),
 
     // dashboard api
     route("api/dashboard", "./api/dashboard/index.ts"),
     route("action/set-theme", "./routes/action.set-theme.ts"),
+    
 
     
     // 404 route
