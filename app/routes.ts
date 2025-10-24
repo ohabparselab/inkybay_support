@@ -65,6 +65,8 @@ export default [
     // settings api
     route("api/settings/projects", "./api/settings/projects/index.ts"),
     route("api/settings/projects/:projectId", "./api/settings/projects/$projectId.ts"),
+    route("/api/settings/platforms", "./api/settings/platforms/index.ts"),
+    route("api/settings/platforms/:platformId", "./api/settings/platforms/$platformId.ts"),
     
     //inkybay search api
     route("/api/inkybay/:kind", "./api/api.inkybay.$kind.tsx"),

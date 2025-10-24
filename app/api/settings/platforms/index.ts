@@ -1,22 +1,24 @@
-import { addProjectSchema } from "~/lib/validations";
+import { addPlatformSchema } from "~/lib/validations";
 import { createSlug } from "~/lib/helper.sever";
 import { prisma } from "~/lib/prisma.server";
 
 export const action = async ({ request }: { request: Request }) => {
     try {
         const data = await request.json()
-        const parsed = addProjectSchema.parse(data);
+        const parsed = addPlatformSchema.parse(data);
 
-        const project = await prisma.project.create({
+        const newPlatform = await prisma.platform.create({
             data: {
                 name: parsed.name,
                 slug: createSlug(parsed.slug),
+                projectId: Number(parsed.projectId),
             },
         });
 
-        return Response.json({ success: true, message: "Project created successfully.", project }, { status: 201 })
+        return new Response(JSON.stringify(newPlatform), { status: 201 });
+
     } catch (error: any) {
-        console.error("Create project failed:", error)
+        console.error("Create platform failed:", error)
         return Response.json({ success: false, message: error.message }, { status: 500 })
     }
 }

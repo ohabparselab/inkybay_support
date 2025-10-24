@@ -1,16 +1,17 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
+import { CenterSpinner } from "~/components/ui/center-spinner";
 import { ButtonGroup } from "~/components/ui/button-group";
-import { Button } from "~/components/ui/button";
+import { useLoaderData, useNavigate } from "react-router";
 import { PenBox, Plus, Trash2 } from "lucide-react";
+import { lazy, Suspense, useState } from "react";
+import { Button } from "~/components/ui/button";
 import { prisma } from "~/lib/prisma.server";
-import { useLoaderData } from "react-router";
-import { useState } from "react";
+import { toast } from "sonner";
 
-// const EditModuleModal = lazy(() =>
-//     import("~/components/modals/edit-module-modal").then((m) => ({
-//         default: m.EditModuleModal,
-//     }))
-// ));
+const AddPlatformModal = lazy(() =>
+    import("~/components/modals/add-platform-modal").then((m) => ({ default: m.AddPlatformModal }))
+);
 
 export async function loader() {
     const platforms = await prisma.platform.findMany({
@@ -20,15 +21,42 @@ export async function loader() {
         orderBy: { createdAt: "desc" },
     });
 
-    return { platforms };
+    const projects = await prisma.project.findMany({
+        orderBy: { createdAt: "desc" },
+    });
+
+    return { platforms, projects };
 }
 
 export const meta = () => [{ title: "Settings | InkyBay" }];
 
 export default function PlatformListPage() {
 
-    const { platforms } = useLoaderData<typeof loader>();
+    const navigate = useNavigate();
+    const { platforms, projects } = useLoaderData<typeof loader>();
     const [addPlatformModalOpen, setAddPlatformModalOpen] = useState(false);
+    const [editPlatformModalOpen, setEditPlatformModalOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [selectedPlatform, setSelectedPlatform] = useState<any>(null);
+
+    const handleDelete = async () => {
+        if (!selectedPlatform) return;
+
+        try {
+            const res = await fetch(`/api/settings/platforms/${selectedPlatform.id}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) toast.error("Failed to delete platform.");
+            toast.success("Platform deleted successfully.");
+            refreshPage();
+        } catch (err: any) {
+            toast.error(err.message || "Failed to delete platform.");
+        }
+    }
+
+    const refreshPage = () => {
+        navigate(window.location.pathname + window.location.search);
+    };
 
     return (
         <div className="px-6 space-y-2">
@@ -68,10 +96,20 @@ export default function PlatformListPage() {
                                     <TableCell>{new Date(platform.updatedAt).toLocaleDateString()}</TableCell>
                                     <TableCell>
                                         <ButtonGroup>
-                                            <Button variant="outline">
+                                            <Button variant="outline"
+                                                onClick={() => {
+                                                    setEditPlatformModalOpen(true);
+                                                    setSelectedPlatform(platform);
+                                                }}
+                                            >
                                                 <PenBox />
                                             </Button>
-                                            <Button variant="destructive">
+                                            <Button variant="destructive"
+                                                onClick={() => {
+                                                    setDeleteDialogOpen(true);
+                                                    setSelectedPlatform(platform);
+                                                }}
+                                            >
                                                 <Trash2 />
                                             </Button>
                                         </ButtonGroup>
@@ -89,16 +127,28 @@ export default function PlatformListPage() {
                 </Table>
             </div>
 
-            {/* Edit Modal */}
-            {/* {editModalOpen && selectedModuleId && (
-                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
-                    <EditModuleModal
-                        moduleId={selectedModuleId}
-                        open={editModalOpen}
-                        onOpenChange={setEditModalOpen}
+            {/* add project modal  */}
+            {addPlatformModalOpen && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <AddPlatformModal
+                        open={addPlatformModalOpen}
+                        onOpenChange={setAddPlatformModalOpen}
+                        refreshPage={refreshPage}
+                        projects={projects}
                     />
                 </Suspense>
-            )} */}
+            )}
+            {deleteDialogOpen && selectedPlatform && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <DeleteConfirmDialog
+                        open={deleteDialogOpen}
+                        onOpenChange={setDeleteDialogOpen}
+                        title="Delete Platform?"
+                        description="Are you sure you want to permanently delete this chat? This action cannot be undone."
+                        onConfirm={async () => handleDelete()}
+                    />
+                </Suspense>
+            )}
         </div>
     );
 }

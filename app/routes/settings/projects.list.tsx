@@ -1,4 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { PenBox, Plus, Trash2, Check, X } from "lucide-react";
 import { ButtonGroup } from "~/components/ui/button-group";
@@ -7,7 +8,6 @@ import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
-import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 
 const AddProjectModal = lazy(() =>
     import("~/components/modals/add-project-modal").then((m) => ({ default: m.AddProjectModal }))
@@ -47,7 +47,7 @@ export default function ProjectListPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(editedData),
         });
-        console.log("======res.ok====>>", res);
+        console.log("======res.ok====>>", res.ok);
         if (res.ok) {
             toast.success("Project updated successfully.");
             setEditingRow(null);
@@ -183,7 +183,7 @@ export default function ProjectListPage() {
                     />
                 </Suspense>
             )}
-            {deleteDialogOpen && (
+            {deleteDialogOpen && selectedProject && (
                 <Suspense fallback={<CenterSpinner />}>
                     <DeleteConfirmDialog
                         open={deleteDialogOpen}
