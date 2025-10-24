@@ -22,7 +22,11 @@ export async function loader() {
         include: {
             project: true,
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: {
+            project: {
+                name: "asc",
+            },
+        },
     });
 
     const projects = await prisma.project.findMany({
@@ -143,7 +147,7 @@ export default function PlatformListPage() {
                 </Suspense>
             )}
 
-             {/* add project modal  */}
+            {/* add project modal  */}
             {editPlatformModalOpen && selectedPlatform && (
                 <Suspense fallback={<CenterSpinner />}>
                     <EditPlatformModal
