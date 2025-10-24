@@ -13,6 +13,10 @@ const AddPlatformModal = lazy(() =>
     import("~/components/modals/add-platform-modal").then((m) => ({ default: m.AddPlatformModal }))
 );
 
+const EditPlatformModal = lazy(() =>
+    import("~/components/modals/edit-platform-modal").then((m) => ({ default: m.EditPlatformModal }))
+);
+
 export async function loader() {
     const platforms = await prisma.platform.findMany({
         include: {
@@ -138,6 +142,20 @@ export default function PlatformListPage() {
                     />
                 </Suspense>
             )}
+
+             {/* add project modal  */}
+            {editPlatformModalOpen && selectedPlatform && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <EditPlatformModal
+                        open={editPlatformModalOpen}
+                        onOpenChange={setEditPlatformModalOpen}
+                        refreshPage={refreshPage}
+                        projects={projects}
+                        platform={selectedPlatform}
+                    />
+                </Suspense>
+            )}
+
             {deleteDialogOpen && selectedPlatform && (
                 <Suspense fallback={<CenterSpinner />}>
                     <DeleteConfirmDialog
