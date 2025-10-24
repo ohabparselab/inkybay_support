@@ -2,7 +2,6 @@
 import { Link } from "react-router";
 import * as React from "react"
 import {
-    Settings2,
     House,
     Users,
     Video,
@@ -12,7 +11,8 @@ import {
     LockKeyholeOpen,
     Component,
     Columns3Cog,
-    FileStack
+    FileStack,
+    Settings
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -78,7 +78,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 {
                     title: "Settings",
                     url: "/settings",
-                    icon: Settings2,
+                    icon: Settings,
                     items: [
                         {
                             title: "Permissions",

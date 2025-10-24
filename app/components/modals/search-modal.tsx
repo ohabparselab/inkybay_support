@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Spinner } from "../ui/spinner";
 import { Search } from "lucide-react";
 import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 interface SearchModalProps {
     open: boolean;
@@ -15,6 +17,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
 
     const [searchQuery, setSearchQuery] = useState("");
     const [results, setResults] = useState<any[]>([]);
+    const [searchType, setSearchType] = useState('all');
 
     // Fetch search results when query changes
     useEffect(() => {
@@ -26,6 +29,8 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
         const timeout = setTimeout(() => {
             const fd = new FormData();
             fd.set("srckey", searchQuery.trim());
+            fd.set("type", searchType);
+
             searchFetcher.submit(fd, {
                 method: "post",
                 action: "/api/inkybay/search",
@@ -33,7 +38,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
         }, 300); // debounce
 
         return () => clearTimeout(timeout);
-    }, [searchQuery]);
+    }, [searchQuery, searchType]);
 
     // Update results when fetcher returns data
     useEffect(() => {
@@ -51,11 +56,14 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="!max-w-3xl w-full mx-auto rounded-lg shadow-lg">
                 {/* Modal Header */}
-                <div className="sticky top-0 w-full py-5 border-b ">
+                <div className="sticky top-0 w-full py-5 border-b">
                     <div className="relative w-full mx-auto">
+                        {/* Search Icon */}
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <Search className="h-5 w-5 text-gray-400" />
+                            <Search className="h-5 w-5" />
                         </span>
+
+                        {/* Search Input */}
                         <Input
                             type="text"
                             placeholder="Search..."
@@ -65,6 +73,39 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
+
+                    {/* Radio Buttons */}
+                    <RadioGroup
+                        defaultValue="all"
+                        value={searchType}
+                        onValueChange={setSearchType}
+                        className="flex justify-center gap-6 mt-4"
+                    >
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="all" id="all" />
+                            <Label htmlFor="all" className="text-sm font-medium">
+                                Search All
+                            </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="url" id="url" />
+                            <Label htmlFor="url" className="text-sm font-medium">
+                                Search by Shop URL
+                            </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="email" id="email" />
+                            <Label htmlFor="email" className="text-sm font-medium">
+                                Search by Email
+                            </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="name" id="name" />
+                            <Label htmlFor="name" className="text-sm font-medium">
+                                Search by Shop Name
+                            </Label>
+                        </div>
+                    </RadioGroup>
                 </div>
 
                 {/* Modal Body */}
@@ -75,7 +116,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                         </div>
                     ) : results.length > 0 ? (
                         results.map((item) => (
-                            <Link to={`shop-details?shopUrl=${item.url}`} onClick={()=> {
+                            <Link to={`shop-details?shopUrl=${item.url}`} onClick={() => {
                                 onOpenChange(false);
                                 setSearchQuery("");
                                 setResults([]);
