@@ -1,6 +1,7 @@
 "use client"
 import { Link } from "react-router";
 import * as React from "react"
+import pkg from "../../package.json";
 import {
     House,
     Users,
@@ -121,6 +122,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={data.user} />
+                <span className="text-[10px]">Version: {pkg.version}</span>
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>
