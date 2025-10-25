@@ -5,9 +5,10 @@ import { Dialog, DialogContent } from "../ui/dialog";
 import { Link, useFetcher } from "react-router";
 import { useEffect, useState } from "react";
 import { Spinner } from "../ui/spinner";
-import { Search } from "lucide-react";
+import { MoveRight, Search } from "lucide-react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import React from "react";
 
 interface SearchModalProps {
     open: boolean;
@@ -93,16 +94,24 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                                     <SelectValue placeholder="Select Project / Platform" />
                                 </SelectTrigger>
                                 <SelectContent align="end" className="mt-3">
-                                    {projects.map((p:any, index:number) => (
-                                        <SelectGroup key={index}>
-                                            <SelectLabel>{p.projectName}</SelectLabel>
-                                            {p.platforms.map((pf:any, inx:number) => (
+                                    {projects.map((p: any, index: number) => (
+                                        <React.Fragment key={index}>
+                                            {/* Optional: you can group per project */}
+                                            {/* <SelectGroup>
+                                            <SelectLabel>{p.projectName}</SelectLabel> */}
+                                            {p.platforms.map((pf: any, inx: number) => (
                                                 <SelectItem key={inx} value={pf.id}>
-                                                    {pf.name}
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{p.projectName}</span>
+                                                        <MoveRight className="w-4 h-4 text-muted-foreground" />
+                                                        <span>{pf.name}</span>
+                                                    </div>
                                                 </SelectItem>
                                             ))}
-                                        </SelectGroup>
+                                            {/* </SelectGroup> */}
+                                        </React.Fragment>
                                     ))}
+
                                     {/* <SelectGroup>
                                         <SelectLabel>Optionia</SelectLabel>
                                         <SelectItem value="project12-platform1">Shopify</SelectItem>
