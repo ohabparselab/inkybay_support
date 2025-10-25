@@ -1,3 +1,6 @@
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../ui/select";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { DialogTitle } from "@radix-ui/react-dialog";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { Link, useFetcher } from "react-router";
 import { useEffect, useState } from "react";
@@ -5,8 +8,6 @@ import { Spinner } from "../ui/spinner";
 import { Search } from "lucide-react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../ui/select";
 
 interface SearchModalProps {
     open: boolean;
@@ -20,7 +21,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
     const [results, setResults] = useState<any[]>([]);
     const [searchType, setSearchType] = useState('all');
     const [selectedPlatform, setSelectedPlatform] = useState("");
-    const [projects, setProjects] = useState<any>("");
+    const [projects, setProjects] = useState<any>([]);
 
     // Fetch search results when query changes
     useEffect(() => {
@@ -62,7 +63,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
             const data = await res.json();
             setProjects(data.projects);
         } catch (err) {
-            console.error("Failed to fetch users:", err);
+            console.error("Failed to fetch projects:", err);
         }
         // finally {
         //     setLoadingUsers(false);
@@ -75,6 +76,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogTitle></DialogTitle>
             <DialogContent className="!max-w-3xl w-full mx-auto rounded-lg shadow-lg">
                 {/* Modal Header */}
                 <div className="sticky top-0 w-full py-5 border-b">
@@ -91,11 +93,11 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                                     <SelectValue placeholder="Select Project / Platform" />
                                 </SelectTrigger>
                                 <SelectContent align="end" className="mt-3">
-                                    {projects.map((p:any) => (
-                                        <SelectGroup key={p.projectName}>
+                                    {projects.map((p:any, index:number) => (
+                                        <SelectGroup key={index}>
                                             <SelectLabel>{p.projectName}</SelectLabel>
-                                            {p.platforms.map((pf:any) => (
-                                                <SelectItem key={pf.id} value={pf.id}>
+                                            {p.platforms.map((pf:any, inx:number) => (
+                                                <SelectItem key={inx} value={pf.id}>
                                                     {pf.name}
                                                 </SelectItem>
                                             ))}
@@ -123,17 +125,17 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
 
                     {/* Radio Buttons */}
                     <RadioGroup
-                        defaultValue="all"
+                        defaultValue="url"
                         value={searchType}
                         onValueChange={setSearchType}
                         className="flex justify-center gap-6 mt-4"
                     >
-                        <div className="flex items-center space-x-2">
+                        {/* <div className="flex items-center space-x-2">
                             <RadioGroupItem value="all" id="all" />
                             <Label htmlFor="all" className="text-sm font-medium">
                                 Search All
                             </Label>
-                        </div>
+                        </div> */}
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="url" id="url" />
                             <Label htmlFor="url" className="text-sm font-medium">
