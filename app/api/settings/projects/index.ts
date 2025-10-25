@@ -1,9 +1,28 @@
+import type { LoaderFunctionArgs } from "react-router";
 import { addProjectSchema } from "~/lib/validations";
 import { createSlug } from "~/lib/helper.sever";
 import { prisma } from "~/lib/prisma.server";
 
+export const action = async ({ request }: { request: Request }) => {
+    try {
+        const data = await request.json()
+        const parsed = addProjectSchema.parse(data);
 
-export const loader = async ({ request }: { request: Request }) => {
+        const project = await prisma.project.create({
+            data: {
+                name: parsed.name,
+                slug: createSlug(parsed.slug),
+            },
+        });
+
+        return Response.json({ success: true, message: "Project created successfully.", project }, { status: 201 })
+    } catch (error: any) {
+        console.error("Create project failed:", error)
+        return Response.json({ success: false, message: error.message }, { status: 500 })
+    }
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
 
     const projects = await prisma.project.findMany({
         include: {
@@ -24,68 +43,77 @@ export const loader = async ({ request }: { request: Request }) => {
         })),
     }));
 
-    return { projects: projectsPlatforms }
+    return Response.json({ projects: projectsPlatforms });
 
 }
 
-export const action = async ({ request }: { request: Request }) => {
+// const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
 
-    switch (request.method.toUpperCase()) {
-        // case "GET":
-        //     return await getAllProjects(request);
-        case "POST":
-            return await createProject(request);
-        default:
-            return new Response(JSON.stringify({ message: "Method not allowed" }), { status: 405 });
-    }
-}
+// export const action = async ({ request }: { request: Request }) => {
+//     try {
+//         const data = await request.json()
+//         const parsed = addProjectSchema.parse(data);
 
-// get all projects list
-const getAllProjects = async (request: Request) => {
-    try {
-        const projects = await prisma.project.findMany({
-            include: {
-                platforms: true,
-            },
-            orderBy: {
-                name: "asc",
-            },
-        });
+//         const project = await prisma.project.create({
+//             data: {
+//                 name: parsed.name,
+//                 slug: createSlug(parsed.slug),
+//             },
+//         });
 
-        // Transform into structure for <SelectGroup>
-        const projectsPlatforms = projects.map((project) => ({
-            projectName: project.name,
-            platforms: project.platforms.map((p) => ({
-                id: p.id,
-                name: p.name,
-                value: `${project.id}-${p.id}`,
-            })),
-        }));
+//         return Response.json({ success: true, message: "Project created successfully.", project }, { status: 201 })
+//     } catch (error: any) {
+//         console.error("Create project failed:", error)
+//         return Response.json({ success: false, message: error.message }, { status: 500 })
+//     }
+// }
 
-        return { projects: projectsPlatforms }
+// // get all projects list
+// const getAllProjects = async (request: Request) => {
+//     try {
+//         const projects = await prisma.project.findMany({
+//             include: {
+//                 platforms: true,
+//             },
+//             orderBy: {
+//                 name: "asc",
+//             },
+//         });
 
-    } catch (error: any) {
-        console.error("Fail to get all failed:", error)
-        return Response.json({ success: false, message: error.message }, { status: 500 })
-    }
-}
+//         // Transform into structure for <SelectGroup>
+//         const projectsPlatforms = projects.map((project) => ({
+//             projectName: project.name,
+//             platforms: project.platforms.map((p) => ({
+//                 id: p.id,
+//                 name: p.name,
+//                 value: `${project.id}-${p.id}`,
+//             })),
+//         }));
 
-// create project
-const createProject = async (request: Request) => {
-    try {
-        const data = await request.json()
-        const parsed = addProjectSchema.parse(data);
+//         return Response.json({ projects: projectsPlatforms });
 
-        const project = await prisma.project.create({
-            data: {
-                name: parsed.name,
-                slug: createSlug(parsed.slug),
-            },
-        });
+//     } catch (error: any) {
+//         console.error("Fail to get all failed:", error)
+//         return Response.json({ success: false, message: error.message }, { status: 500 })
+//     }
+// }
 
-        return Response.json({ success: true, message: "Project created successfully.", project }, { status: 201 })
-    } catch (error: any) {
-        console.error("Create project failed:", error)
-        return Response.json({ success: false, message: error.message }, { status: 500 })
-    }
-}
+// // create project
+// const createProject = async (request: Request) => {
+//     try {
+//         const data = await request.json()
+//         const parsed = addProjectSchema.parse(data);
+
+//         const project = await prisma.project.create({
+//             data: {
+//                 name: parsed.name,
+//                 slug: createSlug(parsed.slug),
+//             },
+//         });
+
+//         return Response.json({ success: true, message: "Project created successfully.", project }, { status: 201 })
+//     } catch (error: any) {
+//         console.error("Create project failed:", error)
+//         return Response.json({ success: false, message: error.message }, { status: 500 })
+//     }
+// }
