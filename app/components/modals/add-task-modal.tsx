@@ -138,8 +138,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                             name="taskDetails"
                             label="Task Details"
                             placeholder="Enter task details..."
-                            error={errors.taskDetails?.message}
-                        />
+                            error={errors.taskDetails?.message}                        />
                     </div>
 
                     {/* Provided By + Task Status */}

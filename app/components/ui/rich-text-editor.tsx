@@ -16,7 +16,7 @@ export function RichTextEditor({
     label,
     placeholder = "Enter text...",
     error,
-    minHeight = 40,
+    minHeight = 64,
 }: RichTextEditorProps) {
     return (
         <div className="flex flex-col w-full">
@@ -31,7 +31,7 @@ export function RichTextEditor({
                             value={field.value || ""}
                             onChange={field.onChange}
                             placeholder={placeholder}
-                            className={`min-h-${minHeight} border dark:bg-[#151515] rounded-md resize-y h-auto`}
+                            className={`min-h-48 border dark:bg-[#151515] rounded-md resize-y h-auto`}
                             modules={{
                                 toolbar: [
                                     [{ font: [] }, { size: [] }],
