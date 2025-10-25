@@ -2,7 +2,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { addTaskSchema, type AddTaskFormInput } from "~/lib/validations";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
-import { CalendarIcon, ListRestart, Plus, X } from "lucide-react";
+import { CalendarIcon, Eye, EyeOff, ListRestart, Plus, X } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -38,6 +38,8 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
 
     const [users, setUsers] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
 
     const { control, register, handleSubmit, formState: { errors }, reset } = useForm<AddTaskFormInput>({
         resolver: zodResolver(addTaskSchema),
@@ -213,14 +215,25 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
 
                     {/* Store Password + Access */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
+                        <div className="flex flex-col w-full relative">
                             <Label className="mb-2">Store Password</Label>
-                            <Input
-                                type="password"
-                                {...register("storePassword")}
-                                placeholder="Enter store password"
-                            />
+                            <div className="relative w-full">
+                                <Input
+                                    type={showPassword ? "text" : "password"}
+                                    {...register("storePassword")}
+                                    placeholder="Enter store password"
+                                    className="pr-10" 
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                    {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                                </button>
+                            </div>
                         </div>
+
 
                         <div>
                             <Label className="mb-2">Store Access</Label>

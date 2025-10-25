@@ -196,11 +196,12 @@ export default function TasksListPage() {
                             <TableRow>
                                 <TableHead>ID</TableHead>
                                 <TableHead>Shop Name</TableHead>
-                                <TableHead>Task Details</TableHead>
-                                <TableHead>Client</TableHead>
+                                {/* <TableHead>Task Details</TableHead> */}
+                                {/* <TableHead>Client</TableHead> */}
                                 <TableHead>Provided By</TableHead>
                                 <TableHead>Solved By</TableHead>
                                 <TableHead>Store Access</TableHead>
+                                <TableHead>Store Password</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Task Added</TableHead>
                                 <TableHead>Actions</TableHead>
@@ -230,11 +231,12 @@ export default function TasksListPage() {
                                                         }}
 
                                                     >{task.client.shopName}</TableCell>
-                                                    <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell>
-                                                    <TableCell>{task.client?.shopName ?? "—"}</TableCell>
+                                                    {/* <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell> */}
+                                                    {/* <TableCell>{task.client?.shopName ?? "—"}</TableCell> */}
                                                     <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
                                                     <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
                                                     <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>
+                                                    <TableCell>{task.storePassword}</TableCell>
                                                     <TableCell>{task.status?.name ?? "—"}</TableCell>
                                                     <TableCell>
                                                         {task.taskAddedDate

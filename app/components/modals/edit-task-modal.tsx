@@ -10,6 +10,9 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { CenterSpinner } from "@/components/ui/center-spinner";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,9 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { lazy, Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { CenterSpinner } from "../ui/center-spinner";
 
 const AddStatusModal = lazy(() =>
     import('~/components/modals/add-status-modal').then(module => ({ default: module.AddStatusModal }))
@@ -132,15 +133,13 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
 
                     {/* Task Details */}
                     <div>
-                        <Label className="mb-2">Task Details</Label>
-                        <Textarea
-                            {...register("taskDetails")}
+                        <RichTextEditor
+                            control={control}
+                            name="taskDetails"
+                            label="Task Details"
                             placeholder="Enter task details..."
-                            className="min-h-[80px]"
+                            error={errors.taskDetails?.message}
                         />
-                        {errors.taskDetails && (
-                            <p className="text-sm text-red-500">{errors.taskDetails.message}</p>
-                        )}
                     </div>
 
                     {/* Provided By + Task Status */}
