@@ -10,16 +10,17 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CenterSpinner } from "../ui/center-spinner";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { lazy, Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { CenterSpinner } from "../ui/center-spinner";
 
 const AddStatusModal = lazy(() =>
     import('~/components/modals/add-status-modal').then(module => ({ default: module.AddStatusModal }))
@@ -30,7 +31,7 @@ interface AddTaskModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     refreshPage: () => void;
-    task:any
+    task: any
 }
 
 export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }: AddTaskModalProps) {
@@ -96,7 +97,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
             toast.success("Task created successfully!")
             onOpenChange(false);
             reset()
-            if(refreshPage) refreshPage();
+            if (refreshPage) refreshPage();
         } else {
             toast.error("Failed to create task.")
         }
@@ -113,15 +114,15 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                 <DialogHeader>
                     <DialogTitle>Add New Task
                         (
-                            <span className="font-semibold text-foreground">{task.client.shopName}</span>,{" "}
-                            <a
-                                href={`https://${task.client.shopDomain}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline"
-                            >
-                                {task.client.shopDomain}
-                            </a>
+                        <span className="font-semibold text-foreground">{task.client.shopName}</span>,{" "}
+                        <a
+                            href={`https://${task.client.shopDomain}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                        >
+                            {task.client.shopDomain}
+                        </a>
                         )
                     </DialogTitle>
                 </DialogHeader>
@@ -130,15 +131,13 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
 
                     {/* Task Details */}
                     <div>
-                        <Label className="mb-2">Task Details</Label>
-                        <Textarea
-                            {...register("taskDetails")}
+                        <RichTextEditor
+                            control={control}
+                            name="taskDetails"
+                            label="Task Details"
                             placeholder="Enter task details..."
-                            className="min-h-[80px]"
+                            error={errors.taskDetails?.message}
                         />
-                        {errors.taskDetails && (
-                            <p className="text-sm text-red-500">{errors.taskDetails.message}</p>
-                        )}
                     </div>
 
                     {/* Provided By + Task Status */}
@@ -370,7 +369,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                 </form>
             </DialogContent>
             {addStatusModalOpen && (
-                <Suspense fallback={<CenterSpinner/>}>
+                <Suspense fallback={<CenterSpinner />}>
                     <AddStatusModal setStatuses={setStatuses} open={addStatusModalOpen} onOpenChange={setAddStatusModalOpen} />
                 </Suspense>
             )}

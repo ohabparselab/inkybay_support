@@ -128,7 +128,35 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.ql-container {
+  border: none !important;
+}
+
+.dark .ql-container {
+  /* background-color: #ca9014 !important; */
+  /* background-color: #151515; */
+}
+
+.dark .ql-editor.ql-blank::before {
+  color: #a0a0a0 !important;
+}
+
+.ql-toolbar {
+  border: none !important;
+  border-bottom: 1px solid #d1d5db !important;
+}
+
+.dark .ql-toolbar {
+  border-bottom: 0.5px solid #454545 !important;
+  color: rgb(188, 48, 48) !important;
+}
+
+.dark .ql-toolbar button {
+  color: #f9fafb !important;
 }
