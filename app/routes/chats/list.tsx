@@ -292,7 +292,7 @@ export default function ChatsListPage() {
                                             chats.map((chat, index) => (
                                                 <TableRow key={chat.id} >
                                                     <TableCell>{index + 1}</TableCell>
-                                                    <TableCell 
+                                                    <TableCell
                                                         className="hover:underline text-blue-700 cursor-pointer"
                                                         onClick={() => {
                                                             setSelectedChat(chat);
@@ -334,20 +334,26 @@ export default function ChatsListPage() {
                                                         {chat.reviewAsked == true ? "Yes" : "No"}
                                                     </TableCell>
                                                     <TableCell className="max-w-[20px] truncate">
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <span className="block truncate cursor-pointer">
-                                                                        {chat.clientFeedback || "N/A"}
-                                                                    </span>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p className="max-w-sm break-words">
-                                                                        {chat.clientFeedback}
-                                                                    </p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
+                                                        {
+                                                            chat.clientFeedback ? (
+                                                                <TooltipProvider>
+
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <span className="block truncate cursor-pointer">
+                                                                                {chat.clientFeedback || "N/A"}
+                                                                            </span>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>
+                                                                            <p className="max-w-sm break-words">
+                                                                                {chat.clientFeedback}
+                                                                            </p>
+                                                                        </TooltipContent>
+                                                                    </Tooltip>
+                                                                </TooltipProvider>
+                                                            ) : 'N/A'
+                                                        }
+
                                                     </TableCell>
                                                     <TableCell>
                                                         {new Date(chat.createdAt).toLocaleDateString()}
