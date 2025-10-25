@@ -5,10 +5,12 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
+import { ShopHistory } from "@/components/shop-history";
+import { ShopDetails } from "@/components/shop-details";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 interface ViewMeetingDetailsModalProps {
     open: boolean;
@@ -107,9 +109,11 @@ export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMee
                             {meeting.reviewsInfo || "N/A"}
                         </p>
                     </section>
-
+                    <Separator />
+                    <ShopDetails shopUrl={meeting.storeUrl} />
+                    <Separator />
+                    <ShopHistory shopUrl={meeting.storeUrl} />
                 </section>
-
                 <DialogFooter className="p-6 border-t">
                     <Button variant="destructive" onClick={() => onOpenChange(false)}>
                         Close
