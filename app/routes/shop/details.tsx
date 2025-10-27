@@ -389,7 +389,7 @@ export default function ShopDetailsPage() {
                             <TabsList className="w-full flex">
                                 <TabsTrigger
                                     value="history"
-                                    className="flex-1 text-center px-6 py-4 text-lg font-medium"
+                                    className="flex-1 cursor-pointer text-center px-6 py-4 text-lg font-medium"
                                 >
                                     History {loadingHistory ? (
                                         <Spinner />
@@ -402,7 +402,7 @@ export default function ShopDetailsPage() {
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="chats"
-                                    className="flex-1 text-center px-6 py-4 text-lg font-medium"
+                                    className="flex-1 cursor-pointer text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Chats {loadingChats ? (
                                         <Spinner />
@@ -415,7 +415,7 @@ export default function ShopDetailsPage() {
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="tasks"
-                                    className="flex-1 text-center px-6 py-4 text-lg font-medium"
+                                    className="flex-1 cursor-pointer text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Tasks
                                     {loadingTasks ? (
@@ -429,7 +429,7 @@ export default function ShopDetailsPage() {
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="marketingFunnels"
-                                    className="flex-1 text-center px-6 py-4 text-lg font-medium"
+                                    className="flex-1 cursor-pointer text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Marketing Funnels
                                     {loadingMarketingFunnels ? (
@@ -443,7 +443,7 @@ export default function ShopDetailsPage() {
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="meetings"
-                                    className="flex-1 text-center px-6 py-4 text-lg font-medium"
+                                    className="flex-1 cursor-pointer text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Meetings
                                     {loadingMeetings ? (
