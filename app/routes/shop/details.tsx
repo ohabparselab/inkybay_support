@@ -359,6 +359,10 @@ export default function ShopDetailsPage() {
                                                 <span className="font-bold">Promo ID:</span>{" "}
                                                 {inkybay.promo_id}
                                             </p>
+                                            <p>
+                                                <span className="font-bold">Free trial:</span>{" "}
+                                                {inkybay.trial_days > 21 ? "No" : "Yes" }
+                                            </p>
                                         </div>
                                     </>
                                 )
