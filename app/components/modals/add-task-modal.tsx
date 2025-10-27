@@ -2,7 +2,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { addTaskSchema, type AddTaskFormInput } from "~/lib/validations";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
-import { CalendarIcon, ListRestart, Plus, X } from "lucide-react";
+import { CalendarIcon, Eye, EyeOff, ListRestart, Plus, X } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -10,16 +10,17 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CenterSpinner } from "../ui/center-spinner";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { lazy, Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { CenterSpinner } from "../ui/center-spinner";
 
 const AddStatusModal = lazy(() =>
     import('~/components/modals/add-status-modal').then(module => ({ default: module.AddStatusModal }))
@@ -30,13 +31,15 @@ interface AddTaskModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     refreshPage: () => void;
-    task:any
+    task: any
 }
 
 export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }: AddTaskModalProps) {
 
     const [users, setUsers] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
 
     const { control, register, handleSubmit, formState: { errors }, reset } = useForm<AddTaskFormInput>({
         resolver: zodResolver(addTaskSchema),
@@ -96,7 +99,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
             toast.success("Task created successfully!")
             onOpenChange(false);
             reset()
-            if(refreshPage) refreshPage();
+            if (refreshPage) refreshPage();
         } else {
             toast.error("Failed to create task.")
         }
@@ -113,15 +116,15 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                 <DialogHeader>
                     <DialogTitle>Add New Task
                         (
-                            <span className="font-semibold text-foreground">{task.client.shopName}</span>,{" "}
-                            <a
-                                href={`https://${task.client.shopDomain}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline"
-                            >
-                                {task.client.shopDomain}
-                            </a>
+                        <span className="font-semibold text-foreground">{task.client.shopName}</span>,{" "}
+                        <a
+                            href={`https://${task.client.shopDomain}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                        >
+                            {task.client.shopDomain}
+                        </a>
                         )
                     </DialogTitle>
                 </DialogHeader>
@@ -130,15 +133,12 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
 
                     {/* Task Details */}
                     <div>
-                        <Label className="mb-2">Task Details</Label>
-                        <Textarea
-                            {...register("taskDetails")}
+                        <RichTextEditor
+                            control={control}
+                            name="taskDetails"
+                            label="Task Details"
                             placeholder="Enter task details..."
-                            className="min-h-[80px]"
-                        />
-                        {errors.taskDetails && (
-                            <p className="text-sm text-red-500">{errors.taskDetails.message}</p>
-                        )}
+                            error={errors.taskDetails?.message}                        />
                     </div>
 
                     {/* Provided By + Task Status */}
@@ -214,14 +214,25 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
 
                     {/* Store Password + Access */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
+                        <div className="flex flex-col w-full relative">
                             <Label className="mb-2">Store Password</Label>
-                            <Input
-                                type="password"
-                                {...register("storePassword")}
-                                placeholder="Enter store password"
-                            />
+                            <div className="relative w-full">
+                                <Input
+                                    type={showPassword ? "text" : "password"}
+                                    {...register("storePassword")}
+                                    placeholder="Enter store password"
+                                    className="pr-10" 
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                    {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                                </button>
+                            </div>
                         </div>
+
 
                         <div>
                             <Label className="mb-2">Store Access</Label>
@@ -370,7 +381,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                 </form>
             </DialogContent>
             {addStatusModalOpen && (
-                <Suspense fallback={<CenterSpinner/>}>
+                <Suspense fallback={<CenterSpinner />}>
                     <AddStatusModal setStatuses={setStatuses} open={addStatusModalOpen} onOpenChange={setAddStatusModalOpen} />
                 </Suspense>
             )}

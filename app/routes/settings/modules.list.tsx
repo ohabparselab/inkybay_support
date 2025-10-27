@@ -51,7 +51,7 @@ export default function ModuleListPage() {
                                     {/* <TableCell>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon">
+                                                <Button variant="ghost" className="cursor-pointer" size="icon">
                                                     <Ellipsis />
                                                 </Button>
                                             </DropdownMenuTrigger>

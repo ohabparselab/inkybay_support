@@ -1,8 +1,8 @@
 "use client"
 import { Link } from "react-router";
 import * as React from "react"
+import pkg from "../../package.json";
 import {
-    Settings2,
     House,
     Users,
     Video,
@@ -12,7 +12,8 @@ import {
     LockKeyholeOpen,
     Component,
     Columns3Cog,
-    FileStack
+    FileStack,
+    Settings
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -78,7 +79,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 {
                     title: "Settings",
                     url: "/settings",
-                    icon: Settings2,
+                    icon: Settings,
                     items: [
                         {
                             title: "Permissions",
@@ -121,6 +122,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={data.user} />
+                <span className="text-[10px]">Version: {pkg.version}</span>
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>

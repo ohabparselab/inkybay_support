@@ -2,6 +2,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
 import { AlertTriangle, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { PaginationBar } from "~/components/pagination-bar";
@@ -205,17 +206,65 @@ export default function MarketingFunnelListPage() {
                                             funnels.map((funnel, idx) => (
                                                 <TableRow key={funnel.id}>
                                                     <TableCell>{idx + 1}</TableCell>
-                                                    <TableCell>{funnel.client.shopName}</TableCell>
+                                                    <TableCell
+                                                        className="hover:underline text-blue-700 cursor-pointer"
+                                                        onClick={() => {
+                                                            setSelectedMarketingFunnel(funnel);
+                                                            setViewMarketingFunnelModalOpen(true);
+                                                        }}
+                                                    >{funnel.client.shopName}</TableCell>
                                                     <TableCell>{funnel.installPhase}</TableCell>
-                                                    <TableCell>{funnel.typeOfProducts ?? 'N/A'}</TableCell>
-                                                    <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No'}</TableCell>
-                                                    <TableCell>{funnel.customizationType == '' ? 'N/A' : funnel.customizationType}</TableCell>
-                                                    <TableCell>{funnel.initialFeedback == '' ? 'N/A' : funnel.initialFeedback}</TableCell>
+                                                    <TableCell className="max-w-[20px] truncate">
+                                                        {funnel.typeOfProducts ? (
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <span>{funnel.typeOfProducts}</span>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>{funnel.typeOfProducts}</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        ) : (
+                                                            <span>N/A</span>
+                                                        )}
+                                                    </TableCell>
+
+                                                    <TableCell>{funnel.clientSuccessStatus === "yes" ? "Yes" : "No"}</TableCell>
+
+                                                    <TableCell className="max-w-[20px] truncate">
+                                                        {funnel.customizationType ? (
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <span>{funnel.customizationType}</span>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>{funnel.customizationType}</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        ) : (
+                                                            <span>N/A</span>
+                                                        )}
+                                                    </TableCell>
+
+                                                    <TableCell className="max-w-[20px] truncate">
+                                                        {funnel.initialFeedback ? (
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <span>{funnel.initialFeedback}</span>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>{funnel.initialFeedback}</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        ) : (
+                                                            <span>N/A</span>
+                                                        )}
+                                                    </TableCell>
                                                     <TableCell>{new Date(funnel.createdAt).toLocaleDateString()}</TableCell>
                                                     <TableCell>
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" size="icon">
+                                                                <Button variant="ghost" className="cursor-pointer" size="icon">
                                                                     <Ellipsis />
                                                                 </Button>
                                                             </DropdownMenuTrigger>
@@ -274,7 +323,7 @@ export default function MarketingFunnelListPage() {
                                             ))
                                         ) : (
                                             <TableRow>
-                                                <TableCell colSpan={9} className="text-center py-30 text-muted-foreground">
+                                                <TableCell colSpan={9} className="text-center py-50 text-muted-foreground">
                                                     No marketing funnels found.
                                                 </TableCell>
                                             </TableRow>

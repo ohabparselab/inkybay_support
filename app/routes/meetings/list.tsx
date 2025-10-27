@@ -208,7 +208,13 @@ export default function MeetingListPage() {
                                             meetings.map((meeting, idx) => (
                                                 <TableRow key={meeting.id}>
                                                     <TableCell>{idx + 1}</TableCell>
-                                                    <TableCell className="max-w-xs truncate">{meeting.storeUrl}</TableCell>
+                                                    <TableCell
+                                                        className="max-w-xs truncate hover:underline text-blue-700 cursor-pointer"
+                                                        onClick={() => {
+                                                            setSelectedMeeting(meeting);
+                                                            setViewMeetingModalOpen(true);
+                                                        }}
+                                                    >{meeting.storeUrl}</TableCell>
                                                     <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
                                                     <TableCell className="flex flex-wrap gap-1">
                                                         {meeting.joiningStatus ? 'Yes' : 'No'}
@@ -220,7 +226,7 @@ export default function MeetingListPage() {
                                                     <TableCell>
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" size="icon">
+                                                                <Button variant="ghost" className="cursor-pointer" size="icon">
                                                                     <Ellipsis />
                                                                 </Button>
                                                             </DropdownMenuTrigger>
@@ -266,7 +272,7 @@ export default function MeetingListPage() {
                                             ))
                                         ) : (
                                             <TableRow>
-                                                <TableCell colSpan={9} className="text-center py-30 text-muted-foreground">
+                                                <TableCell colSpan={9} className="text-center py-50 text-muted-foreground">
                                                     No meetings found.
                                                 </TableCell>
                                             </TableRow>

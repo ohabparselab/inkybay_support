@@ -196,11 +196,12 @@ export default function TasksListPage() {
                             <TableRow>
                                 <TableHead>ID</TableHead>
                                 <TableHead>Shop Name</TableHead>
-                                <TableHead>Task Details</TableHead>
-                                <TableHead>Client</TableHead>
+                                {/* <TableHead>Task Details</TableHead> */}
+                                {/* <TableHead>Client</TableHead> */}
                                 <TableHead>Provided By</TableHead>
                                 <TableHead>Solved By</TableHead>
                                 <TableHead>Store Access</TableHead>
+                                <TableHead>Store Password</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Task Added</TableHead>
                                 <TableHead>Actions</TableHead>
@@ -222,12 +223,20 @@ export default function TasksListPage() {
                                             tasks.map((task, idx) => (
                                                 <TableRow key={task.id}>
                                                     <TableCell>{idx + 1}</TableCell>
-                                                    <TableCell>{task.client.shopName}</TableCell>
-                                                    <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell>
-                                                    <TableCell>{task.client?.shopName ?? "—"}</TableCell>
+                                                    <TableCell
+                                                        className="hover:underline text-blue-700 cursor-pointer"
+                                                        onClick={() => {
+                                                            setSelectedTask(task);
+                                                            setViewTaskModalOpen(true);
+                                                        }}
+
+                                                    >{task.client.shopName}</TableCell>
+                                                    {/* <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell> */}
+                                                    {/* <TableCell>{task.client?.shopName ?? "—"}</TableCell> */}
                                                     <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
                                                     <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
                                                     <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>
+                                                    <TableCell>{task.storePassword}</TableCell>
                                                     <TableCell>{task.status?.name ?? "—"}</TableCell>
                                                     <TableCell>
                                                         {task.taskAddedDate
@@ -237,7 +246,7 @@ export default function TasksListPage() {
                                                     <TableCell>
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" size="icon">
+                                                                <Button variant="ghost" className="cursor-pointer" size="icon">
                                                                     <Ellipsis />
                                                                 </Button>
                                                             </DropdownMenuTrigger>
@@ -296,7 +305,7 @@ export default function TasksListPage() {
                                             ))
                                         ) : (
                                             <TableRow>
-                                                <TableCell colSpan={10} className="text-center py-30 text-muted-foreground">
+                                                <TableCell colSpan={10} className="text-center py-50 text-muted-foreground">
                                                     No tasks found.
                                                 </TableCell>
                                             </TableRow>

@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { HtmlViewer, HtmlViewerWithIframe } from "@/components/ui/html-viewer";
 
 interface ViewTaskDetailsModalProps {
     open: boolean;
@@ -52,9 +53,9 @@ export function ViewTaskDetailsModal({ open, onOpenChange, task }: ViewTaskDetai
                         <p><strong>Created At:</strong> {formatDate(task.createdAt)}</p>
                         <p><strong>Updated At:</strong> {formatDate(task.updatedAt)}</p>
                         <p><strong>Reply:</strong> {task.reply || "N/A"}</p>
-                        <p><strong>Task Details:</strong> {task.taskDetails || "-"}</p>
                         <p><strong>Comments:</strong> {task.comments || "N/A"}</p>
                     </div>
+                    <p className="text-sm"><strong>Task Details:</strong><HtmlViewerWithIframe content={task.taskDetails || "-"} /></p>
                     <Separator />
                     <ShopDetails shopUrl={task.client.shopDomain} />
                     <Separator />

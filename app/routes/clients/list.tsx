@@ -167,7 +167,7 @@ export default function ClientsList() {
                                                 <DropdownMenuTrigger asChild>
                                                     <Button
                                                         variant="ghost"
-                                                        className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+                                                        className="data-[state=open]:bg-muted text-muted-foreground flex size-8 cursor-pointer"
                                                         size="icon"
                                                     >
                                                         <Ellipsis />

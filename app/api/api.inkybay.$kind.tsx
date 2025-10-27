@@ -41,7 +41,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
             method,
             headers: {
                 "Content-Type": "application/json",
-                authKey: `${process.env.INKYBAY_API_KEY}`,
+                authKey: `${process.env.PARSETRACK_INKYBAY_API_KEY}`,
                 authTime: String(authTime),
                 signature,
             },

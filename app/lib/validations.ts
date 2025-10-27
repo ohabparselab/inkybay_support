@@ -221,6 +221,20 @@ export const addMarketingFunnelSchema = z.object({
     clientSuccessStatus: z.enum(["yes", "no"]),
 });
 
+export const addProjectSchema = z.object({
+    name: z.string().min(1, "Project name is required"),
+    slug: z.string().min(1, "Slug is required"),
+});
+
+// 🔹 Validation Schema
+export const addPlatformSchema = z.object({
+    projectId: z.number({ error: "Please select project." }),
+    name: z.string().min(2, "Platform name is required"),
+    slug: z.string().min(2, "Slug is required")
+});
+
+export type AddPlatformForm = z.infer<typeof addPlatformSchema>;
+export type AddProjectForm = z.infer<typeof addProjectSchema>;
 export type AddMarketingFunnelInput = z.infer<typeof addMarketingFunnelSchema>;
 export type AddMeetingInput = z.infer<typeof addMeetingSchema>;
 export type AddStatusInput = z.infer<typeof createStatusSchema>;

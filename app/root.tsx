@@ -12,6 +12,7 @@ import type { LoaderFunctionArgs } from "react-router";
 import { Toaster } from "@/components/ui/sonner";
 import type { Route } from "./+types/root";
 import "./app.css";
+import "react-quill-new/dist/quill.snow.css";
 
 import { ThemeProvider, useTheme, PreventFlashOnWrongTheme } from "remix-themes";
 import { getUserPermissions } from "./lib/permissions.server";

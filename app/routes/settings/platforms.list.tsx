@@ -1,39 +1,83 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
+import { CenterSpinner } from "~/components/ui/center-spinner";
 import { ButtonGroup } from "~/components/ui/button-group";
+import { useLoaderData, useNavigate } from "react-router";
+import { PenBox, Plus, Trash2 } from "lucide-react";
+import { lazy, Suspense, useState } from "react";
 import { Button } from "~/components/ui/button";
-import { PenBox, Trash2 } from "lucide-react";
 import { prisma } from "~/lib/prisma.server";
-import { useLoaderData } from "react-router";
-import { useState } from "react";
+import { toast } from "sonner";
 
-// const EditModuleModal = lazy(() =>
-//     import("~/components/modals/edit-module-modal").then((m) => ({
-//         default: m.EditModuleModal,
-//     }))
-// ));
+const AddPlatformModal = lazy(() =>
+    import("~/components/modals/add-platform-modal").then((m) => ({ default: m.AddPlatformModal }))
+);
+
+const EditPlatformModal = lazy(() =>
+    import("~/components/modals/edit-platform-modal").then((m) => ({ default: m.EditPlatformModal }))
+);
 
 export async function loader() {
     const platforms = await prisma.platform.findMany({
         include: {
             project: true,
         },
+        orderBy: {
+            project: {
+                name: "asc",
+            },
+        },
+    });
+
+    const projects = await prisma.project.findMany({
         orderBy: { createdAt: "desc" },
     });
 
-    return { platforms };
+    return { platforms, projects };
 }
 
 export const meta = () => [{ title: "Settings | InkyBay" }];
 
-export default function ModuleListPage() {
+export default function PlatformListPage() {
 
-    const { platforms } = useLoaderData<typeof loader>();
-    const [editModalOpen, setEditModalOpen] = useState(false);
-    const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
+    const navigate = useNavigate();
+    const { platforms, projects } = useLoaderData<typeof loader>();
+    const [addPlatformModalOpen, setAddPlatformModalOpen] = useState(false);
+    const [editPlatformModalOpen, setEditPlatformModalOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [selectedPlatform, setSelectedPlatform] = useState<any>(null);
+
+    const handleDelete = async () => {
+        if (!selectedPlatform) return;
+
+        try {
+            const res = await fetch(`/api/settings/platforms/${selectedPlatform.id}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) toast.error("Failed to delete platform.");
+            toast.success("Platform deleted successfully.");
+            refreshPage();
+        } catch (err: any) {
+            toast.error(err.message || "Failed to delete platform.");
+        }
+    }
+
+    const refreshPage = () => {
+        navigate(window.location.pathname + window.location.search);
+    };
 
     return (
         <div className="px-6 space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight">Platforms</h1>
+            <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-semibold tracking-tight">Platforms</h1>
+                <Button
+                    onClick={() => {
+                        setAddPlatformModalOpen(true);
+                    }}
+                >
+                    <Plus /> Add Platform
+                </Button>
+            </div>
 
             <div className="rounded-md border bg-card shadow-sm">
                 <Table>
@@ -60,11 +104,21 @@ export default function ModuleListPage() {
                                     <TableCell>{new Date(platform.updatedAt).toLocaleDateString()}</TableCell>
                                     <TableCell>
                                         <ButtonGroup>
-                                            <Button variant="outline">
-                                                <PenBox/>
+                                            <Button variant="outline"
+                                                onClick={() => {
+                                                    setEditPlatformModalOpen(true);
+                                                    setSelectedPlatform(platform);
+                                                }}
+                                            >
+                                                <PenBox />
                                             </Button>
-                                             <Button variant="destructive">
-                                                <Trash2/>
+                                            <Button variant="destructive"
+                                                onClick={() => {
+                                                    setDeleteDialogOpen(true);
+                                                    setSelectedPlatform(platform);
+                                                }}
+                                            >
+                                                <Trash2 />
                                             </Button>
                                         </ButtonGroup>
                                     </TableCell>
@@ -81,16 +135,42 @@ export default function ModuleListPage() {
                 </Table>
             </div>
 
-            {/* Edit Modal */}
-            {/* {editModalOpen && selectedModuleId && (
-                <Suspense fallback={<div className="py-4 text-center">Loading...</div>}>
-                    <EditModuleModal
-                        moduleId={selectedModuleId}
-                        open={editModalOpen}
-                        onOpenChange={setEditModalOpen}
+            {/* add project modal  */}
+            {addPlatformModalOpen && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <AddPlatformModal
+                        open={addPlatformModalOpen}
+                        onOpenChange={setAddPlatformModalOpen}
+                        refreshPage={refreshPage}
+                        projects={projects}
                     />
                 </Suspense>
-            )} */}
+            )}
+
+            {/* add project modal  */}
+            {editPlatformModalOpen && selectedPlatform && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <EditPlatformModal
+                        open={editPlatformModalOpen}
+                        onOpenChange={setEditPlatformModalOpen}
+                        refreshPage={refreshPage}
+                        projects={projects}
+                        platform={selectedPlatform}
+                    />
+                </Suspense>
+            )}
+
+            {deleteDialogOpen && selectedPlatform && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <DeleteConfirmDialog
+                        open={deleteDialogOpen}
+                        onOpenChange={setDeleteDialogOpen}
+                        title="Delete Platform?"
+                        description="Are you sure you want to permanently delete this chat? This action cannot be undone."
+                        onConfirm={async () => handleDelete()}
+                    />
+                </Suspense>
+            )}
         </div>
     );
 }
