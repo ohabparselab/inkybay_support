@@ -191,7 +191,7 @@ model Chat {
     project        Project?         @relation(fields: [projectId], references: [id])
     chatTags       ChatTag[]
     review         Review?
-    FeatureRequest FeatureRequest[]
+    featureRequest   FeatureRequest?
 
     @@map("chats")
 }
@@ -229,7 +229,7 @@ model Review {
 model FeatureRequest {
     id             Int      @id @default(autoincrement())
     clientId       Int?
-    chatId         Int?
+    chatId         Int?     @unique
     featureDetails String?  @db.Text
     createdBy      Int?
     createdAt      DateTime @default(now())

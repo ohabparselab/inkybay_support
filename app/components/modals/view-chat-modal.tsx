@@ -32,85 +32,109 @@ export function ViewChatDetailsModal({ open, onOpenChange, chat }: ViewChatDetai
                 <section className="space-y-5 border rounded p-3">
                     <h3 className="text-base font-semibold mb-3">Chat Info</h3>
                     <Separator />
-                    <div className="grid grid-cols-2 gap-x-6 space-y-2 text-sm">
-                        <p><strong>Chat Date:</strong> {formatDate(chat.chatDate)}</p>
-                        <p><strong>Handled By:</strong> {chat.handleByUser?.fullName || "-"}</p>
-                        <p className="break-words">
-                            <div className="flex gap-2 mt-1">
-                                <strong>Chat Transcript:</strong>{" "}
-                                {chat.chatTranscript ? (
-                                    <>
-                                        {/* View Button */}
-                                        <a
-                                            href={chat.chatTranscript}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-600 hover:underline"
-                                        >
-                                            View
-                                        </a>
+                    <div className="grid grid-cols-2 gap-x-4 text-sm">
+                        <div className="space-y-2">
+                            <p><strong>Chat Date:</strong> {formatDate(chat.chatDate)}</p>
+                            <p className="break-words">
+                                <div className="flex gap-2 mt-1">
+                                    <strong>Chat Transcript:</strong>{" "}
+                                    {chat.chatTranscript ? (
+                                        <>
+                                            {/* View Button */}
+                                            <a
+                                                href={chat.chatTranscript}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:underline"
+                                            >
+                                                View
+                                            </a>
 
-                                        {/* Download Button */}
-                                        <a
-                                            href={chat.chatTranscript}
-                                            download
-                                            className="bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 text-xs"
-                                        >
-                                            Download
-                                        </a>
+                                            {/* Download Button */}
+                                            <a
+                                                href={chat.chatTranscript}
+                                                download
+                                                className="bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 text-xs"
+                                            >
+                                                Download
+                                            </a>
+                                        </>
+                                    ) : (
+                                        <span className="text-gray-500">N/A</span>
+                                    )}
+                                </div>
+                            </p>
+                            <p><strong>Client Query:</strong> {chat.clientQuery || "-"}</p>
+                            <p><strong>Tags: </strong>
+                                {chat.chatTags && chat.chatTags.length > 0 ? (
+                                    <>
+                                        {chat.chatTags.map((ct: any, i: number) => (
+                                            <Badge key={i} variant="secondary" className="text-xs">
+                                                {ct.tag.name}
+                                            </Badge>
+                                        ))}
                                     </>
                                 ) : (
                                     <span className="text-gray-500">N/A</span>
                                 )}
-                            </div>
-                        </p>
-
-                        <p><strong>Review Asked:</strong> {chat?.reviewAsked ? "Yes" : 'No'}</p>
-                        <p><strong>Review Status:</strong> {chat?.reviewStatus ? "Yes" : 'No'}</p>
-                        <p>
-                            <div className="flex">
-                                <strong>Agent Rating: </strong>
-                                {chat?.agentRating ? (
-                                    [...Array(chat?.agentRating)].map((_, i) => (
-                                        <Star
-                                            key={i}
-                                            className={`h-6 w-6 text-yellow-500 fill-yellow-500`}
-                                        />
-                                    ))
-                                ) : ' N/A'}
-                            </div>
-                            {/* {chat?.agentRating || "N/A"} */}
-                        </p>
-                        <p><strong>Other Store Url:</strong> {chat?.otherStoresUrl || "N/A"}</p>
-                        <p><strong>Last Review Approach:</strong> {formatDate(chat.chatDate) || "N/A"}</p>
-                        <p><strong>Tags: </strong>
-                            {chat.chatTags && chat.chatTags.length > 0 ? (
-                                <>
-                                    {chat.chatTags.map((ct: any, i: number) => (
-                                        <Badge key={i} variant="secondary" className="text-xs">
-                                            {ct.tag.name}
-                                        </Badge>
-                                    ))}
-                                </>
-                            ) : (
-                                <span className="text-gray-500">N/A</span>
-                            )}
-                        </p>
-                        <p><strong>Created At:</strong> {formatDate(chat.createdAt)}</p>
-                        <p><strong>Updated At:</strong> {formatDate(chat.updatedAt)}</p>
-                        <p><strong>Store Details:</strong> {chat?.storeDetails || "N/A"}</p>
-                        <p><strong>Review Text:</strong> {chat?.reviewText || "N/A"}</p>
-                        <p><strong>Client Query:</strong> {chat.clientQuery || "-"}</p>
-                        <p><strong>Client Feedback:</strong> {chat?.clientFeedback || "N/A"}</p>
-                        <p><strong>Feature Request:</strong> {chat?.featureRequest || "N/A"}</p>
-                        <p><strong>Agent Comment:</strong> {chat?.agentComments || "N/A"}</p>
-                        <p><strong>Changes Made By Agent:</strong> {chat?.changesMadeByAgent || "N/A"}</p>
-
+                            </p>
+                            <p><strong>Handled By:</strong> {chat.handleByUser?.fullName || "-"}</p>
+                            <p><strong>Changes Made By Agent:</strong> {chat?.changesMadeByAgent || "N/A"}</p>
+                            <p><strong>Agent Comment:</strong> {chat?.agentComments || "N/A"}</p>
+                            <p><strong>Client Feedback:</strong> {chat?.clientFeedback || "N/A"}</p>
+                            <p><strong>Other Store Url:</strong> {chat?.otherStoresUrl || "N/A"}</p>
+                            <p>
+                                <strong>Client Emails:</strong>
+                                {chat?.client?.clientEmail && chat.client.clientEmail.length > 0
+                                    ? chat.client.clientEmail.map((cEmail: any) => cEmail.email).join(", ")
+                                    : "N/A"}
+                            </p>
+                            <p>
+                                <div className="flex">
+                                    <strong>Agent Rating: </strong>
+                                    {chat?.review?.agentRating ? (
+                                        [...Array(10)].map((_, i) => (
+                                            <Star
+                                                key={i}
+                                                className={`h-6 w-6 ${i < (chat?.review?.agentRating || 0)
+                                                    ? "text-yellow-500 fill-yellow-500"
+                                                    : "text-gray-300"
+                                                    }`}
+                                            />
+                                        ))
+                                    ) : ' N/A'}
+                                </div>
+                            </p>
+                            {
+                                chat.externalChat && (
+                                    <>
+                                        <p><strong>Shop Url:</strong> {chat?.shopUrl || "N/A"}</p>
+                                        <p><strong>Shop Name:</strong> {chat?.shopName || "N/A"}</p>
+                                        <p><strong>Shop Email:</strong> {chat?.shopEmail || "N/A"}</p>
+                                    </>
+                                )
+                            }
+                        </div>
+                        <div className="space-y-2">
+                            <p><strong>Review Text:</strong> {chat?.review?.reviewText || "N/A"}</p>
+                            <p><strong>Review Status:</strong> {chat?.review?.reviewStatus ? "Yes" : 'No'}</p>
+                            <p><strong>Review Asked:</strong> {chat?.review?.reviewAsked ? "Yes" : 'No'}</p>
+                            <p><strong>Review not asking reason:</strong> {chat?.review?.reviewNotAskReason ? chat?.review?.reviewNotAskReason : 'No'}</p>
+                            <p><strong>Last Review Approach:</strong> {formatDate(chat.review?.lastReviewApproach) || "N/A"}</p>
+                            <p><strong>Review Submitted At:</strong> {formatDate(chat.review?.reviewSubmittedAt) || "N/A"}</p>
+                            <p><strong>Review Approach By:</strong> {chat.review?.approachByUser?.fullName || "N/A"}</p>
+                            <p><strong>Feature Request:</strong> {chat?.featureRequest?.featureDetails || "N/A"}</p>
+                            <p><strong>Store Details:</strong> {chat?.storeDetails || "N/A"}</p>
+                            <p><strong>Created At:</strong> {formatDate(chat.createdAt)}</p>
+                            <p><strong>Updated At:</strong> {formatDate(chat.updatedAt)}</p>
+                            <p><strong>Rating Mood/Client nature:</strong> {chat?.review?.ratingMood || "N/A"}</p>
+                            <p><strong>Project:</strong> {chat?.project?.name || "N/A"}</p>
+                        </div>
                     </div>
                     <Separator />
-                    <ShopDetails shopUrl={chat.client.shopDomain} />
+                    <ShopDetails shopUrl={chat?.client?.shopDomain} />
                     <Separator />
-                    <ShopHistory shopUrl={chat.client.shopDomain}/>
+                    <ShopHistory shopUrl={chat?.client?.shopDomain} />
                 </section>
                 <DialogFooter className="p-6 border-t">
                     <Button variant="destructive" onClick={() => onOpenChange(false)}>Close</Button>
