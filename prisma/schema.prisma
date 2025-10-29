@@ -22,17 +22,20 @@ model User {
     roleId    Int
     role      Role      @relation(fields: [roleId], references: [id])
     isActive  Boolean   @default(true)
-    createdBy Int? // user ID of creator (admin)
+    createdBy Int?
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
     isDeleted Boolean   @default(false)
     deletedAt DateTime?
 
-    modulePermissions UserModulePermission[]
-    chat              Chat[]
-    providedTasks     Task[]                 @relation("UserProvidedTasks")
-    solvedTasks       Task[]                 @relation("UserSolvedTasks")
-    meeting           Meeting[]
+    modulePermissions      UserModulePermission[]
+    providedTasks          Task[]                 @relation("UserProvidedTasks")
+    solvedTasks            Task[]                 @relation("UserSolvedTasks")
+    meeting                Meeting[]
+    handledChats           Chat[]                 @relation("ChatHandledBy") // handled by this user
+    createdChats           Chat[]                 @relation("ChatCreatedBy") // created by this user
+    approachedReviews      Review[]               @relation("ReviewApproachedBy")
+    createdFeatureRequests FeatureRequest[]       @relation("FeatureCreatedBy")
 
     @@index([email])
     @@map("users")
@@ -115,6 +118,7 @@ model Client {
     clientEmail     ClientEmail[]
     task            Task[]
     marketingFunnel MarketingFunnel[]
+    FeatureRequest  FeatureRequest[]
 
     @@index([shopDomain, email])
     @@map("clients")
@@ -148,38 +152,95 @@ model Project {
 
     // Relations
     platforms Platform[]
+    Chat      Chat[]
 
     @@map("projects")
 }
 
+// =======================
+// Chat Table
+// =======================
 model Chat {
     id                 Int       @id @default(autoincrement())
-    clientId           Int
+    clientId           Int?
     clientQuery        String    @db.Text
-    handleBy           Int
+    handleBy           Int?
+    projectId          Int?
     chatDate           DateTime?
     chatTranscript     String?   @db.Text
-    reviewAsked        Boolean   @default(false)
-    reviewStatus       Boolean   @default(false)
-    reviewText         String?   @db.Text
-    lastReviewApproach DateTime?
+    storefrontPassword String?   @db.Text
+    externalChat       Boolean?  @default(false)
+    shopUrl            String?   @db.Text
+    shopName           String?   @db.Text
+    shopEmail          String?   @db.Text
     clientFeedback     String?   @db.Text
     storeDetails       String?   @db.Text
-    featureRequest     String?   @db.Text
-    agentRating        Int?
     agentComments      String?   @db.Text
     otherStoresUrl     String?   @db.Text
     changesMadeByAgent String?   @db.Text
     isDeleted          Boolean   @default(false)
     deletedAt          DateTime?
+    createdBy          Int?
     createdAt          DateTime  @default(now())
     updatedAt          DateTime  @updatedAt
 
-    handleByUser User      @relation(fields: [handleBy], references: [id])
-    client       Client    @relation(fields: [clientId], references: [id])
-    chatTags     ChatTag[]
+    // Relations
+    handleByUser   User?            @relation("ChatHandledBy", fields: [handleBy], references: [id])
+    createdByUser  User?            @relation("ChatCreatedBy", fields: [createdBy], references: [id])
+    client         Client?          @relation(fields: [clientId], references: [id])
+    project        Project?         @relation(fields: [projectId], references: [id])
+    chatTags       ChatTag[]
+    review         Review?
+    FeatureRequest FeatureRequest[]
 
     @@map("chats")
+}
+
+// =======================
+// Review Table
+// =======================
+model Review {
+    id                 Int       @id @default(autoincrement())
+    chatId             Int?      @unique
+    meetingId          Int?
+    reviewAsked        Boolean?  @default(false)
+    reviewStatus       Boolean?  @default(false)
+    reviewText         String?   @db.Text
+    reviewNotAskReason String?   @db.Text
+    agentRating        Int?
+    ratingMood         String? // "positive" | "neutral" | "negative"
+    lastReviewApproach DateTime?
+    reviewApproachBy   Int?
+    reviewSubmittedAt  DateTime?
+    createdAt          DateTime  @default(now())
+    updatedAt          DateTime  @updatedAt
+
+    // Relations
+    chat           Chat?    @relation(fields: [chatId], references: [id])
+    meeting        Meeting? @relation(fields: [meetingId], references: [id])
+    approachByUser User?    @relation("ReviewApproachedBy", fields: [reviewApproachBy], references: [id])
+
+    @@map("reviews")
+}
+
+// =======================
+// Feature Request Table
+// =======================
+model FeatureRequest {
+    id             Int      @id @default(autoincrement())
+    clientId       Int?
+    chatId         Int?
+    featureDetails String?  @db.Text
+    createdBy      Int?
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+
+    // Relations
+    client        Client? @relation(fields: [clientId], references: [id])
+    chat          Chat?   @relation(fields: [chatId], references: [id])
+    createdByUser User?   @relation("FeatureCreatedBy", fields: [createdBy], references: [id])
+
+    @@map("feature_requests")
 }
 
 model Tag {
@@ -277,7 +338,8 @@ model Meeting {
     emails MeetingEmail[]
 
     // Relations
-    user User @relation(fields: [agentId], references: [id])
+    user   User     @relation(fields: [agentId], references: [id])
+    Review Review[]
 
     @@map("meetings")
 }
