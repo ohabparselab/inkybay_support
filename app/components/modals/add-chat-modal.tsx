@@ -28,9 +28,10 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { TagsInput } from "../ui/tags";
+import { Spinner } from "../ui/spinner";
 
 interface AddChatModalProps {
-    clientId?: number;
+    clientId?: number | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
     refreshPage?: () => void;
@@ -51,7 +52,7 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
         watch,
         setValue,
         reset,
-        formState: { errors },
+        formState: { errors, isSubmitting },
     } = useForm<AddChatFormInput>({
         resolver: zodResolver(addChatSchema),
         defaultValues: {
@@ -138,25 +139,21 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
 
         const appendFormData = (key: string, value: any) => {
             if (value === undefined || value === null) return;
-
             // Handle arrays
             if (Array.isArray(value)) {
                 value.forEach((v) => appendFormData(`${key}[]`, v));
                 return;
             }
-
             // Handle Date
             if (value instanceof Date) {
                 formData.append(key, value.toISOString());
                 return;
             }
-
             // Handle FileList
             if (value instanceof FileList) {
                 if (value.length > 0) formData.append(key, value[0]);
                 return;
             }
-
             // Handle object (recursive)
             if (typeof value === "object" && !(value instanceof File)) {
                 Object.entries(value).forEach(([subKey, subVal]) =>
@@ -164,13 +161,11 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                 );
                 return;
             }
-
             // Handle boolean
             if (typeof value === "boolean") {
                 formData.append(key, value ? "true" : "false");
                 return;
             }
-
             // Default primitive (string, number)
             formData.append(key, String(value));
         };
@@ -650,9 +645,11 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                         </Button>
                         <Button
                             type="submit"
-                            disabled={loadingUsers}
+                            disabled={isSubmitting}
                         >
-                            <Plus className="h-4 w-4" />
+                            {
+                                isSubmitting ? (<Spinner/>) : (<Plus className="h-4 w-4" />)
+                            }
                             Add New Chat
                         </Button>
                     </DialogFooter>
