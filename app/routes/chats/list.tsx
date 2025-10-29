@@ -1,8 +1,8 @@
 
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
+import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
 import { AlertTriangle, Ellipsis, Eye, Filter, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { PaginationBar } from "~/components/pagination-bar";
@@ -120,6 +120,7 @@ export const meta = () => [{ title: "Chats | InkyBay" }];
 export default function ChatsListPage() {
 
     const [loading, setLoading] = useState(true);
+    const [externalChat, setExternalChat] = useState(false);
     const navigate = useNavigate();
     const { chats, meta, tags } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
@@ -204,7 +205,7 @@ export default function ChatsListPage() {
         if (newTags.length) params.set("tags", newTags.join(","));
         else params.delete("tags");
 
-        params.set("page", "1"); // reset pagination
+        params.set("page", "1");
         navigateWithLoading(`?${params.toString()}`);
     };
 
@@ -216,6 +217,17 @@ export default function ChatsListPage() {
         <div className="px-6 space-y-2">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold tracking-tight">Chats</h1>
+                {
+                    canCreate && (
+                        <Button onClick={() => {
+                            setExternalChat(true)
+                            setChatModalOpen(true);
+                        }}>
+                            <Plus /> Add External Chat
+                        </Button>
+                    )
+                }
+
             </div>
             <div className="w-full space-y-4">
                 <div className="flex items-center justify-between">
@@ -239,7 +251,7 @@ export default function ChatsListPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
-                                <TableHead>Shop Name</TableHead>
+                                <TableHead>Shop URL</TableHead>
                                 <TableHead>Client Query</TableHead>
                                 <TableHead>Handle By</TableHead>
                                 <TableHead>
@@ -271,7 +283,7 @@ export default function ChatsListPage() {
                                     </div>
                                 </TableHead>
                                 <TableHead>Review Asked?</TableHead>
-                                <TableHead>Client Feedback</TableHead>
+                                <TableHead>Review Given?</TableHead>
                                 <TableHead>Created</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
@@ -298,7 +310,7 @@ export default function ChatsListPage() {
                                                             setSelectedChat(chat);
                                                             setViewChatModal(true);
                                                         }}
-                                                    >{chat.client.shopName}</TableCell>
+                                                    >{chat.client.shopDomain}</TableCell>
                                                     <TableCell className="max-w-[20px] truncate">
                                                         <TooltipProvider>
                                                             <Tooltip>
@@ -333,27 +345,8 @@ export default function ChatsListPage() {
                                                     <TableCell>
                                                         {chat.reviewAsked == true ? "Yes" : "No"}
                                                     </TableCell>
-                                                    <TableCell className="max-w-[20px] truncate">
-                                                        {
-                                                            chat.clientFeedback ? (
-                                                                <TooltipProvider>
-
-                                                                    <Tooltip>
-                                                                        <TooltipTrigger asChild>
-                                                                            <span className="block truncate cursor-pointer">
-                                                                                {chat.clientFeedback || "N/A"}
-                                                                            </span>
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>
-                                                                            <p className="max-w-sm break-words">
-                                                                                {chat.clientFeedback}
-                                                                            </p>
-                                                                        </TooltipContent>
-                                                                    </Tooltip>
-                                                                </TooltipProvider>
-                                                            ) : 'N/A'
-                                                        }
-
+                                                    <TableCell>
+                                                        {chat.reviewStatus == true ? "Yes" : "No"}
                                                     </TableCell>
                                                     <TableCell>
                                                         {new Date(chat.createdAt).toLocaleDateString()}
@@ -379,6 +372,7 @@ export default function ChatsListPage() {
                                                                 {
                                                                     canCreate && (
                                                                         <DropdownMenuItem onClick={() => {
+                                                                            setExternalChat(false);
                                                                             setClientId(chat.clientId);
                                                                             setSelectedChat(chat);
                                                                             setChatModalOpen(true);
@@ -442,8 +436,6 @@ export default function ChatsListPage() {
                                         </TableRow>
                                     )
                                 )
-
-
                             }
                         </TableBody>
                     </Table>
@@ -457,7 +449,7 @@ export default function ChatsListPage() {
             </div>
 
             {/* Modals */}
-            {chatModalOpen && selectedChat && (
+            {chatModalOpen && (
                 <Suspense fallback={<CenterSpinner />}>
                     <AddChatModal
                         clientId={clientId}
@@ -465,6 +457,7 @@ export default function ChatsListPage() {
                         onOpenChange={setChatModalOpen}
                         refreshPage={refreshPage}
                         chat={selectedChat}
+                        externalChat={externalChat}
                     />
                 </Suspense>
             )}
