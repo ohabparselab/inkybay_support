@@ -78,39 +78,29 @@ const updateChat = async (chatId: number, request: Request) => {
         };
 
         // upsert review — create if missing, update if exists
-        await prisma.review.update({
+        await prisma.review.upsert({
             where: { chatId },
-            data: reviewData,
+            update: reviewData,
+            create: { ...reviewData, chatId },
         });
 
         // --- FEATURE REQUEST ---
         const featureRequest = formData.get("featureRequest")?.toString() || null;
         if (featureRequest) {
-            const existingFeature = await prisma.featureRequest.findUnique({
+            await prisma.featureRequest.upsert({
                 where: { chatId },
+                update: {
+                    featureDetails: featureRequest,
+                    updatedBy: Number(userId),
+                    updatedAt: new Date(),
+                },
+                create: {
+                    chatId,
+                    clientId: updatedChat.clientId,
+                    featureDetails: featureRequest,
+                    createdBy: Number(userId),
+                },
             });
-
-            if (existingFeature) {
-                // Update existing feature request
-                await prisma.featureRequest.update({
-                    where: { chatId },
-                    data: {
-                        featureDetails: featureRequest,
-                        updatedAt: new Date(),
-                        updatedBy: Number(userId),
-                    },
-                });
-            } else {
-                // Create new feature request if none exists
-                await prisma.featureRequest.create({
-                    data: {
-                        chatId,
-                        clientId: updatedChat.clientId,
-                        featureDetails: featureRequest,
-                        createdBy: Number(userId),
-                    },
-                });
-            }
         }
         // Sync client emails
         const clientEmails = formData.getAll("clientEmails[]").map((e) => e.toString().trim()).filter(Boolean);

@@ -20,16 +20,19 @@ export async function action({ request }: { request: Request }) {
             include: {
                 client: {
                     select: {
-                        id: true, shopDomain: true, shopName: true,
-                        clientEmail: {
-                            select: { id: true, email: true },
-                        },
+                        id: true,
+                        shopDomain: true,
+                        shopName: true,
+                        clientEmail: { select: { id: true, email: true } },
                     },
                 },
                 handleByUser: { select: { id: true, fullName: true, email: true } },
-                chatTags: {
-                    include: { tag: { select: { name: true } } },
-                },
+                createdByUser: { select: { id: true, fullName: true } },
+                updatedByUser: { select: { id: true, fullName: true } },
+                chatTags: { include: { tag: { select: { name: true } } } },
+                review: { include: { approachByUser: true } },
+                project: { select: { name: true } },
+                featureRequest: true,
             }
         });
 

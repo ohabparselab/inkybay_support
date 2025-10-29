@@ -71,8 +71,8 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
             otherStoresUrl: chat?.otherStoresUrl || "",
             changesMadeByAgent: chat?.changesMadeByAgent || "",
             chatDate: chat?.chatDate ? new Date(chat.chatDate) : undefined,
-            lastReviewApproach: chat?.lastReviewApproach
-                ? new Date(chat.lastReviewApproach)
+            lastReviewApproach: chat?.review?.lastReviewApproach
+                ? new Date(chat.review?.lastReviewApproach)
                 : undefined,
             externalChat: chat.externalChat
 
@@ -134,8 +134,8 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                 otherStoresUrl: chat.otherStoresUrl || "",
                 changesMadeByAgent: chat.changesMadeByAgent || "",
                 chatDate: chat.chatDate ? new Date(chat.chatDate) : undefined,
-                lastReviewApproach: chat.review.lastReviewApproach
-                    ? new Date(chat.review.lastReviewApproach)
+                lastReviewApproach: chat.review?.lastReviewApproach
+                    ? new Date(chat.review?.lastReviewApproach)
                     : undefined,
                 shopUrl: chat.shopUrl || "",
                 shopName: chat.shopName || "",
@@ -143,11 +143,11 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                 projectId: chat.projectId?.toString() || "",
                 storefrontPassword: chat.storefrontPassword || "",
                 reviewNotAskReason: chat.review?.reviewNotAskReason || "",
-                reviewSubmittedAt: chat.review.reviewSubmittedAt
-                    ? new Date(chat.review.reviewSubmittedAt)
+                reviewSubmittedAt: chat.review?.reviewSubmittedAt
+                    ? new Date(chat.review?.reviewSubmittedAt)
                     : undefined,
-                reviewApproachBy: chat.review.reviewApproachBy?.toString() || "",
-                ratingMood: chat.review.ratingMood?.toString() || "",
+                reviewApproachBy: chat.review?.reviewApproachBy?.toString() || "",
+                ratingMood: chat.review?.ratingMood?.toString() || "",
                 externalChat: chat.externalChat
             });
         }

@@ -92,9 +92,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
                     },
                 },
                 handleByUser: { select: { id: true, fullName: true, email: true } },
+                createdByUser: { select: { id: true, fullName: true } },
+                updatedByUser: { select: { id: true, fullName: true } },
                 chatTags: { include: { tag: { select: { name: true } } } },
                 review: { include: { approachByUser: true } },
-                project: { select: { name: true} },
+                project: { select: { name: true } },
                 featureRequest: true,
             },
         }),
@@ -313,7 +315,11 @@ export default function ChatsListPage() {
                                                             setSelectedChat(chat);
                                                             setViewChatModal(true);
                                                         }}
-                                                    >{chat?.client?.shopDomain}</TableCell>
+                                                    >
+                                                    {
+                                                        chat.externalChat ? chat.shopUrl : chat?.client?.shopDomain
+                                                    }
+                                                    </TableCell>
                                                     <TableCell className="max-w-[20px] truncate">
                                                         <TooltipProvider>
                                                             <Tooltip>

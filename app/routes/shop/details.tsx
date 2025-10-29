@@ -508,7 +508,7 @@ export default function ShopDetailsPage() {
                                                                 <TableHead>Handle By</TableHead>
                                                                 <TableHead>Tags</TableHead>
                                                                 <TableHead>Review Asked?</TableHead>
-                                                                <TableHead>Client Feedback</TableHead>
+                                                                <TableHead>Review Given?</TableHead>
                                                                 <TableHead>Created</TableHead>
                                                                 <TableHead>Actions</TableHead>
                                                             </TableRow>
@@ -518,7 +518,7 @@ export default function ShopDetailsPage() {
                                                                 chats.map((chat: any, index: any) => (
                                                                     <TableRow key={chat.id}>
                                                                         <TableCell>{index + 1}</TableCell>
-                                                                        <TableCell>{chat.client.shopName}</TableCell>
+                                                                        <TableCell>{chat.client.shopDomain}</TableCell>
                                                                         <TableCell className="max-w-[20px] truncate">
                                                                             <TooltipProvider>
                                                                                 <Tooltip>
@@ -551,23 +551,10 @@ export default function ShopDetailsPage() {
                                                                             )}
                                                                         </TableCell>
                                                                         <TableCell>
-                                                                            {chat.reviewAsked == true ? "Yes" : "No"}
+                                                                            {chat.review?.reviewAsked == true ? "Yes" : "No"}
                                                                         </TableCell>
-                                                                        <TableCell className="max-w-[20px] truncate">
-                                                                            <TooltipProvider>
-                                                                                <Tooltip>
-                                                                                    <TooltipTrigger asChild>
-                                                                                        <span className="block truncate cursor-pointer">
-                                                                                            {chat.clientFeedback || "N/A"}
-                                                                                        </span>
-                                                                                    </TooltipTrigger>
-                                                                                    <TooltipContent>
-                                                                                        <p className="max-w-sm break-words">
-                                                                                            {chat.clientFeedback}
-                                                                                        </p>
-                                                                                    </TooltipContent>
-                                                                                </Tooltip>
-                                                                            </TooltipProvider>
+                                                                        <TableCell>
+                                                                            {chat.review?.reviewStatus == true ? "Yes" : "No"}
                                                                         </TableCell>
                                                                         <TableCell>
                                                                             {new Date(chat.createdAt).toLocaleDateString()}
