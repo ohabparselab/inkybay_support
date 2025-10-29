@@ -1,5 +1,6 @@
 import { prisma } from "~/lib/prisma.server";
 import { uploadFile } from "~/lib/upload.server";
+import { getUserId } from "~/session.server";
 
 export async function action({ request, params }: { request: Request; params: any }) {
 
@@ -19,55 +20,98 @@ export async function action({ request, params }: { request: Request; params: an
 const updateChat = async (chatId: number, request: Request) => {
     try {
 
+        const userId = await getUserId(request);
         const formData = await request.formData();
 
-        // Parse core fields
-        const handleBy = formData.get("handleBy") ? Number(formData.get("handleBy")) : null;
-        const clientQuery = formData.get("clientQuery")?.toString() || null;
-
-        if (!handleBy) {
-            return Response.json({ success: false, message: "Please select an agent (Handle By)." }, { status: 400 });
-        }
-        if (!clientQuery) {
-            return Response.json({ success: false, message: "Client query is required." }, { status: 400 });
-        }
-
-        // Build chat data object
+        // --- CHAT DATA ---
         const chatData: any = {
-            clientQuery,
+            clientQuery: formData.get("clientQuery")?.toString() || null,
+            handleBy: formData.get("handleBy") ? Number(formData.get("handleBy")) : null,
+            clientId: formData.get("clientId") ? Number(formData.get("clientId")) : null,
+            projectId: formData.get("projectId") ? Number(formData.get("projectId")) : null,
             chatDate: formData.get("chatDate") ? new Date(formData.get("chatDate") as string) : null,
-            lastReviewApproach: formData.get("lastReviewApproach")
-                ? new Date(formData.get("lastReviewApproach") as string)
-                : null,
-            reviewText: formData.get("reviewText")?.toString() || null,
-            reviewAsked: formData.get("reviewAsked") === "true",
-            reviewStatus: formData.get("reviewStatus") === "true",
+            storefrontPassword: formData.get("storefrontPassword")?.toString() || null,
+            externalChat: formData.get("externalChat") === "true",
+            shopUrl: formData.get("shopUrl")?.toString() || null,
+            shopName: formData.get("shopName")?.toString() || null,
+            shopEmail: formData.get("shopEmail")?.toString() || null,
             clientFeedback: formData.get("clientFeedback")?.toString() || null,
             storeDetails: formData.get("storeDetails")?.toString() || null,
-            featureRequest: formData.get("featureRequest")?.toString() || null,
-            agentRating: formData.get("agentRating") ? Number(formData.get("agentRating")) : null,
             agentComments: formData.get("agentComments")?.toString() || null,
             otherStoresUrl: formData.get("otherStoresUrl")?.toString() || null,
             changesMadeByAgent: formData.get("changesMadeByAgent")?.toString() || null,
+            updatedBy: Number(userId),
+            updatedAt: new Date(),
         };
 
-        // Handle file upload
+        // --- Handle Chat Transcript Upload ---
         const chatTranscriptFile = formData.get("chatTranscript") as File | null;
         if (chatTranscriptFile && chatTranscriptFile.size > 0) {
             const chatTranscriptUrl = await uploadFile(chatTranscriptFile);
             if (chatTranscriptUrl) chatData.chatTranscript = chatTranscriptUrl;
         }
 
-        // Update main chat record
+        // --- UPDATE CHAT ---
         const updatedChat = await prisma.chat.update({
             where: { id: chatId },
-            data: {
-                ...chatData,
-                handleByUser: { connect: { id: handleBy } },
-            },
-            include: { client: true },
+            data: chatData,
         });
 
+        // --- REVIEW DATA ---
+        const reviewData: any = {
+            reviewAsked: formData.get("reviewAsked") === "true",
+            reviewStatus: formData.get("reviewStatus") === "true",
+            reviewText: formData.get("reviewText")?.toString() || null,
+            reviewNotAskReason: formData.get("reviewNotAskReason")?.toString() || null,
+            agentRating: formData.get("agentRating") ? Number(formData.get("agentRating")) : null,
+            ratingMood: formData.get("ratingMood")?.toString() || null,
+            lastReviewApproach: formData.get("lastReviewApproach")
+                ? new Date(formData.get("lastReviewApproach") as string)
+                : null,
+            reviewApproachBy: formData.get("reviewApproachBy")
+                ? Number(formData.get("reviewApproachBy"))
+                : null,
+            reviewSubmittedAt: formData.get("reviewSubmittedAt")
+                ? new Date(formData.get("reviewSubmittedAt") as string)
+                : null,
+            updatedBy: Number(userId),
+        };
+
+        // upsert review — create if missing, update if exists
+        await prisma.review.update({
+            where: { chatId },
+            data: reviewData,
+        });
+
+        // --- FEATURE REQUEST ---
+        const featureRequest = formData.get("featureRequest")?.toString() || null;
+        if (featureRequest) {
+            const existingFeature = await prisma.featureRequest.findUnique({
+                where: { chatId },
+            });
+
+            if (existingFeature) {
+                // Update existing feature request
+                await prisma.featureRequest.update({
+                    where: { chatId },
+                    data: {
+                        featureDetails: featureRequest,
+                        updatedAt: new Date(),
+                        updatedBy: Number(userId),
+                    },
+                });
+            } else {
+                // Create new feature request if none exists
+                await prisma.featureRequest.create({
+                    data: {
+                        chatId,
+                        clientId: updatedChat.clientId,
+                        featureDetails: featureRequest,
+                        createdBy: Number(userId),
+                    },
+                });
+            }
+        }
         // Sync client emails
         const clientEmails = formData.getAll("clientEmails[]").map((e) => e.toString().trim()).filter(Boolean);
 

@@ -103,38 +103,6 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
 
     const onSubmit = async (data: AddChatFormInput) => {
 
-        // const formData = new FormData();
-        // // Append all primitive fields
-        // formData.append("clientId", clientId ? String(clientId) : "");
-        // formData.append("clientQuery", data.clientQuery ? String(data.clientQuery) : "");
-        // formData.append("handleBy", data.handleBy ? String(data.handleBy) : "");
-        // formData.append("chatDate", data.chatDate ? data.chatDate.toISOString() : "");
-        // formData.append("lastReviewApproach", data.lastReviewApproach ? data.lastReviewApproach.toISOString() : "");
-        // formData.append("reviewAsked", data.reviewAsked ? "true" : "false");
-        // formData.append("reviewStatus", data.reviewStatus ? "true" : "false");
-        // formData.append("reviewText", data.reviewText || "");
-        // formData.append("clientFeedback", data.clientFeedback || "");
-        // formData.append("storeDetails", data.storeDetails || "");
-        // formData.append("featureRequest", data.featureRequest || "");
-        // formData.append("agentRating", data.agentRating ? String(data.agentRating) : "");
-        // formData.append("agentComments", data.agentComments || "");
-        // formData.append("otherStoresUrl", data.otherStoresUrl || "");
-        // formData.append("changesMadeByAgent", data.changesMadeByAgent || "");
-
-        // // Append file
-        // if (data.chatTranscript[0]) {
-        //     formData.append("chatTranscript", data.chatTranscript[0]);
-        // }
-
-        // // Append clientEmails array
-        // data.clientEmails?.forEach((email: string) => {
-        //     formData.append("clientEmails[]", email);
-        // });
-
-        // data.tags?.forEach((tag: string) => {
-        //     formData.append("tags[]", tag);
-        // });
-
         const formData = new FormData();
 
         const appendFormData = (key: string, value: any) => {
@@ -198,7 +166,7 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                     <DialogTitle>
                         Add New Chat {" "}
                         {
-                            chat?.client?.shopName && (
+                            chat?.client?.shopDomain && (
                                 <>
                                     (
                                     <span className="font-semibold text-foreground">{chat.client.shopName}</span>, {" "}
@@ -308,7 +276,7 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                         </div>
                         <div>
                             <Label className="mb-2">Storefront Password</Label>
-                            <Input type="text" {...register("storefrontPassword")} />
+                            <Input type="text" {...register("storefrontPassword")} placeholder="Enter store password..." />
                         </div>
                     </div>
 

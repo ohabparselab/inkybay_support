@@ -94,6 +94,7 @@ const createChat = async (request: Request) => {
             reviewSubmittedAt: formData.get("reviewSubmittedAt")
                 ? new Date(formData.get("reviewSubmittedAt") as string)
                 : null,
+            createdBy: Number(userId),
         };
 
         await prisma.review.create({ data: reviewData });

@@ -32,10 +32,14 @@ model User {
     providedTasks          Task[]                 @relation("UserProvidedTasks")
     solvedTasks            Task[]                 @relation("UserSolvedTasks")
     meeting                Meeting[]
-    handledChats           Chat[]                 @relation("ChatHandledBy") // handled by this user
-    createdChats           Chat[]                 @relation("ChatCreatedBy") // created by this user
+    handledChats           Chat[]                 @relation("ChatHandledBy")
+    createdChats           Chat[]                 @relation("ChatCreatedBy")
+    updatedChats           Chat[]                 @relation("ChatUpdatedBy")
     approachedReviews      Review[]               @relation("ReviewApproachedBy")
+    createdReviews         Review[]               @relation("ReviewCreatedBy")
+    updatedReviews         Review[]               @relation("ReviewUpdatedBy")
     createdFeatureRequests FeatureRequest[]       @relation("FeatureCreatedBy")
+    updatedFeatureRequests FeatureRequest[]       @relation("FeatureUpdatedBy")
 
     @@index([email])
     @@map("users")
@@ -181,17 +185,19 @@ model Chat {
     isDeleted          Boolean   @default(false)
     deletedAt          DateTime?
     createdBy          Int?
+    updatedBy          Int?
     createdAt          DateTime  @default(now())
     updatedAt          DateTime  @updatedAt
 
     // Relations
-    handleByUser   User?            @relation("ChatHandledBy", fields: [handleBy], references: [id])
-    createdByUser  User?            @relation("ChatCreatedBy", fields: [createdBy], references: [id])
-    client         Client?          @relation(fields: [clientId], references: [id])
-    project        Project?         @relation(fields: [projectId], references: [id])
+    handleByUser   User?           @relation("ChatHandledBy", fields: [handleBy], references: [id])
+    createdByUser  User?           @relation("ChatCreatedBy", fields: [createdBy], references: [id])
+    updatedByUser  User?           @relation("ChatUpdatedBy", fields: [updatedBy], references: [id])
+    client         Client?         @relation(fields: [clientId], references: [id])
+    project        Project?        @relation(fields: [projectId], references: [id])
     chatTags       ChatTag[]
     review         Review?
-    featureRequest   FeatureRequest?
+    featureRequest FeatureRequest?
 
     @@map("chats")
 }
@@ -212,6 +218,8 @@ model Review {
     lastReviewApproach DateTime?
     reviewApproachBy   Int?
     reviewSubmittedAt  DateTime?
+    createdBy          Int?
+    updatedBy          Int?
     createdAt          DateTime  @default(now())
     updatedAt          DateTime  @updatedAt
 
@@ -219,6 +227,8 @@ model Review {
     chat           Chat?    @relation(fields: [chatId], references: [id])
     meeting        Meeting? @relation(fields: [meetingId], references: [id])
     approachByUser User?    @relation("ReviewApproachedBy", fields: [reviewApproachBy], references: [id])
+    createdByUser  User?    @relation("ReviewCreatedBy", fields: [createdBy], references: [id])
+    updatedByUser  User?    @relation("ReviewUpdatedBy", fields: [updatedBy], references: [id])
 
     @@map("reviews")
 }
@@ -232,6 +242,7 @@ model FeatureRequest {
     chatId         Int?     @unique
     featureDetails String?  @db.Text
     createdBy      Int?
+    updatedBy      Int?
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt
 
@@ -239,6 +250,7 @@ model FeatureRequest {
     client        Client? @relation(fields: [clientId], references: [id])
     chat          Chat?   @relation(fields: [chatId], references: [id])
     createdByUser User?   @relation("FeatureCreatedBy", fields: [createdBy], references: [id])
+    updatedByUser User?   @relation("FeatureUpdatedBy", fields: [updatedBy], references: [id])
 
     @@map("feature_requests")
 }
