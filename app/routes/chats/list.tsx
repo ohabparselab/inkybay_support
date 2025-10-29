@@ -137,7 +137,6 @@ export default function ChatsListPage() {
     const [editChatModal, setEditChatModal] = useState(false);
     const [selectedChat, setSelectedChat] = useState<any>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [chatToDelete, setChatToDelete] = useState<any>(null);
 
     const rootData = useRouteLoaderData("root") as any;
     const permissions = rootData?.permissions ?? [];
@@ -179,10 +178,10 @@ export default function ChatsListPage() {
     };
 
     const handleChatDelete = async () => {
-        if (!chatToDelete) return;
+        if (!selectedChat) return;
 
         try {
-            const res = await fetch(`/api/chats/${chatToDelete.id}`, {
+            const res = await fetch(`/api/chats/${selectedChat.id}`, {
                 method: "DELETE",
             });
             if (!res.ok) toast.error("Failed to delete chat");
@@ -316,9 +315,9 @@ export default function ChatsListPage() {
                                                             setViewChatModal(true);
                                                         }}
                                                     >
-                                                    {
-                                                        chat.externalChat ? chat.shopUrl : chat?.client?.shopDomain
-                                                    }
+                                                        {
+                                                            chat.externalChat ? chat.shopUrl : chat?.client?.shopDomain
+                                                        }
                                                     </TableCell>
                                                     <TableCell className="max-w-[20px] truncate">
                                                         <TooltipProvider>
@@ -408,7 +407,7 @@ export default function ChatsListPage() {
                                                                             <DropdownMenuItem
                                                                                 variant="destructive"
                                                                                 onClick={() => {
-                                                                                    setChatToDelete(chat);
+                                                                                    setSelectedChat(chat); 
                                                                                     setDeleteDialogOpen(true);
                                                                                 }}
                                                                             >
