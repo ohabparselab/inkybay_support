@@ -93,6 +93,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 },
                 handleByUser: { select: { id: true, fullName: true, email: true } },
                 chatTags: { include: { tag: { select: { name: true } } } },
+                review: { select: { reviewAsked: true, reviewStatus: true } },
             },
         }),
         prisma.chat.count({ where }),
@@ -125,7 +126,7 @@ export default function ChatsListPage() {
     const { chats, meta, tags } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
 
-    const [clientId, setClientId] = useState(0);
+    const [clientId, setClientId] = useState<number | null>(null);
 
     const [chatModalOpen, setChatModalOpen] = useState(false);
     const [viewChatModal, setViewChatModal] = useState(false);
@@ -310,7 +311,7 @@ export default function ChatsListPage() {
                                                             setSelectedChat(chat);
                                                             setViewChatModal(true);
                                                         }}
-                                                    >{chat.client.shopDomain}</TableCell>
+                                                    >{chat?.client?.shopDomain}</TableCell>
                                                     <TableCell className="max-w-[20px] truncate">
                                                         <TooltipProvider>
                                                             <Tooltip>
@@ -343,10 +344,10 @@ export default function ChatsListPage() {
                                                         )}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {chat.reviewAsked == true ? "Yes" : "No"}
+                                                        {chat?.review?.reviewAsked == true ? "Yes" : "No"}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {chat.reviewStatus == true ? "Yes" : "No"}
+                                                        {chat?.review?.reviewStatus == true ? "Yes" : "No"}
                                                     </TableCell>
                                                     <TableCell>
                                                         {new Date(chat.createdAt).toLocaleDateString()}

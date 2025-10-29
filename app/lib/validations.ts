@@ -154,7 +154,7 @@ export const addChatSchema = z.object({
     externalChat: z.boolean(),
     shopUrl: z.string().optional(),
     shopName: z.string().optional(),
-    shopEmail: z.email().optional(),
+    shopEmail: z.string().optional(),
     clientQuery: z.string().min(1, "Client query is required."),
     handleBy: z.string().optional(),
     projectId: z.string().optional(),
