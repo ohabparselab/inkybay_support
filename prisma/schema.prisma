@@ -159,8 +159,9 @@ model Project {
 
     // Relations
     platforms Platform[]
-    Chat      Chat[]
-    Task      Task[]
+    chats     Chat[]
+    tasks     Task[]
+    meetings  Meeting[]
 
     @@map("projects")
 }
@@ -338,6 +339,7 @@ model Status {
 model Meeting {
     id                Int       @id @default(autoincrement())
     agentId           Int
+    projectId         Int?
     storeUrl          String    @db.Text
     isExternalMeeting Boolean?  @default(false)
     meetingDetails    String?   @db.Text
@@ -354,8 +356,9 @@ model Meeting {
     emails MeetingEmail[]
 
     // Relations
-    user   User    @relation(fields: [agentId], references: [id])
-    review Review?
+    user    User     @relation(fields: [agentId], references: [id])
+    project Project? @relation(fields: [projectId], references: [id])
+    review  Review?
 
     @@map("meetings")
 }
