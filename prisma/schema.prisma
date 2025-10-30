@@ -40,6 +40,7 @@ model User {
     updatedReviews         Review[]               @relation("ReviewUpdatedBy")
     createdFeatureRequests FeatureRequest[]       @relation("FeatureCreatedBy")
     updatedFeatureRequests FeatureRequest[]       @relation("FeatureUpdatedBy")
+    activityLog            ActivityLog[]
 
     @@index([email])
     @@map("users")
@@ -403,4 +404,22 @@ model FollowUp {
     marketingFunnel MarketingFunnel @relation(fields: [marketingFunnelId], references: [id])
 
     @@map("follow_ups")
+}
+
+model ActivityLog {
+    id        Int      @id @default(autoincrement())
+    userId    Int? // who performed the action (nullable for system actions)
+    desc      String?
+    action    String? // "CREATE", "UPDATE", "DELETE", "COMMENT", "REVIEW", etc.
+    modelName String? // e.g., "Chat", "Task", "Comment", "Review"
+    recordId  Int? // ID of the affected record
+    changes   Json? // JSON object storing what changed
+    metadata  Json? // optional, e.g., parent record, extra info
+    createdAt DateTime @default(now())
+
+    user User? @relation(fields: [userId], references: [id])
+
+    @@index([userId])
+    @@index([modelName, recordId])
+    @@map("activity_logs")
 }
