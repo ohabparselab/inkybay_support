@@ -44,6 +44,7 @@ const createTask = async (request: Request) => {
         const providedBy = value.providedBy ? Number(value.providedBy) : null;
         const solvedBy = value.solvedBy ? Number(value.solvedBy) : null;
         const statusId = value.taskStatus ? Number(value.taskStatus) : null;
+        const projectId = value.projectId ? Number(value.projectId) : null;
 
         // Validate required foreign keys
         if (!value.clientId) {
@@ -64,12 +65,12 @@ const createTask = async (request: Request) => {
             storePassword: value.storePassword,
             storeAccess: value.storeAccess,
             taskAddedDate: value.taskAddedDate ? new Date(value.taskAddedDate) : null,
-            reply: value.reply,
-            comments: value.comments,
-            // relations below
+            notes: value.notes,
+            // comments: value.comments,
             client: { connect: { id: Number(value.clientId) } },
             providedByUser: { connect: { id: providedBy } },
             status: { connect: { id: statusId } },
+            project: { connect: { id: projectId } },
         };
 
         // Connect solvedBy only if provided

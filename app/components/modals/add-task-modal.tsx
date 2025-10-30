@@ -1,15 +1,9 @@
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { CalendarIcon, Eye, EyeOff, ListRestart, Plus, X } from "lucide-react";
 import { addTaskSchema, type AddTaskFormInput } from "~/lib/validations";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
-import { CalendarIcon, Eye, EyeOff, ListRestart, Plus, X } from "lucide-react";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/components/ui/dialog";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CommentBox } from "../comment-box";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -34,9 +29,16 @@ interface AddTaskModalProps {
     task: any
 }
 
+type RootContext = { currentUser: Awaited<ReturnType<typeof import("~/lib/user.server").getUser>> | null };
+
 export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }: AddTaskModalProps) {
 
+    // const { currentUser } = useOutletContext<RootContext>();
+    // console.log(currentUser);
+    // if (!currentUser) return null;
+
     const [users, setUsers] = useState<any>([]);
+    const [projects, setProjects] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -44,7 +46,6 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
     const { control, register, handleSubmit, formState: { errors }, reset } = useForm<AddTaskFormInput>({
         resolver: zodResolver(addTaskSchema),
         defaultValues: {
-            taskDetails: "",
             providedBy: "",
             taskStatus: "",
             taskAddedDate: undefined,
@@ -52,7 +53,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
             storeAccess: "",
             emails: [],
             solvedBy: "",
-            reply: "",
+            notes: "",
             comments: "",
         },
     });
@@ -66,19 +67,6 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
         setStatuses(data.statuses);
     };
 
-    const fetchUsers = async () => {
-        try {
-            setLoadingUsers(true);
-            const res = await fetch("/api/users");
-            const data = await res.json();
-            setUsers(data.users);
-        } catch (err) {
-            console.error("Failed to fetch users:", err);
-        } finally {
-            setLoadingUsers(false);
-        }
-    }
-
     const { fields, append, remove } = useFieldArray<any>({
         control,
         name: "emails",
@@ -89,6 +77,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
             ...data,
             clientId
         }
+
         const res = await fetch("/api/tasks", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -105,9 +94,34 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
         }
     };
 
+    const fetchUsers = async () => {
+        try {
+            setLoadingUsers(true);
+            const res = await fetch("/api/users");
+            const data = await res.json();
+            setUsers(data.users);
+        } catch (err) {
+            console.error("Failed to fetch users:", err);
+        } finally {
+            setLoadingUsers(false);
+        }
+    }
+
+    const fetchProjects = async () => {
+        try {
+            const res = await fetch("/api/settings/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        } finally {
+        }
+    }
+
     useEffect(() => {
         fetchUsers();
         fetchStatuses();
+        fetchProjects();
     }, []);
 
     return (
@@ -138,7 +152,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                             name="taskDetails"
                             label="Task Details"
                             placeholder="Enter task details..."
-                            error={errors.taskDetails?.message}                        />
+                            error={errors.taskDetails?.message} />
                     </div>
 
                     {/* Provided By + Task Status */}
@@ -221,7 +235,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                                     type={showPassword ? "text" : "password"}
                                     {...register("storePassword")}
                                     placeholder="Enter store password"
-                                    className="pr-10" 
+                                    className="pr-10"
                                 />
                                 <button
                                     type="button"
@@ -232,8 +246,6 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                                 </button>
                             </div>
                         </div>
-
-
                         <div>
                             <Label className="mb-2">Store Access</Label>
                             <Controller
@@ -341,17 +353,46 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                                 <p className="text-sm text-red-500">{errors.solvedBy.message}</p>
                             )}
                         </div>
-
                         <div>
-                            <Label className="mb-2">Reply</Label>
-                            <Textarea {...register("reply")} placeholder="Enter reply..." />
+                            <Label className="mb-2">Project</Label>
+                            <Controller
+                                control={control}
+                                name="projectId"
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select Project" />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            {projects.map((project: any) => (
+                                                <SelectItem key={project.id} value={String(project.id)}>
+                                                    {project.projectName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.projectId && (
+                                <p className="text-sm text-red-500">{errors.projectId.message}</p>
+                            )}
                         </div>
+                    </div>
+
+                    <div>
+                        <Label className="mb-2">Notes</Label>
+                        <Textarea {...register("notes")} placeholder="Enter notes details..." />
                     </div>
 
                     {/* Comments */}
                     <div>
                         <Label className="mb-2">Comments</Label>
-                        <Textarea {...register("comments")} placeholder="Enter comments..." />
+                        <CommentBox
+                            parentType="task"
+                            // parentId={123}
+                            currentUserId={2}         // logged-in user
+                            onCommentAdded={() => console.log("Comment added")}
+                        />
                     </div>
 
                     {/* Footer */}

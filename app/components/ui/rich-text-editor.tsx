@@ -29,7 +29,10 @@ export function RichTextEditor({
                         <ReactQuill
                             theme="snow"
                             value={field.value || ""}
-                            onChange={field.onChange}
+                            onChange={(content) => {
+                                const isEmpty = !content || content === "<p><br></p>" || content.trim() === "<p></p>";
+                                field.onChange(isEmpty ? "" : content);
+                            }}
                             placeholder={placeholder}
                             className={`min-h-48 border dark:bg-[#151515] rounded-md resize-y h-auto`}
                             modules={{
