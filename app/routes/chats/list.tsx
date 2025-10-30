@@ -224,7 +224,8 @@ export default function ChatsListPage() {
                 {
                     canCreate && (
                         <Button onClick={() => {
-                            setExternalChat(true)
+                            setSelectedChat(null);
+                            setExternalChat(true);
                             setChatModalOpen(true);
                         }}>
                             <Plus /> Add External Chat

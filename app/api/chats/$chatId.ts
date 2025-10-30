@@ -167,15 +167,13 @@ const updateChat = async (chatId: number, request: Request) => {
             action: "UPDATE" as ActivityAction,
             modelName: "chat",
             recordId: updatedChat.id,
-            changes: [
-                {
+            changes: {
                     chatData: updatedChat,
                     reviewData: updatedReview,
                     featureRequestData: featureRequest,
                     tags: tags,
                     clientEmails: clientEmails
                 }
-            ]
         }
 
         await ActivityLog(logsParams);
@@ -206,12 +204,10 @@ const deleteChatHard = async (chatId: number, request: Request) => {
             action: "DELETE" as ActivityAction,
             modelName: "chat",
             recordId: chatId,
-            metaData: [
-                {
-                    chatId: chatId
-                }
-            ],
-            
+            metadata: {
+                chatId: chatId
+            }
+
         }
 
         await ActivityLog(logsParams);

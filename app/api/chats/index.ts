@@ -150,15 +150,13 @@ const createChat = async (request: Request) => {
             action: "CREATE" as ActivityAction,
             modelName: "chat",
             recordId: chat.id,
-            metaData: [
-                {
-                    chatData: chat,
-                    reviewData: review,
-                    featureRequestData: featureRequest,
-                    tags: tags,
-                    clientEmails: clientEmails
-                }
-            ]
+            metaData: {
+                chatData: chat,
+                reviewData: review,
+                featureRequestData: featureRequest,
+                tags: tags,
+                clientEmails: clientEmails
+            }
         }
 
         await ActivityLog(logsParams);
