@@ -230,7 +230,9 @@ export default function TasksListPage() {
                                                             setViewTaskModalOpen(true);
                                                         }}
 
-                                                    >{task.client.shopDomain}</TableCell>
+                                                    >
+                                                        {task.client?.shopDomain?.split(".")[0]}
+                                                    </TableCell>
                                                     {/* <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell> */}
                                                     <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
                                                     <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>

@@ -317,7 +317,9 @@ export default function ChatsListPage() {
                                                         }}
                                                     >
                                                         {
-                                                            chat.externalChat ? chat.shopUrl : chat?.client?.shopDomain
+                                                            chat.externalChat
+                                                                ? chat.shopUrl?.split('.')[0] || ''
+                                                                : chat?.client?.shopDomain?.split('.')[0] || ''
                                                         }
                                                     </TableCell>
                                                     <TableCell className="max-w-[20px] truncate">
@@ -408,7 +410,7 @@ export default function ChatsListPage() {
                                                                             <DropdownMenuItem
                                                                                 variant="destructive"
                                                                                 onClick={() => {
-                                                                                    setSelectedChat(chat); 
+                                                                                    setSelectedChat(chat);
                                                                                     setDeleteDialogOpen(true);
                                                                                 }}
                                                                             >

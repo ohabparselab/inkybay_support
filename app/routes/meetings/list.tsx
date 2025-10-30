@@ -216,7 +216,7 @@ export default function MeetingListPage() {
                                                         }}
                                                     >{meeting.storeUrl}</TableCell>
                                                     <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
-                                                    <TableCell className="flex flex-wrap gap-1">
+                                                    <TableCell>
                                                         {meeting.joiningStatus ? 'Yes' : 'No'}
                                                     </TableCell>
                                                     <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
