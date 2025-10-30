@@ -75,6 +75,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 providedByUser: { select: { id: true, fullName: true } },
                 solvedByUser: { select: { id: true, fullName: true } },
                 status: { select: { id: true, name: true } },
+                project: { select: { id: true, name: true } },
             },
         }),
         prisma.task.count({ where }),

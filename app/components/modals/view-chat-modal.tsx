@@ -84,9 +84,11 @@ export function ViewChatDetailsModal({ open, onOpenChange, chat }: ViewChatDetai
                             <p><strong>Client Feedback:</strong> {chat?.clientFeedback || "N/A"}</p>
                             <p><strong>Other Store Url:</strong> {chat?.otherStoresUrl || "N/A"}</p>
                             <p>
-                                <strong>Client Emails:</strong>
+                                <strong>Client Emails:</strong>{" "}
                                 {chat?.client?.clientEmail && chat.client.clientEmail.length > 0
-                                    ? chat.client.clientEmail.map((cEmail: any) => cEmail.email).join(", ")
+                                    ? chat.client.clientEmail.map((cEmail: any) => {
+                                        return <Badge variant="secondary" className="m-1">{cEmail.email}</Badge>
+                                    })
                                     : "N/A"}
                             </p>
                             <p>

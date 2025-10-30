@@ -36,26 +36,40 @@ export function ViewTaskDetailsModal({ open, onOpenChange, task }: ViewTaskDetai
                     <h3 className="text-base font-semibold mb-3">Task Info</h3>
                     <Separator />
 
-                    <div className="grid grid-cols-2 gap-x-6 space-y-2 text-sm">
-                        <p><strong>Client:</strong> {task.client?.shopName || "-"}</p>
-                        <p><strong>Provided By:</strong> {task.providedByUser?.fullName || "-"}</p>
-                        <p><strong>Solved By:</strong> {task.solvedByUser?.fullName || "N/A"}</p>
-                        <p><strong>Status:</strong>
-                            {task.status ? (
-                                <Badge variant="secondary" className="ml-2">{task.status.name}</Badge>
-                            ) : (
-                                <span className="text-gray-500 ml-1">N/A</span>
-                            )}
-                        </p>
-                        <p><strong>Store Password:</strong> {task.storePassword || "N/A"}</p>
-                        <p><strong>Store Access:</strong> {task.storeAccess || "N/A"}</p>
-                        <p><strong>Task Added Date:</strong> {formatDate(task.taskAddedDate)}</p>
-                        <p><strong>Created At:</strong> {formatDate(task.createdAt)}</p>
-                        <p><strong>Updated At:</strong> {formatDate(task.updatedAt)}</p>
-                        <p><strong>Reply:</strong> {task.reply || "N/A"}</p>
-                        <p><strong>Comments:</strong> {task.comments || "N/A"}</p>
+                    <div className="grid grid-cols-2 gap-x-4 text-sm">
+
+                        <div className="space-y-2">
+                            <p><strong>Stop URL:</strong> {task.client?.shopDomain.split(".")[0] || "-"}</p>
+                            <p ><strong>Task Details:</strong><HtmlViewerWithIframe content={task.taskDetails || "-"} /></p>
+                            <p><strong>Provided By:</strong> {task.providedByUser?.fullName || "-"}</p>
+                            <p><strong>Status:</strong>
+                                {task.status ? (
+                                    <Badge variant="secondary" className="ml-2">{task.status.name}</Badge>
+                                ) : (
+                                    <span className="text-gray-500 ml-1">N/A</span>
+                                )}
+                            </p>
+                            <p><strong>Solved By:</strong> {task.solvedByUser?.fullName || "N/A"}</p>
+                            <p><strong>Store Password:</strong> {task.storePassword || "N/A"}</p>
+                            <p><strong>Store Access:</strong> {task.storeAccess || "N/A"}</p>
+                        </div>
+                        <div className="space-y-2">
+                            <p>
+                                <strong>Emails:</strong>{" "}
+                                {task?.client?.clientEmail && task.client.clientEmail.length > 0
+                                    ? task.client.clientEmail.map((cEmail: any) => {
+                                        return <Badge variant="secondary" className="m-1">{cEmail.email}</Badge>
+                                    })
+                                    : "N/A"}
+                            </p>
+                            <p><strong>Notes:</strong> {task.notes || "N/A"}</p>
+                            <p><strong>Comments:</strong> {task.comments || "N/A"}</p>
+                            <p><strong>Task Added Date:</strong> {formatDate(task.taskAddedDate)}</p>
+                            <p><strong>Created At:</strong> {formatDate(task.createdAt)}</p>
+                            <p><strong>Updated At:</strong> {formatDate(task.updatedAt)}</p>
+                            <p><strong>Project:</strong> <Badge variant="secondary">{task.project?.name}</Badge></p>
+                        </div>
                     </div>
-                    <p className="text-sm"><strong>Task Details:</strong><HtmlViewerWithIframe content={task.taskDetails || "-"} /></p>
                     <Separator />
                     <ShopDetails shopUrl={task.client.shopDomain} />
                     <Separator />
