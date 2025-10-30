@@ -1,5 +1,7 @@
 import { addTaskSchema } from "~/lib/validations"
 import { prisma } from "~/lib/prisma.server"
+import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server"
+import { getUserId } from "~/session.server"
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
 
@@ -34,6 +36,7 @@ const getAllTasks = async (_request: Request) => {
 //
 const createTask = async (request: Request) => {
     try {
+        const userId = await getUserId(request)
         const data = await request.json();
 
         if (data.taskAddedDate) {
@@ -78,10 +81,10 @@ const createTask = async (request: Request) => {
             taskData.solvedByUser = { connect: { id: solvedBy } };
         }
 
-         if (value?.emails && value?.emails.length > 0) {
+        if (value?.emails && value?.emails.length > 0) {
             for (const email of value.emails) {
                 const exists = await prisma.clientEmail.findUnique({
-                    where: { clientId: value.clientId, email } ,
+                    where: { clientId: value.clientId, email },
                 });
                 if (!exists) {
                     await prisma.clientEmail.create({
@@ -95,6 +98,18 @@ const createTask = async (request: Request) => {
         const task = await prisma.task.create({
             data: taskData
         });
+
+        const logsParams = {
+            userId: userId,
+            action: "UPDATE" as ActivityAction,
+            modelName: "task",
+            recordId: task.id,
+            metaData: {
+                taskData: task,
+                clientEmails: value?.emails
+            }
+        }
+        await ActivityLog(logsParams)
 
         return Response.json({
             success: true,

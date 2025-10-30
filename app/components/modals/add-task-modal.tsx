@@ -29,13 +29,7 @@ interface AddTaskModalProps {
     task: any
 }
 
-type RootContext = { currentUser: Awaited<ReturnType<typeof import("~/lib/user.server").getUser>> | null };
-
 export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }: AddTaskModalProps) {
-
-    // const { currentUser } = useOutletContext<RootContext>();
-    // console.log(currentUser);
-    // if (!currentUser) return null;
 
     const [users, setUsers] = useState<any>([]);
     const [projects, setProjects] = useState<any>([]);

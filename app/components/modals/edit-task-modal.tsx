@@ -1,15 +1,9 @@
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { addTaskSchema, type AddTaskFormInput } from "~/lib/validations";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { CalendarIcon, ListRestart, Save, X } from "lucide-react";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/components/ui/dialog";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { CenterSpinner } from "@/components/ui/center-spinner";
 import { lazy, Suspense, useEffect, useState } from "react";
@@ -36,6 +30,7 @@ interface EditTaskModalProps {
 export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTaskModalProps) {
 
     const [users, setUsers] = useState<any[]>([]);
+    const [projects, setProjects] = useState<any>([]);
     const [statuses, setStatuses] = useState<{ id: number, name: string }[]>([]);
     const [addStatusModalOpen, setAddStatusModalOpen] = useState(false);
     const [loadingUsers, setLoadingUsers] = useState(false);
@@ -87,9 +82,21 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
         }
     };
 
+    const fetchProjects = async () => {
+        try {
+            const res = await fetch("/api/settings/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        } finally {
+        }
+    }
+
     useEffect(() => {
         fetchUsers();
         fetchStatuses();
+        fetchProjects();
     }, []);
 
     useEffect(() => {
@@ -103,7 +110,8 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
                 storeAccess: task.storeAccess || "",
                 emails: task.client.clientEmail?.map((e: any) => e.email) || [],
                 solvedBy: String(task.solvedBy || ""),
-                reply: task.reply || "",
+                projectId: String(task.projectId || ""),
+                notes: task.notes || "",
                 comments: task.comments || "",
             });
         }
@@ -302,9 +310,34 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
                             />
                         </div>
                         <div>
-                            <Label className="mb-2">Reply</Label>
-                            <Textarea {...register("reply")} placeholder="Enter reply..." />
+                            <Label className="mb-2">Project</Label>
+                            <Controller
+                                control={control}
+                                name="projectId"
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select Project" />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            {projects.map((project: any) => (
+                                                <SelectItem key={project.id} value={String(project.id)}>
+                                                    {project.projectName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.projectId && (
+                                <p className="text-sm text-red-500">{errors.projectId.message}</p>
+                            )}
                         </div>
+                    </div>
+
+                    <div>
+                        <Label className="mb-2">Notes</Label>
+                        <Textarea {...register("notes")} placeholder="Enter note details..." />
                     </div>
 
                     {/* Comments */}

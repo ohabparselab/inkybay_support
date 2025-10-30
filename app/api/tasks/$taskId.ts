@@ -1,5 +1,7 @@
+import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server";
 import { addTaskSchema } from "~/lib/validations";
 import { prisma } from "~/lib/prisma.server";
+import { getUserId } from "~/session.server";
 
 export async function action({ request, params }: { request: Request; params: any }) {
 
@@ -10,7 +12,7 @@ export async function action({ request, params }: { request: Request; params: an
         case "PUT":
             return await updateTask(taskId, request);
         case "DELETE":
-            return await deleteTaskHard(taskId);
+            return await deleteTaskHard(taskId, request);
         default:
             return new Response(JSON.stringify({ message: "Method not allowed" }), { status: 405 });
     }
@@ -18,7 +20,7 @@ export async function action({ request, params }: { request: Request; params: an
 
 const updateTask = async (taskId: number, request: Request) => {
     try {
-
+        const userId = await getUserId(request);
         const data = await request.json();
 
         if (data.taskAddedDate) {
@@ -30,15 +32,12 @@ const updateTask = async (taskId: number, request: Request) => {
         const providedBy = value.providedBy ? Number(value.providedBy) : null;
         const solvedBy = value.solvedBy ? Number(value.solvedBy) : null;
         const statusId = value.taskStatus ? Number(value.taskStatus) : null;
+        const projectId = value.taskStatus ? Number(value.projectId) : null;
 
         // Validate IDs
         if (!taskId) {
             return Response.json({ success: false, message: "Task ID is required." }, { status: 400 });
         }
-
-        // if (!value.clientId) {
-        //     return Response.json({ success: false, message: "Client ID is required." }, { status: 400 });
-        // }
 
         if (!providedBy) {
             return Response.json({ success: false, message: "Please select Provided By (User)." }, { status: 400 });
@@ -54,12 +53,13 @@ const updateTask = async (taskId: number, request: Request) => {
             storePassword: value.storePassword,
             storeAccess: value.storeAccess,
             taskAddedDate: value.taskAddedDate ? new Date(value.taskAddedDate) : null,
-            reply: value.reply,
-            comments: value.comments,
+            notes: value.notes,
+            // comments: value.comments,
             updatedAt: new Date(),
-            // client: { connect: { id: Number(value.clientId) } },
+            project: { connect: { id: projectId } },
             providedByUser: { connect: { id: providedBy } },
             status: { connect: { id: statusId } },
+
         };
 
         // Optional solvedByUser
@@ -106,11 +106,24 @@ const updateTask = async (taskId: number, request: Request) => {
             }
         }
 
+        const logsParams = {
+            userId: userId,
+            action: "UPDATE" as ActivityAction,
+            modelName: "task",
+            recordId: updatedTask.id,
+            changes: {
+                taskData: updatedTask,
+                clientEmails: value?.emails
+            }
+        }
+
+        await ActivityLog(logsParams);
+
         return Response.json({
             success: true,
             message: "Task updated successfully.",
             chat: updatedTask,
-        }, {status: 200});
+        }, { status: 200 });
 
     } catch (error: any) {
         console.error("Update task failed:", error);
@@ -118,11 +131,23 @@ const updateTask = async (taskId: number, request: Request) => {
     }
 };
 
-const deleteTaskHard = async (taskId: number) => {
+const deleteTaskHard = async (taskId: number, request: Request) => {
     try {
-
+        const userId = await getUserId(request);
         // Delete chat itself
         await prisma.task.delete({ where: { id: taskId } });
+
+        const logsParams = {
+            userId: userId,
+            action: "DELETE" as ActivityAction,
+            modelName: "task",
+            recordId: userId,
+            metaData: {
+                userId: userId,
+            }
+        }
+
+        await ActivityLog(logsParams);
 
         return Response.json({ success: true, message: "Task permanently deleted." });
     } catch (error: any) {
