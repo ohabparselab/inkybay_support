@@ -1,3 +1,4 @@
+import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server";
 import { prisma } from "~/lib/prisma.server";
 import { uploadFile } from "~/lib/upload.server";
 import { getUserId } from "~/session.server";
@@ -11,7 +12,7 @@ export async function action({ request, params }: { request: Request; params: an
         case "PUT":
             return await updateChat(chatId, request);
         case "DELETE":
-            return await deleteChatHard(chatId);
+            return await deleteChatHard(chatId, request);
         default:
             return new Response(JSON.stringify({ message: "Method not allowed" }), { status: 405 });
     }
@@ -78,7 +79,7 @@ const updateChat = async (chatId: number, request: Request) => {
         };
 
         // upsert review — create if missing, update if exists
-        await prisma.review.upsert({
+        const updatedReview = await prisma.review.upsert({
             where: { chatId },
             update: reviewData,
             create: { ...reviewData, chatId },
@@ -161,6 +162,24 @@ const updateChat = async (chatId: number, request: Request) => {
             await prisma.chatTag.deleteMany({ where: { chatId } });
         }
 
+        const logsParams = {
+            userId: userId,
+            action: "UPDATE" as ActivityAction,
+            modelName: "chat",
+            recordId: updatedChat.id,
+            changes: [
+                {
+                    chatData: updatedChat,
+                    reviewData: updatedReview,
+                    featureRequestData: featureRequest,
+                    tags: tags,
+                    clientEmails: clientEmails
+                }
+            ]
+        }
+
+        await ActivityLog(logsParams);
+
         return Response.json({
             success: true,
             message: "Chat updated successfully.",
@@ -172,14 +191,30 @@ const updateChat = async (chatId: number, request: Request) => {
     }
 };
 
-const deleteChatHard = async (chatId: number) => {
+const deleteChatHard = async (chatId: number, request: Request) => {
     try {
 
+        const userId = await getUserId(request);
         // Delete associated tags
         await prisma.chatTag.deleteMany({ where: { chatId } });
 
         // Delete chat itself
         await prisma.chat.delete({ where: { id: chatId } });
+
+        const logsParams = {
+            userId: userId,
+            action: "DELETE" as ActivityAction,
+            modelName: "chat",
+            recordId: chatId,
+            metaData: [
+                {
+                    chatId: chatId
+                }
+            ],
+            
+        }
+
+        await ActivityLog(logsParams);
 
         return Response.json({ success: true, message: "Chat permanently deleted." });
     } catch (error: any) {

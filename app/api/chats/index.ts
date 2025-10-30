@@ -1,6 +1,7 @@
 import { uploadFile } from "~/lib/upload.server"
 import { prisma } from "~/lib/prisma.server"
 import { getUserId } from "~/session.server"
+import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server"
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
 
@@ -97,7 +98,7 @@ const createChat = async (request: Request) => {
             createdBy: Number(userId),
         };
 
-        await prisma.review.create({ data: reviewData });
+        const review = await prisma.review.create({ data: reviewData });
 
         // --- FEATURE REQUEST
         const featureRequest = formData.get("featureRequest")?.toString() || null;
@@ -143,6 +144,24 @@ const createChat = async (request: Request) => {
                 });
             }
         }
+
+        const logsParams = {
+            userId: userId,
+            action: "CREATE" as ActivityAction,
+            modelName: "chat",
+            recordId: chat.id,
+            metaData: [
+                {
+                    chatData: chat,
+                    reviewData: review,
+                    featureRequestData: featureRequest,
+                    tags: tags,
+                    clientEmails: clientEmails
+                }
+            ]
+        }
+
+        await ActivityLog(logsParams);
 
         return Response.json({
             success: true,
