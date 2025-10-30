@@ -1,6 +1,4 @@
-import { addTaskSchema } from "~/lib/validations";
 import { prisma } from "~/lib/prisma.server";
-import { uploadFile } from "~/lib/upload.server";
 import { getUserId } from "~/session.server";
 import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server";
 
@@ -63,7 +61,7 @@ const updateMeeting = async (meetingId: number, request: Request) => {
 
         const reviewData: any = {
             reviewAsked: formData.get("reviewAsked") === "true",
-            reviewGiven: formData.get("reviewGiven") === "true",
+            reviewStatus: formData.get("reviewGiven") === "true",
             reviewDate: formData.get("reviewDate")
                 ? new Date(formData.get("reviewDate") as string)
                 : existingMeeting.reviewDate,
@@ -81,7 +79,12 @@ const updateMeeting = async (meetingId: number, request: Request) => {
             });
         } else {
             updatedReview = await prisma.review.create({
-                data: { ...reviewData, meetingId },
+                data: {
+                    meeting: {
+                        connect: { id: meetingId },
+                    },
+                    ...reviewData,
+                }
             });
         }
 

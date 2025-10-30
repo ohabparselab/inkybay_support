@@ -53,6 +53,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             include: {
                 user: { select: { id: true, fullName: true, email: true } },
                 emails: { select: { email: true } },
+                review: true
             },
         }),
         prisma.meeting.count({ where }),
@@ -205,7 +206,7 @@ export default function MeetingListPage() {
                                 ) : (
                                     canView ? (
                                         meetings.length > 0 ? (
-                                            meetings.map((meeting, idx) => (
+                                            meetings.map((meeting:any, idx) => (
                                                 <TableRow key={meeting.id}>
                                                     <TableCell>{idx + 1}</TableCell>
                                                     <TableCell
@@ -221,8 +222,8 @@ export default function MeetingListPage() {
                                                     </TableCell>
                                                     <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
                                                     <TableCell>{meeting.isExternalMeeting ? "Yes" : "No"}</TableCell>
-                                                    <TableCell>{meeting.reviewAsked ? "Yes" : "No"}</TableCell>
-                                                    <TableCell>{meeting.reviewGiven ? "Yes" : "No"}</TableCell>
+                                                    <TableCell>{meeting.review?.reviewAsked ? "Yes" : "No"}</TableCell>
+                                                    <TableCell>{meeting.review?.reviewStatus ? "Yes" : "No"}</TableCell>
                                                     <TableCell>
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>

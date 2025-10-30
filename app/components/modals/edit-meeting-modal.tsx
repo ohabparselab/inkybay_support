@@ -75,12 +75,12 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                 storeUrl: meeting.storeUrl || "",
                 meetingDetails: meeting.meetingDetails || "",
                 meetingDateTime: meeting.meetingDateTime ? new Date(meeting.meetingDateTime) : undefined,
-                reviewAsked: meeting.reviewAsked || false,
-                reviewGiven: meeting.reviewGiven || false,
-                reviewDate: meeting.reviewDate ? new Date(meeting.reviewDate) : undefined,
+                reviewAsked: meeting.review?.reviewAsked || false,
+                reviewGiven: meeting.review?.reviewStatus || false,
+                reviewDate: meeting.review?.reviewDate ? new Date(meeting.review?.reviewDate) : undefined,
                 joiningStatus: meeting.joiningStatus || false,
-                recordedVideo: undefined,
-                reviewsInfo: meeting.reviewsInfo || "",
+                recordedVideo: meeting.recordedVideo || undefined,
+                reviewsInfo: meeting.review.reviewText || "",
                 meetingNotes: meeting.meetingNotes || "",
                 isExternalMeeting: meeting.isExternalMeeting || false,
                 emails: meeting.emails?.map((e: any) => e.email) || [],
@@ -388,7 +388,7 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                             <ListRestart /> Reset
                         </Button>
                         <Button type="submit">
-                            {formSubmitLoading ? <Spinner /> : <Save />} Update Meeting
+                            {formSubmitLoading ? <Spinner /> : <Save />} Save Changes
                         </Button>
                     </DialogFooter>
                 </form>

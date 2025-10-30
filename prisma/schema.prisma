@@ -213,7 +213,7 @@ model Chat {
 model Review {
     id                 Int       @id @default(autoincrement())
     chatId             Int?      @unique
-    meetingId          Int?
+    meetingId          Int?      @unique
     reviewAsked        Boolean?  @default(false)
     reviewStatus       Boolean?  @default(false)
     reviewText         String?   @db.Text
@@ -354,8 +354,8 @@ model Meeting {
     emails MeetingEmail[]
 
     // Relations
-    user    User     @relation(fields: [agentId], references: [id])
-    reviews Review[]
+    user   User    @relation(fields: [agentId], references: [id])
+    review Review?
 
     @@map("meetings")
 }
@@ -430,8 +430,8 @@ model ActivityLog {
 model Comment {
     id        Int       @id @default(autoincrement())
     content   String    @db.Text
-    userId    Int 
-    chatId    Int? 
+    userId    Int
+    chatId    Int?
     taskId    Int?
     parentId  Int?
     createdAt DateTime  @default(now())

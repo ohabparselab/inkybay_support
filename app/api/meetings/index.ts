@@ -1,4 +1,3 @@
-import { uploadFile } from "~/lib/upload.server"
 import { prisma } from "~/lib/prisma.server"
 import { parseDate } from "~/lib/helper.sever"
 import { getUserId } from "~/session.server"
@@ -70,59 +69,54 @@ const createMeeting = async (request: Request) => {
         });
 
         const reviewData: any = {
-            meetingId: meeting.id,
             reviewAsked: formData.get("reviewAsked") === "true",
             reviewStatus: formData.get("reviewGiven") === "true",
             reviewDate: parseDate(formData.get("reviewDate")),
-            reviewsText: formData.get("reviewsInfo")?.toString() ?? null,
-            createdBy: Number(userId)
+            reviewText: formData.get("reviewsInfo")?.toString() ?? null,
         }
-
-        const review = await prisma.review.upsert({
-            where: { meetingId: meeting.id },
-            update: {
+        const meetingId = meeting.id;
+        const review = await prisma.review.create({
+            data: {
+                meeting: {
+                    connect: { id: meetingId },
+                },
                 ...reviewData,
-                updatedAt: new Date(),
-            },
-            create: {
-                meetingId: meeting.id,
-                ...reviewData,
-            },
+            }
         });
 
         const emails = formData.getAll("emails[]").map((email) => email.toString());
 
-        // if (emails.length > 0) {
-        //     for (const email of emails) {
-        //         const exists = await prisma.meetingEmail.findUnique({
-        //             where: { meetingId_email: { meetingId: meeting.id, email } },
-        //         });
+        if (emails.length > 0) {
+            for (const email of emails) {
+                const exists = await prisma.meetingEmail.findUnique({
+                    where: { meetingId_email: { meetingId: meeting.id, email } },
+                });
 
-        //         if (!exists) {
-        //             await prisma.meetingEmail.create({
-        //                 data: {
-        //                     meetingId: meeting.id,
-        //                     email,
-        //                 },
-        //             });
-        //         }
-        //     }
-        // }
+                if (!exists) {
+                    await prisma.meetingEmail.create({
+                        data: {
+                            meetingId: meeting.id,
+                            email,
+                        },
+                    });
+                }
+            }
+        }
 
 
-        // const logsParams = {
-        //     userId: userId,
-        //     action: "CREATE" as ActivityAction,
-        //     modelName: "meeting",
-        //     recordId: meeting.id,
-        //     metaData: {
-        //         meetingData: meeting,
-        //         reviewData: review,
-        //         emails: emails
-        //     }
-        // }
+        const logsParams = {
+            userId: userId,
+            action: "CREATE" as ActivityAction,
+            modelName: "meeting",
+            recordId: meeting.id,
+            metaData: {
+                meetingData: meeting,
+                reviewData: review,
+                emails: emails
+            }
+        }
 
-        // await ActivityLog(logsParams);
+        await ActivityLog(logsParams);
 
         return Response.json({ success: true, message: "Meeting created successfully.", meeting });
     } catch (error: any) {
