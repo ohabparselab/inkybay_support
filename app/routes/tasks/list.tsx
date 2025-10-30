@@ -195,9 +195,8 @@ export default function TasksListPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
-                                <TableHead>Shop Name</TableHead>
+                                <TableHead>Shop URL</TableHead>
                                 {/* <TableHead>Task Details</TableHead> */}
-                                {/* <TableHead>Client</TableHead> */}
                                 <TableHead>Provided By</TableHead>
                                 <TableHead>Solved By</TableHead>
                                 <TableHead>Store Access</TableHead>
@@ -230,9 +229,8 @@ export default function TasksListPage() {
                                                             setViewTaskModalOpen(true);
                                                         }}
 
-                                                    >{task.client.shopName}</TableCell>
+                                                    >{task.client.shopDomain}</TableCell>
                                                     {/* <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell> */}
-                                                    {/* <TableCell>{task.client?.shopName ?? "—"}</TableCell> */}
                                                     <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
                                                     <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
                                                     <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>
