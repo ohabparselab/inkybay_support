@@ -211,12 +211,7 @@ export const addMeetingSchema = z.object({
     reviewsInfo: z.string().optional(),
     emails: z.array(z.string().email("Invalid email")).optional(),
     joiningStatus: z.boolean(),
-    recordedVideo: z
-        .any()
-        .refine((file) => file instanceof File || file === undefined, {
-            message: "Recorded video must be a file",
-        })
-        .optional(),
+    recordedVideo: z.string().optional(),
     meetingNotes: z.string().optional(),
 });
 

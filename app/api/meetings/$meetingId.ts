@@ -1,6 +1,8 @@
 import { addTaskSchema } from "~/lib/validations";
 import { prisma } from "~/lib/prisma.server";
 import { uploadFile } from "~/lib/upload.server";
+import { getUserId } from "~/session.server";
+import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server";
 
 export async function action({ request, params }: { request: Request; params: any }) {
 
@@ -11,7 +13,7 @@ export async function action({ request, params }: { request: Request; params: an
         case "PUT":
             return await updateMeeting(meetingId, request);
         case "DELETE":
-            return await deleteMeetingHard(meetingId);
+            return await deleteMeetingHard(meetingId, request);
         default:
             return new Response(JSON.stringify({ message: "Method not allowed" }), { status: 405 });
     }
@@ -19,6 +21,7 @@ export async function action({ request, params }: { request: Request; params: an
 
 const updateMeeting = async (meetingId: number, request: Request) => {
     try {
+        const userId = await getUserId(request);
         const formData = await request.formData();
 
         const agentId = formData.get("agentId") ? Number(formData.get("agentId")) : null;
@@ -44,24 +47,10 @@ const updateMeeting = async (meetingId: number, request: Request) => {
             meetingDateTime: formData.get("meetingDateTime")
                 ? new Date(formData.get("meetingDateTime") as string)
                 : existingMeeting.meetingDateTime,
-            reviewAsked: formData.get("reviewAsked") === "true",
-            reviewGiven: formData.get("reviewGiven") === "true",
-            reviewDate: formData.get("reviewDate")
-                ? new Date(formData.get("reviewDate") as string)
-                : existingMeeting.reviewDate,
-            reviewsInfo: formData.get("reviewsInfo")?.toString() ?? null,
             joiningStatus: formData.get("joiningStatus") === "true",
             meetingNotes: formData.get("meetingNotes")?.toString() ?? null,
+            recordedVideo: formData.get("recordedVideo")?.toString() ?? null,
         };
-
-        // Handle new video upload (optional)
-        const recordedVideoFile = formData.get("recordedVideo") as File | null;
-        if (recordedVideoFile && recordedVideoFile.size > 0) {
-            const recordedVideoFileUrl = await uploadFile(recordedVideoFile);
-            if (recordedVideoFileUrl) {
-                meetingData.recordedVideo = recordedVideoFileUrl;
-            }
-        }
 
         // Update meeting
         const updatedMeeting = await prisma.meeting.update({
@@ -71,6 +60,30 @@ const updateMeeting = async (meetingId: number, request: Request) => {
                 user: { connect: { id: agentId } },
             },
         });
+
+        const reviewData: any = {
+            reviewAsked: formData.get("reviewAsked") === "true",
+            reviewGiven: formData.get("reviewGiven") === "true",
+            reviewDate: formData.get("reviewDate")
+                ? new Date(formData.get("reviewDate") as string)
+                : existingMeeting.reviewDate,
+            reviewText: formData.get("reviewsInfo")?.toString() ?? null,
+        }
+
+        let updatedReview = await prisma.review.findFirst({
+            where: { meetingId },
+        });
+
+        if (updatedReview) {
+            updatedReview = await prisma.review.update({
+                where: { id: updatedReview.id },
+                data: reviewData,
+            });
+        } else {
+            updatedReview = await prisma.review.create({
+                data: { ...reviewData, meetingId },
+            });
+        }
 
         // Update meeting emails
         const emails = formData.getAll("emails[]").map((email) => email.toString());
@@ -97,6 +110,21 @@ const updateMeeting = async (meetingId: number, request: Request) => {
             }
         }
 
+        const logsParams = {
+            userId: userId,
+            action: "UPDATE" as ActivityAction,
+            modelName: "meeting",
+            recordId: updatedMeeting.id,
+            changes: {
+                existingMeetingData: existingMeeting,
+                updatedMeetingData: updatedMeeting,
+                updatedReviewData: updatedReview,
+                meetingEmails: emails
+            }
+        }
+
+        await ActivityLog(logsParams);
+
         return Response.json({
             success: true,
             message: "Meeting updated successfully.",
@@ -108,8 +136,9 @@ const updateMeeting = async (meetingId: number, request: Request) => {
     }
 };
 
-const deleteMeetingHard = async (meetingId: number) => {
+const deleteMeetingHard = async (meetingId: number, request: Request) => {
     try {
+        const userId = await getUserId(request);
         // Delete all associated meeting emails first
         await prisma.meetingEmail.deleteMany({
             where: { meetingId },
@@ -119,6 +148,18 @@ const deleteMeetingHard = async (meetingId: number) => {
         await prisma.meeting.delete({
             where: { id: meetingId },
         });
+
+        const logsParams = {
+            userId: userId,
+            action: "DELETE" as ActivityAction,
+            modelName: "meeting",
+            recordId: meetingId,
+            metaData: {
+                meetingId
+            }
+        }
+
+        await ActivityLog(logsParams);
 
         return Response.json({ success: true, message: "Meeting permanently deleted." });
     } catch (error: any) {

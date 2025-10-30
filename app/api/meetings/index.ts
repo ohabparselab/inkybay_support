@@ -1,6 +1,8 @@
 import { uploadFile } from "~/lib/upload.server"
 import { prisma } from "~/lib/prisma.server"
 import { parseDate } from "~/lib/helper.sever"
+import { getUserId } from "~/session.server"
+import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server"
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
 
@@ -37,7 +39,7 @@ const getAllMeetings = async (_request: Request) => {
 
 const createMeeting = async (request: Request) => {
     try {
-
+        const userId = await getUserId(request);
         const formData = await request.formData();
 
         const agentId = formData.get("agentId") ? Number(formData.get("agentId")) : null;
@@ -53,20 +55,10 @@ const createMeeting = async (request: Request) => {
             isExternalMeeting: formData.get("isExternalMeeting") === "true",
             meetingDetails: formData.get("meetingDetails")?.toString() ?? null,
             meetingDateTime: parseDate(formData.get("meetingDateTime")),
-            reviewAsked: formData.get("reviewAsked") === "true",
-            reviewGiven: formData.get("reviewGiven") === "true",
-            reviewDate: parseDate(formData.get("reviewDate")),
-            reviewsInfo: formData.get("reviewsInfo")?.toString() ?? null,
             joiningStatus: formData.get("joiningStatus") === "true",
             meetingNotes: formData.get("meetingNotes")?.toString() ?? null,
+            recordedVideo: formData.get("recordedVideo")?.toString() ?? null,
         };
-
-        // Handle file upload
-        const recordedVideoFile = formData.get("recordedVideo") as File | null;
-        if (recordedVideoFile) {
-            const recordedVideoFileUrl = await uploadFile(recordedVideoFile);
-            if (recordedVideoFileUrl) meetingData.recordedVideo = recordedVideoFileUrl;
-        }
 
         const meeting = await prisma.meeting.create({
             data: {
@@ -77,26 +69,60 @@ const createMeeting = async (request: Request) => {
             },
         });
 
-        // Insert client emails
-        const emails = formData.getAll("emails[]").map((email) => email.toString());
-        if (emails.length > 0) {
-            for (const email of emails) {
-                const exists = await prisma.meetingEmail.findUnique({
-                    where: {
-                        meetingId_email: { meetingId: meeting.id, email },
-                    },
-                });
-
-                if (!exists) {
-                    await prisma.meetingEmail.create({
-                        data: {
-                            meetingId: meeting.id,
-                            email,
-                        },
-                    });
-                }
-            }
+        const reviewData: any = {
+            meetingId: meeting.id,
+            reviewAsked: formData.get("reviewAsked") === "true",
+            reviewStatus: formData.get("reviewGiven") === "true",
+            reviewDate: parseDate(formData.get("reviewDate")),
+            reviewsText: formData.get("reviewsInfo")?.toString() ?? null,
+            createdBy: Number(userId)
         }
+
+        const review = await prisma.review.upsert({
+            where: { meetingId: meeting.id },
+            update: {
+                ...reviewData,
+                updatedAt: new Date(),
+            },
+            create: {
+                meetingId: meeting.id,
+                ...reviewData,
+            },
+        });
+
+        const emails = formData.getAll("emails[]").map((email) => email.toString());
+
+        // if (emails.length > 0) {
+        //     for (const email of emails) {
+        //         const exists = await prisma.meetingEmail.findUnique({
+        //             where: { meetingId_email: { meetingId: meeting.id, email } },
+        //         });
+
+        //         if (!exists) {
+        //             await prisma.meetingEmail.create({
+        //                 data: {
+        //                     meetingId: meeting.id,
+        //                     email,
+        //                 },
+        //             });
+        //         }
+        //     }
+        // }
+
+
+        // const logsParams = {
+        //     userId: userId,
+        //     action: "CREATE" as ActivityAction,
+        //     modelName: "meeting",
+        //     recordId: meeting.id,
+        //     metaData: {
+        //         meetingData: meeting,
+        //         reviewData: review,
+        //         emails: emails
+        //     }
+        // }
+
+        // await ActivityLog(logsParams);
 
         return Response.json({ success: true, message: "Meeting created successfully.", meeting });
     } catch (error: any) {

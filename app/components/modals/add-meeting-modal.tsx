@@ -371,21 +371,8 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                     {/* Recorded Video + Notes */}
                     <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                         <div>
-                            <Label className="mb-2">Recorded Video (Upload)</Label>
-                            <Controller
-                                control={control}
-                                name="recordedVideo"
-                                render={({ field }) => (
-                                    <Input
-                                        type="file"
-                                        accept="video/*"
-                                        onChange={(e) => field.onChange(e.target.files?.[0])}
-                                    />
-                                )}
-                            />
-                            {/* {errors.recordedVideo && (
-                                <p className="text-sm text-red-500">{errors.recordedVideo.message}</p>
-                            )} */}
+                            <Label className="mb-2">Recorded Video</Label>
+                            <Input {...register("recordedVideo")} placeholder="Enter video link..." />
                         </div>
                         <div>
                             <Label className="mb-2">Reviews Info</Label>

@@ -221,6 +221,7 @@ model Review {
     agentRating        Int?
     ratingMood         String? // "positive" | "neutral" | "negative"
     lastReviewApproach DateTime?
+    reviewDate         DateTime?
     reviewApproachBy   Int?
     reviewSubmittedAt  DateTime?
     createdBy          Int?
@@ -341,10 +342,6 @@ model Meeting {
     isExternalMeeting Boolean?  @default(false)
     meetingDetails    String?   @db.Text
     meetingDateTime   DateTime
-    reviewAsked       Boolean?  @default(false)
-    reviewGiven       Boolean?  @default(false)
-    reviewDate        DateTime?
-    reviewsInfo       String?   @db.Text
     joiningStatus     Boolean?  @default(false)
     recordedVideo     String?   @db.Text
     meetingNotes      String?   @db.Text
@@ -374,7 +371,7 @@ model MeetingEmail {
 
     meeting Meeting @relation(fields: [meetingId], references: [id])
 
-    @@unique([meetingId, email]) // prevents duplicate emails per meeting
+    @@unique([meetingId, email])
     @@map("meeting_emails")
 }
 
