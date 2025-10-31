@@ -322,7 +322,7 @@ export default function ChatsListPage() {
                                 <TableHead>Review Asked?</TableHead>
                                 <TableHead>Review Given?</TableHead>
                                 <TableHead>
-                                    <div className="flex">
+                                    <div className="flex items-center gap-2">
                                         <span>Chat Date</span>
                                         <DateAndDateRangeFilter meta={meta} navigateWithLoading={navigateWithLoading} />
                                     </div>

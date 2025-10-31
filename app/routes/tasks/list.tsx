@@ -14,7 +14,7 @@ import {
     TableRow,
 } from "~/components/ui/table";
 import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
-import { AlertTriangle, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
+import { AlertTriangle, Ellipsis, Eye, Filter, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { PaginationBar } from "~/components/pagination-bar";
@@ -23,6 +23,8 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
+import { DateAndDateRangeFilter } from "~/components/ui/date-range-filter";
+import { StatusFilter } from "~/components/ui/status-filter";
 
 const AddTaskModal = lazy(() =>
     import("~/components/modals/add-task-modal").then((m) => ({ default: m.AddTaskModal }))
@@ -45,7 +47,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
 
-    const where = search
+    const date = url.searchParams.get("date");
+    const startDate = url.searchParams.get("startDate");
+    const endDate = url.searchParams.get("endDate");
+
+    const statusId = url.searchParams.get("statusId");
+
+    const where: any = search
         ? {
             OR: [
                 { client: { shopDomain: { contains: searchLower } } },
@@ -57,7 +65,35 @@ export async function loader({ request }: LoaderFunctionArgs) {
         }
         : {};
 
-    const [tasks, total] = await Promise.all([
+    if (date) {
+        const start = new Date(date);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(date);
+        end.setHours(23, 59, 59, 999);
+
+        where.taskAddedDate = {
+            gte: start,
+            lt: end,
+        };
+    } else if (startDate && endDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+
+        where.taskAddedDate = {
+            gte: start,
+            lt: end,
+        };
+    }
+
+    if (statusId) {
+        where.statusId = Number(statusId);
+    }
+
+    const [tasks, total, statuses] = await Promise.all([
         prisma.task.findMany({
             where,
             skip,
@@ -79,16 +115,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
             },
         }),
         prisma.task.count({ where }),
+        prisma.status.findMany({
+            select: { id: true, name: true }
+        })
     ]);
+
 
     return {
         tasks,
+        statuses,
         meta: {
             total,
             page,
             limit,
             totalPages: Math.ceil(total / limit),
             search,
+            date,
+            startDate,
+            endDate,
+            statusId
         },
     };
 }
@@ -98,7 +143,7 @@ export const meta = () => [{ title: "Tasks | InkyBay" }];
 export default function TasksListPage() {
 
     const [loading, setLoading] = useState(true);
-    const { tasks, meta } = useLoaderData<typeof loader>();
+    const { tasks, meta, statuses } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
     const [taskModalOpen, setTaskModalOpen] = useState(false);
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
@@ -169,6 +214,8 @@ export default function TasksListPage() {
         if (loading) setLoading(false);
     }, [tasks]);
 
+   
+
     return (
         <div className="px-6 space-y-2">
             <div className="flex items-center justify-between">
@@ -202,8 +249,26 @@ export default function TasksListPage() {
                                 <TableHead>Solved By</TableHead>
                                 <TableHead>Store Access</TableHead>
                                 <TableHead>Store Password</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Task Added</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Status</span>
+                                        <StatusFilter
+                                            meta={meta}
+                                            statuses={statuses}
+                                            navigateWithLoading={navigateWithLoading}
+                                        />
+                                    </div>
+                                </TableHead>
+
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Task Added </span>
+                                        <DateAndDateRangeFilter
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                        />
+                                    </div>
+                                </TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>

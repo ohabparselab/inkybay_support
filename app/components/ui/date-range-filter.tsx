@@ -72,7 +72,7 @@ export function DateAndDateRangeFilter({ meta, navigateWithLoading }: DateFilter
     }
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
             <Popover>
                 <PopoverTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-6 w-6 cursor-pointer">
