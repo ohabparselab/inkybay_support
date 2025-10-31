@@ -2,6 +2,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "~/components/ui/table";
 import { AlertTriangle, ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
+import { DateAndDateRangeFilter } from "~/components/ui/date-range-filter";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { PaginationBar } from "~/components/pagination-bar";
@@ -34,7 +35,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
 
-    const where = search
+    const date = url.searchParams.get("date");
+    const startDate = url.searchParams.get("startDate");
+    const endDate = url.searchParams.get("endDate");
+
+    const where: any = search
         ? {
             OR: [
                 { storeUrl: { contains: searchLower } },
@@ -43,6 +48,30 @@ export async function loader({ request }: LoaderFunctionArgs) {
             ],
         }
         : {};
+
+    if (date) {
+        const start = new Date(date);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(date);
+        end.setHours(23, 59, 59, 999);
+
+        where.meetingDateTime = {
+            gte: start,
+            lt: end,
+        };
+    } else if (startDate && endDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+
+        where.meetingDateTime = {
+            gte: start,
+            lt: end,
+        };
+    }
 
     const [meetings, total] = await Promise.all([
         prisma.meeting.findMany({
@@ -53,7 +82,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             include: {
                 user: { select: { id: true, fullName: true, email: true } },
                 emails: { select: { email: true } },
-                project: true,
+                project: { select: { id: true, name: true } },
                 review: true
             },
         }),
@@ -68,6 +97,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
             limit,
             totalPages: Math.ceil(total / limit),
             search,
+            date,
+            startDate,
+            endDate
         },
     };
 }
@@ -186,7 +218,15 @@ export default function MeetingListPage() {
                                 <TableHead>Store URL</TableHead>
                                 <TableHead>Agent</TableHead>
                                 <TableHead>Joining Status</TableHead>
-                                <TableHead>Meeting Date</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Meeting Datetime </span>
+                                        <DateAndDateRangeFilter
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                        />
+                                    </div>
+                                </TableHead>
                                 <TableHead>External?</TableHead>
                                 <TableHead>Review Asked?</TableHead>
                                 <TableHead>Review Given?</TableHead>
@@ -195,7 +235,6 @@ export default function MeetingListPage() {
                         </TableHeader>
                         <TableBody>
                             {
-
                                 loading ? (
                                     Array.from({ length: 10 }).map((_, i) => (
                                         <TableRow key={i}>
@@ -207,7 +246,7 @@ export default function MeetingListPage() {
                                 ) : (
                                     canView ? (
                                         meetings.length > 0 ? (
-                                            meetings.map((meeting:any, idx) => (
+                                            meetings.map((meeting: any, idx) => (
                                                 <TableRow key={meeting.id}>
                                                     <TableCell>{idx + 1}</TableCell>
                                                     <TableCell
