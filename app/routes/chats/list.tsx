@@ -4,6 +4,7 @@ import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { AlertTriangle, Ellipsis, Eye, Filter, PenBox, Plus, Search, Trash2 } from "lucide-react";
+import { DateAndDateRangeFilter } from "~/components/ui/date-range-filter";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { PaginationBar } from "~/components/pagination-bar";
 import { lazy, Suspense, useEffect, useState } from "react";
@@ -49,6 +50,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
 
+    const date = url.searchParams.get("date");
+    const startDate = url.searchParams.get("startDate");
+    const endDate = url.searchParams.get("endDate");
+
     const where: any = {
         ...(search
             ? {
@@ -75,6 +80,30 @@ export async function loader({ request }: LoaderFunctionArgs) {
             }
             : {}),
     };
+
+    if (date) {
+        const start = new Date(date);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(date);
+        end.setHours(23, 59, 59, 999);
+
+        where.chatDate = {
+            gte: start,
+            lt: end,
+        };
+    } else if (startDate && endDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+
+        where.chatDate = {
+            gte: start,
+            lt: end,
+        };
+    }
 
     const [chats, total, tags] = await Promise.all([
         prisma.chat.findMany({
@@ -114,6 +143,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
             totalPages: Math.ceil(total / limit),
             search,
             selectedTags,
+            date,
+            startDate,
+            endDate,
         },
     };
 }
@@ -289,7 +321,12 @@ export default function ChatsListPage() {
                                 </TableHead>
                                 <TableHead>Review Asked?</TableHead>
                                 <TableHead>Review Given?</TableHead>
-                                <TableHead>Created</TableHead>
+                                <TableHead>
+                                    <div className="flex">
+                                        <span>Chat Date</span>
+                                        <DateAndDateRangeFilter meta={meta} navigateWithLoading={navigateWithLoading} />
+                                    </div>
+                                </TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -360,7 +397,7 @@ export default function ChatsListPage() {
                                                         {chat?.review?.reviewStatus == true ? "Yes" : "No"}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {new Date(chat.createdAt).toLocaleDateString()}
+                                                        {chat.chatDate ? new Date(chat.chatDate).toLocaleDateString() : 'N/A'}
                                                     </TableCell>
                                                     <TableCell>
                                                         <DropdownMenu>
