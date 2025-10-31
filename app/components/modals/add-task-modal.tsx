@@ -13,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CommentBox } from "../comment-box";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -381,12 +380,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                     {/* Comments */}
                     <div>
                         <Label className="mb-2">Comments</Label>
-                        <CommentBox
-                            parentType="task"
-                            // parentId={123}
-                            currentUserId={2}         // logged-in user
-                            onCommentAdded={() => console.log("Comment added")}
-                        />
+                        <Textarea {...register("comments")} placeholder="Write comments..." />
                     </div>
 
                     {/* Footer */}

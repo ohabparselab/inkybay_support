@@ -69,7 +69,6 @@ const createTask = async (request: Request) => {
             storeAccess: value.storeAccess,
             taskAddedDate: value.taskAddedDate ? new Date(value.taskAddedDate) : null,
             notes: value.notes,
-            // comments: value.comments,
             client: { connect: { id: Number(value.clientId) } },
             providedByUser: { connect: { id: providedBy } },
             status: { connect: { id: statusId } },
@@ -98,6 +97,18 @@ const createTask = async (request: Request) => {
         const task = await prisma.task.create({
             data: taskData
         });
+
+        if (value.comments) {
+            const commentCreateParams = {
+                taskId: task.id,
+                content: value.comments,
+                userId: userId
+            }
+            await prisma.comment.create({
+                data: commentCreateParams,
+            });
+
+        }
 
         const logsParams = {
             userId: userId,
