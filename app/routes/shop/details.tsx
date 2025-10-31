@@ -1268,6 +1268,7 @@ export default function ShopDetailsPage() {
                         onOpenChange={setAddMarketingModalOpen}
                         refreshPage={refreshPage}
                         funnel={selectedMarketingFunnel}
+                        isAppInstall={inkybay.active}
                     />
                 </Suspense>
             )}

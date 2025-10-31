@@ -381,36 +381,24 @@ model MeetingEmail {
 model MarketingFunnel {
     id                  Int       @id @default(autoincrement())
     clientId            Int
-    installPhase        String
-    typeOfProducts      String
+    installPhase        String?
+    typeOfProducts      String?
     otherAppsInstalled  String?
     customizationType   String?
     initialFeedback     String?   @db.Text
-    clientSuccessStatus String
+    clientSuccessStatus String?
+    followUpDate        DateTime?
+    followUpStep        DateTime?
     createdAt           DateTime  @default(now())
     updatedAt           DateTime  @updatedAt
     isDeleted           Boolean   @default(false)
     deletedAt           DateTime?
 
     client    Client     @relation(fields: [clientId], references: [id])
-    followUps FollowUp[]
 
     @@map("marketing_funnels")
 }
 
-model FollowUp {
-    id                Int       @id @default(autoincrement())
-    marketingFunnelId Int
-    followUpDate      DateTime
-    createdAt         DateTime  @default(now())
-    updatedAt         DateTime  @updatedAt
-    isDeleted         Boolean   @default(false)
-    deletedAt         DateTime?
-
-    marketingFunnel MarketingFunnel @relation(fields: [marketingFunnelId], references: [id])
-
-    @@map("follow_ups")
-}
 
 model ActivityLog {
     id        Int      @id @default(autoincrement())

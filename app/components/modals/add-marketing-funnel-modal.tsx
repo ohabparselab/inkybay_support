@@ -1,14 +1,12 @@
 import { useForm, Controller, useFieldArray } from "react-hook-form";
-import { CalendarIcon, Plus, X, ListRestart } from "lucide-react";
+import { CalendarIcon, Plus, X, ListRestart, Save } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { addMarketingFunnelSchema, type AddMarketingFunnelInput } from "~/lib/validations";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
@@ -27,27 +25,31 @@ interface AddMarketingFunnelModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     refreshPage?: () => void;
-    funnel: any
+    funnel: any;
+    isAppInstall: boolean;
 }
 
-export function AddMarketingFunnelModal({ clientId, open, onOpenChange, refreshPage, funnel }: AddMarketingFunnelModalProps) {
-    
-    const [formSubmitLoading, setFormSubmitLoading] = useState(false);
+export function AddMarketingFunnelModal({
+    clientId,
+    open,
+    onOpenChange,
+    refreshPage,
+    funnel,
+    isAppInstall
+}: AddMarketingFunnelModalProps) {
 
+    const currentInstallPhase = isAppInstall ? "install" : "uninstall";
     const {
         control,
         register,
         handleSubmit,
-        watch,
         reset,
-        formState: { errors },
+        formState: { errors, isSubmitting },
     } = useForm<AddMarketingFunnelInput>({
         resolver: zodResolver(addMarketingFunnelSchema),
         defaultValues: {
-            installPhase: "install",
             emails: [],
             followUps: [],
-            clientSuccessStatus: "yes",
         },
     });
 
@@ -56,16 +58,15 @@ export function AddMarketingFunnelModal({ clientId, open, onOpenChange, refreshP
         name: "emails",
     });
 
-    const { fields: followUpFields, append: appendFollowUp, remove: removeFollowUp } = useFieldArray<any>({
-        control,
-        name: "followUps",
-    });
-
-    const installPhase = watch("installPhase");
+    const { fields: followUpFields, append: appendFollowUp, remove: removeFollowUp } =
+        useFieldArray<any>({
+            control,
+            name: "followUps",
+        });
 
     const onSubmit = async (data: AddMarketingFunnelInput) => {
         try {
-            setFormSubmitLoading(true);
+            console.log("======data======>", data);
             const res = await fetch("/api/marketing-funnels", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -83,18 +84,15 @@ export function AddMarketingFunnelModal({ clientId, open, onOpenChange, refreshP
             }
         } catch (error) {
             toast.error("Something went wrong.");
-        } finally {
-            setFormSubmitLoading(false);
         }
     };
-
+    console.log("=====error====>>", errors)
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-6xl">
                 <DialogHeader>
                     <DialogTitle>
-                        Add Marketing Funnel
-                        (
+                        Add Marketing Funnel (
                         <span className="font-semibold text-foreground">{funnel.client.shopName}</span>,{" "}
                         <a
                             href={`https://${funnel.client.shopDomain}`}
@@ -109,31 +107,13 @@ export function AddMarketingFunnelModal({ clientId, open, onOpenChange, refreshP
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-3">
-                    <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
-                        {/* Install Phase */}
+                    {/* Install Phase & Emails */}
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <Label className="mb-2">Install Phase</Label>
-                            <Controller
-                                control={control}
-                                name="installPhase"
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select Phase" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="install">Install</SelectItem>
-                                            <SelectItem value="uninstall">Uninstall</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.installPhase && (
-                                <p className="text-sm text-red-500">{errors.installPhase.message}</p>
-                            )}
+                            <Label className="mb-2">Current Install Phase</Label>
+                            <Input value={currentInstallPhase} readOnly className="bg-muted dark:bg-muted" />
                         </div>
 
-                        {/* Emails */}
                         <div>
                             <Label>Client Emails</Label>
                             {emailFields.map((field, index) => (
@@ -158,111 +138,157 @@ export function AddMarketingFunnelModal({ clientId, open, onOpenChange, refreshP
                             >
                                 <Plus /> Add Email
                             </Button>
-                            {errors.emails && (
-                                <p className="text-sm text-red-500">{errors.emails.message as any}</p>
-                            )}
-                        </div>
-                    </div>
-                    {/* Product Info Fields */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <Label className="mb-2">Type of Products</Label>
-                            <Input {...register("typeOfProducts")} placeholder="Enter product type" />
-                            {errors.typeOfProducts && (
-                                <p className="text-sm text-red-500">{errors.typeOfProducts.message}</p>
-                            )}
-                        </div>
-                        <div>
-                            <Label className="mb-2">Other Apps Installed</Label>
-                            <Input {...register("otherAppsInstalled")} placeholder="Enter apps" />
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Product Info */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label className="mb-2">Type of Products</Label>
+                            <Input {...register("typeOfProducts")} placeholder="Enter product type" />
+                            {errors.typeOfProducts && <p className="text-sm text-red-500">{errors.typeOfProducts.message}</p>}
+                        </div>
                         <div>
                             <Label className="mb-2">Customization Type</Label>
                             <Input {...register("customizationType")} placeholder="Enter customization type" />
                         </div>
-                        <div>
-                            <Label className="mb-2">Initial Feedback</Label>
-                            <Textarea {...register("initialFeedback")} placeholder="Enter feedback" />
-                        </div>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
-                        {/* Client Success Status */}
-                        <div>
-                            <Label className="mb-2">Client Success Status</Label>
-                            <Controller
-                                control={control}
-                                name="clientSuccessStatus"
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select Status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="yes">Yes</SelectItem>
-                                            <SelectItem value="no">No</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                        </div>
 
-                        {/* Follow-ups */}
-                        <div>
-                            <Label className="mb-2">
-                                Follow-ups after
-                                {installPhase === "install"
-                                    ? " installation"
-                                    : " uninstallation"}
-                            </Label>
-
+                    {/* Follow-ups Table */}
+                    <div className="col-span-2">
+                        <Label className="mb-2">Follow-ups</Label>
+                        <div className="border rounded-md p-3">
                             {followUpFields.map((field, index) => (
-                                <div key={field.id} className="flex gap-2 mt-2 items-center">
-                                    <Controller
-                                        control={control}
-                                        name={`followUps.${index}`}
-                                        render={({ field }) => (
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button variant="outline" className="justify-start">
-                                                        {field.value ? format(field.value, "PPP") : "Pick date"}
-                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent align="start" className="p-0">
-                                                    <Calendar
-                                                        mode="single"
-                                                        selected={field.value}
-                                                        onSelect={field.onChange}
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
+                                <div
+                                    key={field.id}
+                                    className="grid grid-cols-10 gap-3 items-center mb-3 border-b pb-2 last:border-0 last:pb-0"
+                                >
+                                    {/* Follow Step */}
+                                    <div>
+                                        <Label className="text-sm">Install Phase</Label>
+                                        <Input
+                                            {...register(`followUps.${index}.installPhase`)}
+                                            value={currentInstallPhase}
+                                            readOnly className="bg-muted dark:bg-muted"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label className="text-sm">Follow Step</Label>
+                                        <Input
+                                            {...register(`followUps.${index}.followUpStep`)}
+                                            value={`${index + 1}${['st', 'nd', 'rd'][((index + 1) % 10) - 1] || 'th'}`}
+                                            readOnly
+                                            className="bg-muted dark:bg-muted"
+                                        />
+                                    </div>
+
+                                    {/* Follow-up Date */}
+                                    <div className="col-span-2">
+                                        <Label className="text-sm">Follow-up Date</Label>
+                                        <Controller
+                                            control={control}
+                                            name={`followUps.${index}.followUpDate`}
+                                            render={({ field }) => (
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button variant="outline" className="justify-start w-full">
+                                                            {field.value ? format(field.value, "PPP") : "Pick date"}
+                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent align="start" className="p-0">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={field.value}
+                                                            onSelect={field.onChange}
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                            )}
+                                        />
+                                        {errors.followUps?.[index]?.followUpDate && (
+                                            <p className="text-sm text-red-500">
+                                                {errors.followUps[index]?.followUpDate?.message as string}
+                                            </p>
                                         )}
-                                    />
-                                    <Button
-                                        type="button"
-                                        variant="destructive"
-                                        size="icon"
-                                        onClick={() => removeFollowUp(index)}
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </Button>
+                                    </div>
+
+                                    {/* Client Success */}
+                                    <div className="col-span-2">
+                                        <Label className="text-sm">Client Success</Label>
+                                        <Controller
+                                            control={control}
+                                            name={`followUps.${index}.clientSuccessStatus`}
+                                            render={({ field }) => (
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Select status" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="yes">Yes</SelectItem>
+                                                        <SelectItem value="no">No</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                         {errors.followUps?.[index]?.clientSuccessStatus && (
+                                            <p className="text-sm text-red-500">
+                                                {errors.followUps[index]?.clientSuccessStatus?.message as string}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Feedback */}
+                                    <div className="col-span-2">
+                                        <Label className="text-sm">Initial Feedback</Label>
+                                        <Input
+                                            {...register(`followUps.${index}.initialFeedback`)}
+                                            placeholder="Feedback..."
+                                        />
+                                    </div>
+
+                                    {/* Other Apps + Delete */}
+                                    <div className="col-span-2 flex items-center gap-2">
+                                        <div>
+                                            <Label className="text-sm">Other App Installed</Label>
+                                            <Input
+                                                {...register(`followUps.${index}.otherAppsInstalled`)}
+                                                placeholder="Other apps.."
+                                            />
+                                        </div>
+                                        <Button
+                                            className="mt-5"
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            onClick={() => removeFollowUp(index)}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
                             ))}
+
                             <Button
                                 type="button"
                                 variant="secondary"
                                 size="sm"
                                 className="mt-2"
-                                onClick={() => appendFollowUp(new Date())}
+                                onClick={() =>
+                                    appendFollowUp({
+                                        followUpDate: undefined,
+                                        clientSuccessStatus: undefined,
+                                        initialFeedback: "",
+                                        otherAppsInstalled: "",
+                                    })
+                                }
                             >
-                                <Plus /> Add Follow-up
+                                <Plus /> Add Follow Up
                             </Button>
                         </div>
                     </div>
-                    {/* Footer Buttons */}
+
+                    {/* Footer */}
                     <DialogFooter className="flex !justify-center gap-3 mt-6">
                         <Button
                             variant="destructive"
@@ -276,8 +302,8 @@ export function AddMarketingFunnelModal({ clientId, open, onOpenChange, refreshP
                         <Button variant="outline" onClick={() => reset()}>
                             <ListRestart /> Reset
                         </Button>
-                        <Button type="submit">
-                            {formSubmitLoading ? <Spinner /> : <Plus />} Add Funnel
+                        <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? <Spinner /> : <Save />} Save Funnel
                         </Button>
                     </DialogFooter>
                 </form>

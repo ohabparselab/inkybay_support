@@ -217,15 +217,25 @@ export const addMeetingSchema = z.object({
 });
 
 export const addMarketingFunnelSchema = z.object({
-    clientId: z.number().optional(),
-    installPhase: z.enum(["install", "uninstall"]),
-    emails: z.array(z.string().email("Invalid email")),
-    typeOfProducts: z.string().min(1, "Type of products field is required."),
-    otherAppsInstalled: z.string().optional(),
-    customizationType: z.string().optional(),
-    initialFeedback: z.string().optional(),
-    followUps: z.array(z.date()).optional(),
-    clientSuccessStatus: z.enum(["yes", "no"]),
+  clientId: z.number().optional(),
+  emails: z.array(z.string().email("Invalid email")).optional(),
+  typeOfProducts: z.string().min(1, "Type of products field is required."),
+  customizationType: z.string().optional(),
+  followUps: z
+    .array(
+      z.object({
+        installPhase: z.string(),
+        followUpStep: z.string(),
+        followUpDate: z.date({
+          error: "Follow-up date is required.",
+        }),
+        clientSuccessStatus: z.enum(['yes', 'no'], {
+          error: "Status is required.",
+        }),
+        initialFeedback: z.string().optional(),
+        otherAppsInstalled: z.string().optional(),
+      })
+    ),
 });
 
 export const addProjectSchema = z.object({
