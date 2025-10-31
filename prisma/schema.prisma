@@ -381,14 +381,14 @@ model MeetingEmail {
 model MarketingFunnel {
     id                  Int       @id @default(autoincrement())
     clientId            Int
+    followUpStep        String?
+    followUpDate        DateTime?
     installPhase        String?
     typeOfProducts      String?
     otherAppsInstalled  String?
     customizationType   String?
     initialFeedback     String?   @db.Text
-    clientSuccessStatus String?
-    followUpDate        DateTime?
-    followUpStep        DateTime?
+    clientSuccessStatus String
     createdAt           DateTime  @default(now())
     updatedAt           DateTime  @updatedAt
     isDeleted           Boolean   @default(false)
@@ -398,7 +398,6 @@ model MarketingFunnel {
 
     @@map("marketing_funnels")
 }
-
 
 model ActivityLog {
     id        Int      @id @default(autoincrement())

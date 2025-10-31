@@ -40,24 +40,50 @@ const createMarketingFunnel = async (request: Request) => {
             return Response.json({ success: false, message: "Client ID not found." }, { status: 400 });
         }
 
+
+        if (Array.isArray(value.followUps) && value.followUps.length > 0) {
+
+            for (const followUp of value.followUps) {
+                const funnelId = followUp.funnelId || 0;
+                const funnelParams = {
+                    clientId: value.clientId,
+                    typeOfProducts: value.typeOfProducts,
+                    customizationType: value.customizationType,
+                    followUpStep: followUp.followUpStep,
+                    followUpDate: followUp.followUpDate,
+                    installPhase: followUp.installPhase,
+                    otherAppsInstalled: followUp.otherAppsInstalled,
+                    initialFeedback: followUp.initialFeedback,
+                    clientSuccessStatus: followUp.clientSuccessStatus,
+                }
+
+                await prisma.marketingFunnel.upsert({
+                    where: { id: funnelId, clientId: value.clientId },
+                    update: {},
+                    create: funnelParams,
+                });
+            }
+
+        }
+
         // 🧾 Create marketing funnel
-        const funnel = await prisma.marketingFunnel.create({
-            data: {
-                clientId: value.clientId,
-                installPhase: value.installPhase,
-                typeOfProducts: value.typeOfProducts,
-                otherAppsInstalled: value.otherAppsInstalled,
-                customizationType: value.customizationType,
-                initialFeedback: value.initialFeedback,
-                clientSuccessStatus: value.clientSuccessStatus,
-            },
-        });
+        // const funnel = await prisma.marketingFunnel.create({
+        //     data: {
+        //         clientId: value.clientId,
+        //         installPhase: value.installPhase,
+        //         typeOfProducts: value.typeOfProducts,
+        //         otherAppsInstalled: value.otherAppsInstalled,
+        //         customizationType: value.customizationType,
+        //         initialFeedback: value.initialFeedback,
+        //         clientSuccessStatus: value.clientSuccessStatus,
+        //     },
+        // });
 
         // Save emails (check duplicates)
         if (Array.isArray(value.emails) && value.emails.length > 0) {
             for (const email of value.emails) {
                 const exists = await prisma.clientEmail.findUnique({
-                    where: { clientId: value.clientId, email  },
+                    where: { clientId: value.clientId, email },
                 });
 
                 if (!exists) {
@@ -71,19 +97,19 @@ const createMarketingFunnel = async (request: Request) => {
             }
         }
 
-        // Save follow-up dates
-        if (Array.isArray(value.followUps) && value.followUps.length > 0) {
-            const followUpData = value.followUps.map((date: string) => ({
-                marketingFunnelId: funnel.id,
-                followUpDate: new Date(date),
-            }));
+        // // Save follow-up dates
+        // if (Array.isArray(value.followUps) && value.followUps.length > 0) {
+        //     const followUpData = value.followUps.map((date: string) => ({
+        //         marketingFunnelId: funnel.id,
+        //         followUpDate: new Date(date),
+        //     }));
 
-            await prisma.followUp.createMany({
-                data: followUpData,
-            });
-        }
+        //     await prisma.followUp.createMany({
+        //         data: followUpData,
+        //     });
+        // }
 
-        return Response.json({ success: true, message: "Marketing Funnel created successfully.", data: funnel });
+        return Response.json({ success: true, message: "Marketing Funnel save successfully."});
     } catch (error: any) {
         console.error(" Create Marketing Funnel failed:", error);
         return Response.json({ success: false, message: error.message || "Internal server error." }, { status: 500 });

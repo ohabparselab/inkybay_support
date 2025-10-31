@@ -62,7 +62,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
                         },
                     },
                 },
-                followUps: true,
+                // followUps: true,
             },
         }),
         prisma.marketingFunnel.count({ where }),

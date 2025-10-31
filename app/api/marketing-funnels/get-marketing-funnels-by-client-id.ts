@@ -26,7 +26,7 @@ export async function action({ request }: { request: Request }) {
                         },
                     },
                 },
-                followUps: true,
+                // followUps: true,
             }
         });
 
