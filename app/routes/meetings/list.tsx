@@ -53,6 +53,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             include: {
                 user: { select: { id: true, fullName: true, email: true } },
                 emails: { select: { email: true } },
+                project: true,
                 review: true
             },
         }),

@@ -204,6 +204,7 @@ export const addMeetingSchema = z.object({
     isExternalMeeting: z.boolean().optional(),
     meetingDetails: z.string().min(1, "Meeting details is required"),
     agentId: z.string().min(1, "Please select agent."),
+    projectId: z.string({error: "Please select project."}),
     meetingDateTime: z.date({ error: "Meeting date & time is required" }),
     reviewAsked: z.boolean(),
     reviewGiven: z.boolean(),

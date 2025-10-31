@@ -39,8 +39,10 @@ interface EditMeetingModalProps {
 export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: EditMeetingModalProps) {
 
     const [users, setUsers] = useState<any[]>([]);
+    const [projects, setProjects] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [formSubmitLoading, setFormSubmitLoading] = useState(false);
+    const [loadingProjects, setLoadingProjects] = useState(false);
 
     const {
         control,
@@ -64,14 +66,29 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
         name: "emails",
     });
 
+    const fetchProjects = async () => {
+        try {
+            setLoadingProjects(true);
+            const res = await fetch("/api/settings/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        } finally {
+            setLoadingProjects(false);
+        }
+    }
+
     useEffect(() => {
         fetchUsers();
+        fetchProjects();
     }, []);
 
     useEffect(() => {
         if (meeting) {
             reset({
                 agentId: meeting.agentId ? String(meeting.agentId) : "",
+                projectId: meeting.projectId ? String(meeting.projectId) : "",
                 storeUrl: meeting.storeUrl || "",
                 meetingDetails: meeting.meetingDetails || "",
                 meetingDateTime: meeting.meetingDateTime ? new Date(meeting.meetingDateTime) : undefined,
@@ -370,9 +387,44 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                             <Input {...register("recordedVideo")} placeholder="Enter video link..." />
                         </div>
                         <div>
-                            <Label className="mb-2">Reviews Info</Label>
-                            <Textarea {...register("reviewsInfo")} placeholder="Reviews info..." />
+                            <Label className="mb-2">Project</Label>
+                            <Controller
+                                control={control}
+                                name="projectId"
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        disabled={loadingProjects}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={loadingProjects ? "Loading..." : "Select Project"} />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            {loadingProjects ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
+                                            ) : projects.length === 0 ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
+                                            ) : (
+                                                projects.map((project: any) => (
+                                                    <SelectItem key={project.id} value={String(project.id)}>
+                                                        {project.projectName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.projectId && (
+                                <p className="text-sm text-red-500">{errors.projectId.message}</p>
+                            )}
                         </div>
+                    </div>
+
+                    <div>
+                        <Label className="mb-2">Reviews Info</Label>
+                        <Textarea {...register("reviewsInfo")} placeholder="Reviews info..." />
                     </div>
 
                     <div>

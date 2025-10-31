@@ -20,6 +20,7 @@ interface ViewMeetingDetailsModalProps {
 
 export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMeetingDetailsModalProps) {
 
+    console.log(meeting)
     if (!meeting) return null;
 
     const formatDate = (date?: Date | string | null) =>
@@ -65,12 +66,10 @@ export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMee
                             </p>
                             <p><strong>Created At:</strong> {formatDate(meeting.createdAt)}</p>
                             <p><strong>Updated At:</strong> {formatDate(meeting.updatedAt)}</p>
-                            <p><strong>Project:</strong> {meeting.project?.name}</p>
+                            <p><strong>Project:</strong> <Badge variant="secondary">{meeting.project?.name}</Badge></p>
                         </div>
                     </div>
-
                     <Separator />
-
                     <section>
                         <h3 className="text-base font-semibold mb-2"> Emails</h3>
                         {meeting.emails && meeting.emails.length > 0 ? (

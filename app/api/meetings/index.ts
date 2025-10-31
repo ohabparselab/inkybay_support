@@ -42,6 +42,7 @@ const createMeeting = async (request: Request) => {
         const formData = await request.formData();
 
         const agentId = formData.get("agentId") ? Number(formData.get("agentId")) : null;
+        const projectId = formData.get("projectId") ? Number(formData.get("projectId")) : null;
 
         if (!agentId) {
             return Response.json({ success: false, message: "Agent ID not found." }, { status: 400 });
@@ -62,6 +63,9 @@ const createMeeting = async (request: Request) => {
         const meeting = await prisma.meeting.create({
             data: {
                 ...meetingData,
+                project: {
+                    connect: { id: projectId },
+                },
                 user: {
                     connect: { id: agentId },
                 },
