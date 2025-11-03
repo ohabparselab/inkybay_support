@@ -12,6 +12,7 @@ import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
 import { Badge } from "~/components/ui/badge";
+import { DynamicSelectFilter } from "~/components/dynamic-select-filter";
 
 const AddMarketingFunnelModal = lazy(() =>
     import("~/components/modals/add-marketing-funnel-modal").then((m) => ({ default: m.AddMarketingFunnelModal }))
@@ -36,20 +37,63 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
 
-    const where = {
-        ...(search
-            ? {
-                OR: [
-                    { client: { shopDomain: { contains: searchLower } } },
-                    { client: { shopName: { contains: searchLower } } },
-                    { client: { email: { contains: searchLower } } },
-                    { installPhase: { contains: searchLower } },
-                    { typeOfProducts: { contains: searchLower } },
-                ],
-            }
-            : {}),
+    const installPhase = url.searchParams.get("installPhase") || ""; // "install" | "uninstall" | ""
+    const clientSuccessStatus = url.searchParams.get("clientSuccessStatus") || ""; // "1st" | "2nd" | ""
+    const followUpStatus = url.searchParams.get("followUpStatus") || ""; // "1st" | "2nd" | ""
+
+    const followUpDate = url.searchParams.get("followUpDate");
+    const followUpStart = url.searchParams.get("followUpStart");
+    const followUpEnd = url.searchParams.get("followUpEnd");
+
+    const createdDate = url.searchParams.get("createdDate");
+    const createdStart = url.searchParams.get("createdStart");
+    const createdEnd = url.searchParams.get("createdEnd");
+
+    // Build base filter
+    const where: any = {
         currentPhase: true,
     };
+
+    // Search filter
+    if (search) {
+        where.OR = [
+            { client: { shopDomain: { contains: searchLower } } },
+            { client: { shopName: { contains: searchLower } } },
+            { client: { email: { contains: searchLower } } },
+            { installPhase: { contains: searchLower } },
+            { typeOfProducts: { contains: searchLower } },
+        ];
+    }
+
+    // Install phase filter
+    if (installPhase) {
+        where.installPhase = installPhase;
+    }
+
+    // Install phase filter
+    if (followUpStatus) {
+        where.followUpStep = followUpStatus;
+    }
+
+    // Follow-up status filter
+    if (clientSuccessStatus) {
+        where.clientSuccessStatus = clientSuccessStatus;
+    }
+
+    // Follow-up date range filter
+    if (followUpStart || followUpEnd) {
+        where.followUpDate = {};
+        if (followUpStart) where.followUpDate.gte = new Date(followUpStart);
+        if (followUpEnd) where.followUpDate.lte = new Date(followUpEnd);
+    }
+
+    // Created at range filter
+    if (createdStart || createdEnd) {
+        where.createdAt = {};
+        if (createdStart) where.createdAt.gte = new Date(createdStart);
+        if (createdEnd) where.createdAt.lte = new Date(createdEnd);
+    }
+
 
     const [funnels, total] = await Promise.all([
         prisma.marketingFunnel.findMany({
@@ -79,6 +123,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
             limit,
             totalPages: Math.ceil(total / limit),
             search,
+            installPhase,
+            followUpStatus,
+            clientSuccessStatus,
+            followUpDate,
+            followUpStart,
+            followUpEnd,
+            createdDate,
+            createdStart,
+            createdEnd,
         },
     };
 }
@@ -156,6 +209,20 @@ export default function MarketingFunnelListPage() {
         if (loading) setLoading(false);
     }, [funnels]);
 
+    const generateFollowUpOptions = (count = 20) => {
+        const suffix = (n: number) => {
+            if (n % 10 === 1 && n % 100 !== 11) return `${n}st`;
+            if (n % 10 === 2 && n % 100 !== 12) return `${n}nd`;
+            if (n % 10 === 3 && n % 100 !== 13) return `${n}rd`;
+            return `${n}th`;
+        };
+
+        return Array.from({ length: count }, (_, i) => {
+            const label = suffix(i + 1);
+            return { id: label, name: label };
+        });
+    }
+
     return (
         <div className="px-6 space-y-2">
             <div className="flex items-center justify-between">
@@ -184,10 +251,50 @@ export default function MarketingFunnelListPage() {
                             <TableRow>
                                 <TableHead>ID</TableHead>
                                 <TableHead>Shop URL</TableHead>
-                                <TableHead>Install Phase</TableHead>
-                                <TableHead>Follow-up Status</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Install Phase</span>
+                                        <DynamicSelectFilter
+                                            label="Install Phase"
+                                            paramKey="installPhase"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: "install", name: "Install" },
+                                                { id: "uninstall", name: "Uninstall" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+
+                                    <div className="flex items-center gap-2">
+                                        <span>Follow-up Status</span>
+                                        <DynamicSelectFilter
+                                            label="Follow-up Status"
+                                            paramKey="followUpStatus"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={generateFollowUpOptions(20)}
+                                        />
+                                    </div>
+                                </TableHead>
                                 <TableHead>Follow-up Date</TableHead>
-                                <TableHead>Client Success</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Client Success</span>
+                                        <DynamicSelectFilter
+                                            label="Client Success"
+                                            paramKey="clientSuccessStatus"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: "yes", name: "Yes" },
+                                                { id: "no", name: "No" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
                                 <TableHead>Initial Feedback</TableHead>
                                 <TableHead>Created At</TableHead>
                                 <TableHead>Actions</TableHead>
@@ -219,7 +326,7 @@ export default function MarketingFunnelListPage() {
                                                     <TableCell>{funnel.installPhase}</TableCell>
                                                     <TableCell><Badge variant="outline">{funnel.followUpStep}</Badge></TableCell>
                                                     <TableCell>{new Date(funnel.followUpDate).toLocaleDateString()}</TableCell>
-                                                    <TableCell><Badge variant="outline">{funnel.clientSuccessStatus == 'yes' ? 'Yes': 'No' }</Badge></TableCell>
+                                                    <TableCell><Badge variant="outline">{funnel.clientSuccessStatus == 'yes' ? 'Yes' : 'No'}</Badge></TableCell>
 
                                                     <TableCell className="max-w-[20px] truncate">
                                                         {funnel.initialFeedback ? (
