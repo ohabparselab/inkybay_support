@@ -11,6 +11,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
+import { Badge } from "~/components/ui/badge";
 
 const AddMarketingFunnelModal = lazy(() =>
     import("~/components/modals/add-marketing-funnel-modal").then((m) => ({ default: m.AddMarketingFunnelModal }))
@@ -35,17 +36,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
 
-    const where = search
-        ? {
-            OR: [
-                { client: { shopDomain: { contains: searchLower } } },
-                { client: { shopName: { contains: searchLower } } },
-                { client: { email: { contains: searchLower } } },
-                { installPhase: { contains: searchLower } },
-                { typeOfProducts: { contains: searchLower } },
-            ],
-        }
-        : {};
+    const where = {
+        ...(search
+            ? {
+                OR: [
+                    { client: { shopDomain: { contains: searchLower } } },
+                    { client: { shopName: { contains: searchLower } } },
+                    { client: { email: { contains: searchLower } } },
+                    { installPhase: { contains: searchLower } },
+                    { typeOfProducts: { contains: searchLower } },
+                ],
+            }
+            : {}),
+        currentPhase: true,
+    };
 
     const [funnels, total] = await Promise.all([
         prisma.marketingFunnel.findMany({
@@ -61,8 +65,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
                             select: { id: true, email: true },
                         },
                     },
-                },
-                // followUps: true,
+                }
             },
         }),
         prisma.marketingFunnel.count({ where }),
@@ -214,9 +217,9 @@ export default function MarketingFunnelListPage() {
                                                         }}
                                                     >{funnel.client.shopDomain.split('.')[0]}</TableCell>
                                                     <TableCell>{funnel.installPhase}</TableCell>
-                                                    <TableCell>{funnel.followUpStep}</TableCell>
+                                                    <TableCell><Badge variant="outline">{funnel.followUpStep}</Badge></TableCell>
                                                     <TableCell>{new Date(funnel.followUpDate).toLocaleDateString()}</TableCell>
-                                                    <TableCell>{funnel.clientSuccessStatus}</TableCell>
+                                                    <TableCell><Badge variant="outline">{funnel.clientSuccessStatus == 'yes' ? 'Yes': 'No' }</Badge></TableCell>
 
                                                     <TableCell className="max-w-[20px] truncate">
                                                         {funnel.initialFeedback ? (
