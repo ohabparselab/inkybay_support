@@ -224,6 +224,7 @@ export const addMarketingFunnelSchema = z.object({
   followUps: z
     .array(
       z.object({
+        funnelId: z.string().optional(),
         installPhase: z.string(),
         followUpStep: z.string(),
         followUpDate: z.date({
@@ -234,6 +235,7 @@ export const addMarketingFunnelSchema = z.object({
         }),
         initialFeedback: z.string().optional(),
         otherAppsInstalled: z.string().optional(),
+        isNew: z.boolean(),
       })
     ),
 });

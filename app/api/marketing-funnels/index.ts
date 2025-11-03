@@ -41,10 +41,19 @@ const createMarketingFunnel = async (request: Request) => {
         }
 
 
-        if (Array.isArray(value.followUps) && value.followUps.length > 0) {
 
-            for (const followUp of value.followUps) {
-                const funnelId = followUp.funnelId || 0;
+
+        if (Array.isArray(value.followUps) && value.followUps.length > 0) {
+            // Helper to convert '5th', '6th' etc. to number
+            const stepToNumber = (step: string) => {
+                return parseInt(step, 10); // "5th" => 5
+            };
+
+            // Sort ascending before upsert
+            const sortedFollowUps = value.followUps.sort((a: any, b: any) => stepToNumber(a.followUpStep) - stepToNumber(b.followUpStep));
+
+            for (const followUp of sortedFollowUps) {
+                const funnelId = Number(followUp.funnelId) || 0;
                 const funnelParams = {
                     clientId: value.clientId,
                     typeOfProducts: value.typeOfProducts,
@@ -59,7 +68,7 @@ const createMarketingFunnel = async (request: Request) => {
 
                 await prisma.marketingFunnel.upsert({
                     where: { id: funnelId, clientId: value.clientId },
-                    update: {},
+                    update: funnelParams,
                     create: funnelParams,
                 });
             }
@@ -109,7 +118,7 @@ const createMarketingFunnel = async (request: Request) => {
         //     });
         // }
 
-        return Response.json({ success: true, message: "Marketing Funnel save successfully."});
+        return Response.json({ success: true, message: "Marketing Funnel save successfully." });
     } catch (error: any) {
         console.error(" Create Marketing Funnel failed:", error);
         return Response.json({ success: false, message: error.message || "Internal server error." }, { status: 500 });

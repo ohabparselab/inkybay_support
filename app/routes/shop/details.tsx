@@ -885,13 +885,14 @@ export default function ShopDetailsPage() {
                                                         <TableHeader>
                                                             <TableRow>
                                                                 <TableHead>ID</TableHead>
-                                                                <TableHead>Shop Name</TableHead>
+                                                                <TableHead>Shop URL</TableHead>
                                                                 <TableHead>Install Phase</TableHead>
+                                                                <TableHead>Follow-up Step</TableHead>
+                                                                <TableHead>Follow-up Date</TableHead>
                                                                 <TableHead>Type of Products</TableHead>
                                                                 <TableHead>Client Success</TableHead>
-                                                                <TableHead>Customization Type</TableHead>
-                                                                <TableHead>Initial Feedback</TableHead>
-                                                                <TableHead>Created At</TableHead>
+                                                                {/* <TableHead>Customization Type</TableHead>
+                                                                <TableHead>Initial Feedback</TableHead> */}
                                                                 <TableHead>Actions</TableHead>
                                                             </TableRow>
                                                         </TableHeader>
@@ -900,13 +901,14 @@ export default function ShopDetailsPage() {
                                                                 marketingFunnels?.map((funnel: any, idx: number) => (
                                                                     <TableRow key={funnel.id}>
                                                                         <TableCell>{idx + 1}</TableCell>
-                                                                        <TableCell>{funnel.client.shopName}</TableCell>
+                                                                        <TableCell>{funnel.client.shopDomain}</TableCell>
                                                                         <TableCell>{funnel.installPhase}</TableCell>
+                                                                        <TableCell>{funnel.followUpStep}</TableCell>
+                                                                        <TableCell>{new Date(funnel.followUpDate).toLocaleDateString()}</TableCell>
                                                                         <TableCell>{funnel.typeOfProducts ?? 'N/A'}</TableCell>
                                                                         <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No'}</TableCell>
-                                                                        <TableCell>{funnel.customizationType == '' ? 'N/A' : funnel.customizationType}</TableCell>
-                                                                        <TableCell>{funnel.initialFeedback == '' ? 'N/A' : funnel.initialFeedback}</TableCell>
-                                                                        <TableCell>{new Date(funnel.createdAt).toLocaleDateString()}</TableCell>
+                                                                        {/* <TableCell>{funnel.customizationType == '' ? 'N/A' : funnel.customizationType}</TableCell>
+                                                                        <TableCell>{funnel.initialFeedback == '' ? 'N/A' : funnel.initialFeedback}</TableCell> */}
                                                                         <TableCell>
                                                                             <DropdownMenu>
                                                                                 <DropdownMenuTrigger asChild>
