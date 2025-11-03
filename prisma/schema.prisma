@@ -388,13 +388,14 @@ model MarketingFunnel {
     otherAppsInstalled  String?
     customizationType   String?
     initialFeedback     String?   @db.Text
-    clientSuccessStatus String
+    clientSuccessStatus String?
+    currentPhase        Boolean   @default(false)
     createdAt           DateTime  @default(now())
     updatedAt           DateTime  @updatedAt
     isDeleted           Boolean   @default(false)
     deletedAt           DateTime?
 
-    client    Client     @relation(fields: [clientId], references: [id])
+    client Client @relation(fields: [clientId], references: [id])
 
     @@map("marketing_funnels")
 }
