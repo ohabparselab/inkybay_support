@@ -13,7 +13,11 @@ import {
     Component,
     Columns3Cog,
     FileStack,
-    Settings
+    Settings,
+    Star,
+    Handbag,
+    CircleQuestionMark,
+    Handshake
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -71,6 +75,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 title: "Marketing Funnels",
                 url: "/marketing-funnels",
                 icon: Megaphone,
+            },
+            {
+                title: "Reviews",
+                url: "/reviews",
+                icon: Star,
+            },
+            {
+                title: "Feature Requests",
+                url: "/feature-requests",
+                icon: CircleQuestionMark,
+            },
+            {
+                title: "Collaborations",
+                url: "/collaborations",
+                icon: Handshake,
+            },
+            {
+                title: "Shopify Communities",
+                url: "/shopify-communities",
+                icon: Handbag,
             },
             ...(isSuperAdmin ? [
                 {
