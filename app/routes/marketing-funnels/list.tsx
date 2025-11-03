@@ -13,6 +13,7 @@ import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
 import { Badge } from "~/components/ui/badge";
 import { DynamicSelectFilter } from "~/components/dynamic-select-filter";
+import { DynamicDateFilter } from "~/components/dynamic-date-filter";
 
 const AddMarketingFunnelModal = lazy(() =>
     import("~/components/modals/add-marketing-funnel-modal").then((m) => ({ default: m.AddMarketingFunnelModal }))
@@ -42,12 +43,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const followUpStatus = url.searchParams.get("followUpStatus") || ""; // "1st" | "2nd" | ""
 
     const followUpDate = url.searchParams.get("followUpDate");
-    const followUpStart = url.searchParams.get("followUpStart");
-    const followUpEnd = url.searchParams.get("followUpEnd");
+    const followUpDateStart = url.searchParams.get("followUpDateStart");
+    const followUpDateEnd = url.searchParams.get("followUpDateEnd");
 
-    const createdDate = url.searchParams.get("createdDate");
-    const createdStart = url.searchParams.get("createdStart");
-    const createdEnd = url.searchParams.get("createdEnd");
+    const createdAt = url.searchParams.get("createdAt");
+    const createdAtStart = url.searchParams.get("createdAtStart");
+    const createdAtEnd = url.searchParams.get("createdAtEnd");
 
     // Build base filter
     const where: any = {
@@ -81,17 +82,53 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     // Follow-up date range filter
-    if (followUpStart || followUpEnd) {
-        where.followUpDate = {};
-        if (followUpStart) where.followUpDate.gte = new Date(followUpStart);
-        if (followUpEnd) where.followUpDate.lte = new Date(followUpEnd);
+    if (followUpDate) {
+        const start = new Date(followUpDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(followUpDate);
+        end.setHours(23, 59, 59, 999);
+
+        where.followUpDate = {
+            gte: start,
+            lt: end,
+        };
+    } else if (followUpDateStart && followUpDateEnd) {
+        const start = new Date(followUpDateStart);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(followUpDateEnd);
+        end.setHours(23, 59, 59, 999);
+
+        where.followUpDate = {
+            gte: start,
+            lt: end,
+        };
     }
 
     // Created at range filter
-    if (createdStart || createdEnd) {
-        where.createdAt = {};
-        if (createdStart) where.createdAt.gte = new Date(createdStart);
-        if (createdEnd) where.createdAt.lte = new Date(createdEnd);
+    if (createdAt) {
+        const start = new Date(createdAt);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(createdAt);
+        end.setHours(23, 59, 59, 999);
+
+        where.createdAt = {
+            gte: start,
+            lt: end,
+        };
+    } else if (createdAtStart && createdAtEnd) {
+        const start = new Date(createdAtStart);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(createdAtEnd);
+        end.setHours(23, 59, 59, 999);
+
+        where.createdAt = {
+            gte: start,
+            lt: end,
+        };
     }
 
 
@@ -127,11 +164,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
             followUpStatus,
             clientSuccessStatus,
             followUpDate,
-            followUpStart,
-            followUpEnd,
-            createdDate,
-            createdStart,
-            createdEnd,
+            followUpDateStart,
+            followUpDateEnd,
+            createdAt,
+            createdAtStart,
+            createdAtEnd,
         },
     };
 }
@@ -267,7 +304,6 @@ export default function MarketingFunnelListPage() {
                                     </div>
                                 </TableHead>
                                 <TableHead>
-
                                     <div className="flex items-center gap-2">
                                         <span>Follow-up Status</span>
                                         <DynamicSelectFilter
@@ -279,7 +315,17 @@ export default function MarketingFunnelListPage() {
                                         />
                                     </div>
                                 </TableHead>
-                                <TableHead>Follow-up Date</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Follow-up Date</span>
+                                        <DynamicDateFilter
+                                            label="Follow-up Date"
+                                            paramKey="followUpDate"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                        />
+                                    </div>
+                                </TableHead>
                                 <TableHead>
                                     <div className="flex items-center gap-2">
                                         <span>Client Success</span>
@@ -296,7 +342,17 @@ export default function MarketingFunnelListPage() {
                                     </div>
                                 </TableHead>
                                 <TableHead>Initial Feedback</TableHead>
-                                <TableHead>Created At</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Created At</span>
+                                        <DynamicDateFilter
+                                            label="Created At"
+                                            paramKey="createdAt"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                        />
+                                    </div>
+                                </TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
