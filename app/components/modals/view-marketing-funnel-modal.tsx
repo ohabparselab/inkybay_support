@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { ShopDetails } from "@/components/shop-details";
 import { ShopHistory } from "@/components/shop-history";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 
 interface ViewMarketingFunnelDetailsModalProps {
     open: boolean;
@@ -78,21 +79,26 @@ export function ViewMarketingFunnelDetailsModal({
                     <section>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <h3 className="text-base font-semibold mb-3">Follow Ups</h3>
-                                {funnel.followUps && funnel.followUps.length > 0 ? (
-                                    <ul className="list-disc ml-6 text-sm space-y-1">
-                                        {funnel.followUps.map((fu: any, index: number) => (
-                                            <li key={index}>
-                                                Follow-up Date:{" "}
-                                                <span className="font-medium">
-                                                    {formatDate(fu.followUpDate)}
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
+                                <h3 className="text-base font-semibold mb-3">Follow Up</h3>
+                                {funnel.followUpDate ? (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Install Phase</TableHead>
+                                                <TableHead>Follow-up Step</TableHead>
+                                                <TableHead>Follow-up Date</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            <TableCell>{funnel.installPhase}</TableCell>
+                                            <TableCell>{funnel.followUpStep}</TableCell>
+                                            <TableCell>{formatDate(funnel.followUpDate)}</TableCell>
+                                        </TableBody>
+                                    </Table>
                                 ) : (
                                     <p className="italic">No follow-ups recorded.</p>
                                 )}
+
                             </div>
                             <div>
                                 <h3 className="text-base font-semibold mb-3">Client Emails</h3>
