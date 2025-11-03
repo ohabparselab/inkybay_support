@@ -100,11 +100,6 @@ const deleteMarketingFunnelHard = async (funnelId: number) => {
             return Response.json({ success: false, message: "Funnel ID is required." }, { status: 400 });
         }
 
-        // Delete all follow-ups associated with this funnel
-        await prisma.followUp.deleteMany({
-            where: { marketingFunnelId: funnelId },
-        });
-
         // Delete the funnel itself
         await prisma.marketingFunnel.delete({
             where: { id: funnelId },
