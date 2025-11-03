@@ -231,7 +231,7 @@ export function AddMarketingFunnelModal({
                     </div>
 
                     {/* Follow-ups Table */}
-                    <div className="col-span-2">
+                    <div>
                         <Label className="mb-2">Follow-ups</Label>
 
                         <div className="border rounded-md p-3">
@@ -277,7 +277,7 @@ export function AddMarketingFunnelModal({
                                                 key={f.id}
                                                 // className="grid grid-cols-10 gap-3 items-center mb-3 border-b pb-2 last:border-0 last:pb-0"
                                                 className={`grid grid-cols-10 gap-3 items-center mb-3 border rounded-md p-3 
-                                        ${!f.isNew ? "bg-muted/60 pointer-events-none opacity-70" : ""}`}
+                                                    ${!f.isNew ? "bg-muted/60 pointer-events-none opacity-70" : ""}`}
                                             >
                                                 {/* Follow Step */}
                                                 <div>
