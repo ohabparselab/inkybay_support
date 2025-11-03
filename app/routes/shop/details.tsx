@@ -923,7 +923,7 @@ export default function ShopDetailsPage() {
                                                                                     }}>
                                                                                         <Eye /> View Details
                                                                                     </DropdownMenuItem>
-                                                                                    {
+                                                                                    {/* {
                                                                                         canMFunnelCreate && (
                                                                                             <DropdownMenuItem
                                                                                                 onClick={() => {
@@ -936,7 +936,7 @@ export default function ShopDetailsPage() {
                                                                                                 <Plus /> Add Marketing Funnel
                                                                                             </DropdownMenuItem>
                                                                                         )
-                                                                                    }
+                                                                                    } */}
                                                                                     {
                                                                                         canMFunnelEdit && (
                                                                                             <DropdownMenuItem
