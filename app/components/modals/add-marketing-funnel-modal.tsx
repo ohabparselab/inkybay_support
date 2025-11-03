@@ -28,7 +28,7 @@ interface AddMarketingFunnelModalProps {
     onOpenChange: (open: boolean) => void;
     refreshPage?: () => void;
     funnel: any;
-    isAppInstall: boolean;
+    isAppInstall?: boolean;
 }
 
 export function AddMarketingFunnelModal({

@@ -40,20 +40,21 @@ const createMarketingFunnel = async (request: Request) => {
             return Response.json({ success: false, message: "Client ID not found." }, { status: 400 });
         }
 
-
-
-
         if (Array.isArray(value.followUps) && value.followUps.length > 0) {
-            // Helper to convert '5th', '6th' etc. to number
-            const stepToNumber = (step: string) => {
-                return parseInt(step, 10); // "5th" => 5
-            };
+            // Helper to convert '5th', '6th', etc. to numbers for sorting
+            const stepToNumber = (step: string) => parseInt(step, 10);
 
-            // Sort ascending before upsert
-            const sortedFollowUps = value.followUps.sort((a: any, b: any) => stepToNumber(a.followUpStep) - stepToNumber(b.followUpStep));
+            // Sort follow-ups by numeric step (ascending)
+            const sortedFollowUps = value.followUps.sort(
+                (a: any, b: any) => stepToNumber(a.followUpStep) - stepToNumber(b.followUpStep)
+            );
 
-            for (const followUp of sortedFollowUps) {
+            // Find the last follow-up (latest phase)
+            const lastIndex = sortedFollowUps.length - 1;
+
+            for (const [index, followUp] of sortedFollowUps.entries()) {
                 const funnelId = Number(followUp.funnelId) || 0;
+
                 const funnelParams = {
                     clientId: value.clientId,
                     typeOfProducts: value.typeOfProducts,
@@ -64,7 +65,8 @@ const createMarketingFunnel = async (request: Request) => {
                     otherAppsInstalled: followUp.otherAppsInstalled,
                     initialFeedback: followUp.initialFeedback,
                     clientSuccessStatus: followUp.clientSuccessStatus,
-                }
+                    currentPhase: index === lastIndex,
+                };
 
                 await prisma.marketingFunnel.upsert({
                     where: { id: funnelId, clientId: value.clientId },
@@ -72,21 +74,8 @@ const createMarketingFunnel = async (request: Request) => {
                     create: funnelParams,
                 });
             }
-
         }
 
-        // 🧾 Create marketing funnel
-        // const funnel = await prisma.marketingFunnel.create({
-        //     data: {
-        //         clientId: value.clientId,
-        //         installPhase: value.installPhase,
-        //         typeOfProducts: value.typeOfProducts,
-        //         otherAppsInstalled: value.otherAppsInstalled,
-        //         customizationType: value.customizationType,
-        //         initialFeedback: value.initialFeedback,
-        //         clientSuccessStatus: value.clientSuccessStatus,
-        //     },
-        // });
 
         // Save emails (check duplicates)
         if (Array.isArray(value.emails) && value.emails.length > 0) {

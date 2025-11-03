@@ -180,11 +180,11 @@ export default function MarketingFunnelListPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
-                                <TableHead>Shop Name</TableHead>
+                                <TableHead>Shop URL</TableHead>
                                 <TableHead>Install Phase</TableHead>
-                                <TableHead>Type of Products</TableHead>
+                                <TableHead>Follow-up Status</TableHead>
+                                <TableHead>Follow-up Date</TableHead>
                                 <TableHead>Client Success</TableHead>
-                                <TableHead>Customization Type</TableHead>
                                 <TableHead>Initial Feedback</TableHead>
                                 <TableHead>Created At</TableHead>
                                 <TableHead>Actions</TableHead>
@@ -195,7 +195,7 @@ export default function MarketingFunnelListPage() {
                                 loading ? (
                                     Array.from({ length: 9 }).map((_, i) => (
                                         <TableRow key={i}>
-                                            <TableCell colSpan={10} className="py-4">
+                                            <TableCell colSpan={9} className="py-4">
                                                 <div className="animate-pulse h-5 bg-accent rounded" />
                                             </TableCell>
                                         </TableRow>
@@ -203,7 +203,7 @@ export default function MarketingFunnelListPage() {
                                 ) : (
                                     canView ? (
                                         funnels.length > 0 ? (
-                                            funnels.map((funnel, idx) => (
+                                            funnels.map((funnel: any, idx) => (
                                                 <TableRow key={funnel.id}>
                                                     <TableCell>{idx + 1}</TableCell>
                                                     <TableCell
@@ -212,39 +212,11 @@ export default function MarketingFunnelListPage() {
                                                             setSelectedMarketingFunnel(funnel);
                                                             setViewMarketingFunnelModalOpen(true);
                                                         }}
-                                                    >{funnel.client.shopName}</TableCell>
+                                                    >{funnel.client.shopDomain.split('.')[0]}</TableCell>
                                                     <TableCell>{funnel.installPhase}</TableCell>
-                                                    <TableCell className="max-w-[20px] truncate">
-                                                        {funnel.typeOfProducts ? (
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <span>{funnel.typeOfProducts}</span>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>{funnel.typeOfProducts}</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        ) : (
-                                                            <span>N/A</span>
-                                                        )}
-                                                    </TableCell>
-
-                                                    <TableCell>{funnel.clientSuccessStatus === "yes" ? "Yes" : "No"}</TableCell>
-
-                                                    <TableCell className="max-w-[20px] truncate">
-                                                        {funnel.customizationType ? (
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <span>{funnel.customizationType}</span>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>{funnel.customizationType}</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        ) : (
-                                                            <span>N/A</span>
-                                                        )}
-                                                    </TableCell>
+                                                    <TableCell>{funnel.followUpStep}</TableCell>
+                                                    <TableCell>{new Date(funnel.followUpDate).toLocaleDateString()}</TableCell>
+                                                    <TableCell>{funnel.clientSuccessStatus}</TableCell>
 
                                                     <TableCell className="max-w-[20px] truncate">
                                                         {funnel.initialFeedback ? (
