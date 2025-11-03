@@ -66,6 +66,7 @@ export function EditMarketingFunnelModal({ funnel, open, onOpenChange, refreshPa
             typeOfProducts: funnel.typeOfProducts,
             customizationType: funnel.customizationType,
             emails: funnel.client?.clientEmail?.map((e: any) => e.email) || [],
+            clientId: funnel.clientId
 
         });
     }, [funnel, reset]);
