@@ -1,7 +1,7 @@
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "~/components/ui/dropdown-menu"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "~/components/ui/table";
 import { DateAndDateRangeFilter } from "~/components/ui/date-range-filter";
-import { Eye, PenBox, Trash2, Search, AlertTriangle } from "lucide-react";
+import { Eye, PenBox, Trash2, Search, AlertTriangle, Plus } from "lucide-react";
 import { DynamicSelectFilter } from "~/components/dynamic-select-filter"
 import { Suspense, lazy, useEffect, useState } from "react";
 import { PaginationBar } from "~/components/pagination-bar";
@@ -10,6 +10,11 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner"
+import { CenterSpinner } from "~/components/ui/center-spinner";
+
+const AddReviewModal = lazy(() =>
+    import("~/components/modals/add-review-modal").then((m) => ({ default: m.AddReviewModal }))
+);
 
 export const meta = () => [{ title: "Reviews | InkyBay" }];
 
@@ -86,6 +91,7 @@ export default function ReviewListPage() {
     const { reviews, meta } = useLoaderData<typeof loader>();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
     const [search, setSearch] = useState(meta.search ?? "");
 
     const navigateWithLoading = (url: string) => {
@@ -122,11 +128,21 @@ export default function ReviewListPage() {
         if (loading) setLoading(false)
     }, [reviews]);
 
+    const refreshPage = () => {
+        navigateWithLoading(window.location.pathname + window.location.search);
+    };
+
     return (
-        <div className="px-6 space-y-4">
+        <div className="px-6 space-y-3">
             <div className="flex items-center justify-between">
                 <h1 className="text-xl font-semibold">Reviews</h1>
-                <div className="text-sm">Total: {meta.total}</div>
+                <Button
+                    onClick={() => {
+                        setReviewModalOpen(true);
+                    }}
+                >
+                    <Plus /> Add Review
+                </Button>
             </div>
 
             <div className="flex items-center justify-between">
@@ -140,26 +156,7 @@ export default function ReviewListPage() {
                     <Search className="size-4 text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2" />
                 </div>
 
-                {/* 🔽 Filters */}
-                <div className="flex gap-3">
-                    <DynamicSelectFilter
-                        label="Rating Mood"
-                        paramKey="ratingMood"
-                        meta={meta}
-                        navigateWithLoading={navigateWithLoading}
-                        options={[
-                            { id: "positive", name: "Positive" },
-                            { id: "neutral", name: "Neutral" },
-                            { id: "negative", name: "Negative" },
-                        ]}
-                    />
-
-                    {/* <DateAndDateRangeFilter
-                        meta={meta}
-                        navigateWithLoading={navigateWithLoading}
-                        paramKey="reviewDate"
-                    /> */}
-                </div>
+                <div className="text-sm">Total: {meta.total}</div>
             </div>
 
             <div className="rounded-md border">
@@ -167,10 +164,11 @@ export default function ReviewListPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>#</TableHead>
-                            <TableHead>Source</TableHead>
-                            <TableHead>Mood</TableHead>
+                            <TableHead>Shop URL</TableHead>
+                            <TableHead>Rating Mood</TableHead>
                             <TableHead>Rating</TableHead>
                             <TableHead>Review Date</TableHead>
+                            <TableHead>Approached By</TableHead>
                             <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -195,6 +193,7 @@ export default function ReviewListPage() {
                                 <TableCell className="capitalize">{rev.ratingMood ?? "—"}</TableCell>
                                 <TableCell>{rev.agentRating ?? "—"}</TableCell>
                                 <TableCell>{rev.reviewDate ? new Date(rev.reviewDate).toLocaleDateString() : "—"}</TableCell>
+                                <TableCell>{rev.agentRating ?? "—"}</TableCell>
 
                                 <TableCell>
                                     <DropdownMenu>
@@ -221,6 +220,18 @@ export default function ReviewListPage() {
                     onLimitChange={handleLimitChange}
                 />
             </div>
+
+            {/* Add review Modal */}
+            {reviewModalOpen && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <AddReviewModal
+                        open={reviewModalOpen}
+                        onOpenChange={setReviewModalOpen}
+                        refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+
         </div>
     );
 }
