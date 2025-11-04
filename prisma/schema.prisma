@@ -217,6 +217,8 @@ model Review {
     meetingId          Int?      @unique
     reviewAsked        Boolean?  @default(false)
     reviewStatus       Boolean?  @default(false)
+    shopUrl            String?
+    shopName           String?
     reviewText         String?   @db.Text
     reviewNotAskReason String?   @db.Text
     agentRating        Int?
