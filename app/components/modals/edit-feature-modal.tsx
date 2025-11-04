@@ -15,13 +15,7 @@ import { Spinner } from "../ui/spinner";
 interface EditFeatureRequestModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    featureRequest?: {
-        id: number;
-        shopUrl: string;
-        shopName: string;
-        email: string;
-        featureDetails: string;
-    };
+    featureRequest?: any;
     refreshPage?: () => void;
 }
 
@@ -52,10 +46,10 @@ export function EditFeatureRequestModal({
     useEffect(() => {
         if (featureRequest && open) {
             reset({
-                shopUrl: featureRequest.shopUrl,
-                shopName: featureRequest.shopName,
-                email: featureRequest.email,
-                featureDetails: featureRequest.featureDetails,
+                shopUrl: featureRequest.shopUrl || featureRequest.client?.shopDomain || "",
+                shopName: featureRequest.shopName || featureRequest.client?.shopName || "",
+                email: featureRequest.email || featureRequest.client?.email || "",
+                featureDetails: featureRequest.featureDetails || "",
             });
         }
     }, [featureRequest, open, reset]);

@@ -38,17 +38,17 @@ const AddFeatureRequestModal = lazy(() =>
     }))
 );
 
-// const EditFeatureRequestModal = lazy(() =>
-//     import("~/components/modals/edit-feature-request-modal").then((m) => ({
-//         default: m.EditFeatureRequestModal,
-//     }))
-// );
+const EditFeatureRequestModal = lazy(() =>
+    import("~/components/modals/edit-feature-modal").then((m) => ({
+        default: m.EditFeatureRequestModal,
+    }))
+);
 
-// const ViewFeatureRequestModal = lazy(() =>
-//     import("~/components/modals/view-feature-request-modal").then((m) => ({
-//         default: m.ViewFeatureRequestModal,
-//     }))
-// );
+const ViewFeatureRequestModal = lazy(() =>
+    import("~/components/modals/view-feature-modal").then((m) => ({
+        default: m.FeatureRequestDetailsModal,
+    }))
+);
 
 export const meta = () => [{ title: "Feature Requests | InkyBay" }];
 
@@ -96,6 +96,7 @@ export async function loader({ request }: any) {
             take: limit,
             orderBy: { id: "desc" },
             include: {
+                client: true,
                 createdByUser: true,
             },
         }),
@@ -243,7 +244,7 @@ export default function FeatureRequestListPage() {
                         {features.map((fr: any, i: number) => (
                             <TableRow key={fr.id}>
                                 <TableCell>{i + 1}</TableCell>
-                                <TableCell className="text-blue-600">{fr.shopUrl ?? "—"}</TableCell>
+                                <TableCell className="text-blue-600">{fr.shopUrl || fr.client?.shopDomain ||  "—"}</TableCell>
                                 <TableCell className="max-w-md truncate">
                                     {fr.featureDetails ?? "—"}
                                 </TableCell>
@@ -311,10 +312,10 @@ export default function FeatureRequestListPage() {
                 </Suspense>
             )}
 
-            {/* {viewModalOpen && selectedFeature && (
+            {viewModalOpen && selectedFeature && (
                 <Suspense fallback={<CenterSpinner />}>
                     <ViewFeatureRequestModal
-                        feature={selectedFeature}
+                        featureRequest={selectedFeature}
                         open={viewModalOpen}
                         onOpenChange={setViewModalOpen}
                     />
@@ -324,13 +325,13 @@ export default function FeatureRequestListPage() {
             {editModalOpen && selectedFeature && (
                 <Suspense fallback={<CenterSpinner />}>
                     <EditFeatureRequestModal
-                        feature={selectedFeature}
+                        featureRequest={selectedFeature}
                         open={editModalOpen}
                         onOpenChange={setEditModalOpen}
                         refreshPage={refreshPage}
                     />
                 </Suspense>
-            )} */}
+            )}
 
             {deleteDialogOpen && selectedFeature && (
                 <Suspense fallback={<CenterSpinner />}>
