@@ -1,7 +1,7 @@
 "use client"
+import pkg from "../../package.json";
 import { Link } from "react-router";
 import * as React from "react"
-import pkg from "../../package.json";
 import {
     House,
     Users,
@@ -17,7 +17,8 @@ import {
     Star,
     Handbag,
     CircleQuestionMark,
-    Handshake
+    Handshake,
+    Logs
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -98,7 +99,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             },
             ...(isSuperAdmin ? [
                 {
-                    title: "Users", url: "/users", icon: Users
+                    title: "Users", 
+                    url: "/users", 
+                    icon: Users
                 },
                 {
                     title: "Settings",
@@ -127,6 +130,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         }
                     ],
                 },
+                {
+                    title: "Activity Logs", 
+                    url: "/activity-logs", 
+                    icon: Logs
+                }                
             ] : []),
         ]
     }
