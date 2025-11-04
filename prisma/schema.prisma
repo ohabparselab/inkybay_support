@@ -250,6 +250,9 @@ model FeatureRequest {
     clientId       Int?
     chatId         Int?     @unique
     featureDetails String?  @db.Text
+    shopUrl        String?
+    shopName       String?
+    email          String?
     createdBy      Int?
     updatedBy      Int?
     createdAt      DateTime @default(now())
