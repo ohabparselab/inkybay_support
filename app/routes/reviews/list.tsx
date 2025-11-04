@@ -1,7 +1,6 @@
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "~/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "~/components/ui/dropdown-menu"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "~/components/ui/table";
-import { DateAndDateRangeFilter } from "~/components/ui/date-range-filter";
-import { Eye, PenBox, Trash2, Search, AlertTriangle, Plus } from "lucide-react";
+import { Eye, PenBox, Trash2, Search, AlertTriangle, Plus, Ellipsis } from "lucide-react";
 import { DynamicSelectFilter } from "~/components/dynamic-select-filter"
 import { Suspense, lazy, useEffect, useState } from "react";
 import { PaginationBar } from "~/components/pagination-bar";
@@ -11,9 +10,14 @@ import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner"
 import { CenterSpinner } from "~/components/ui/center-spinner";
+import { DynamicDateFilter } from "~/components/dynamic-date-filter";
 
 const AddReviewModal = lazy(() =>
     import("~/components/modals/add-review-modal").then((m) => ({ default: m.AddReviewModal }))
+);
+
+const ViewReviewDetailsModal = lazy(() =>
+    import("~/components/modals/view-review-modal").then((m) => ({ default: m.ReviewDetailsModal }))
 );
 
 export const meta = () => [{ title: "Reviews | InkyBay" }];
@@ -27,9 +31,10 @@ export async function loader({ request }: any) {
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
 
-    const date = url.searchParams.get("date");
-    const startDate = url.searchParams.get("startDate");
-    const endDate = url.searchParams.get("endDate");
+    const reviewDate = url.searchParams.get("reviewDate");
+    const reviewDateStart = url.searchParams.get("reviewDateStart");
+    const reviewDateEnd = url.searchParams.get("reviewDateEnd");
+
     const ratingMood = url.searchParams.get("ratingMood");
 
     const where: any = search
@@ -44,16 +49,28 @@ export async function loader({ request }: any) {
 
     if (ratingMood) where.ratingMood = ratingMood;
 
-    if (date) {
+    if (reviewDate) {
+        const start = new Date(reviewDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(reviewDate);
+        end.setHours(23, 59, 59, 999);
+
         where.reviewDate = {
-            gte: new Date(`${date}T00:00:00.000Z`),
-            lt: new Date(`${date}T23:59:59.999Z`)
-        }
-    } else if (startDate && endDate) {
+            gte: start,
+            lt: end,
+        };
+    } else if (reviewDateStart && reviewDateEnd) {
+        const start = new Date(reviewDateStart);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(reviewDateEnd);
+        end.setHours(23, 59, 59, 999);
+
         where.reviewDate = {
-            gte: new Date(`${startDate}T00:00:00.000Z`),
-            lt: new Date(`${endDate}T23:59:59.999Z`)
-        }
+            gte: start,
+            lt: end,
+        };
     }
 
     const [reviews, total] = await Promise.all([
@@ -65,6 +82,9 @@ export async function loader({ request }: any) {
             include: {
                 chat: { select: { client: { select: { shopDomain: true } } } },
                 meeting: { select: { storeUrl: true } },
+                approachByUser: true,
+                createdByUser: true
+
             }
         }),
         prisma.review.count({ where })
@@ -78,9 +98,9 @@ export async function loader({ request }: any) {
             limit,
             totalPages: Math.ceil(total / limit),
             search,
-            date,
-            startDate,
-            endDate,
+            reviewDate,
+            reviewDateStart,
+            reviewDateEnd,
             ratingMood
         }
     }
@@ -88,11 +108,16 @@ export async function loader({ request }: any) {
 
 export default function ReviewListPage() {
 
-    const { reviews, meta } = useLoaderData<typeof loader>();
     const navigate = useNavigate();
+    const { reviews, meta } = useLoaderData<typeof loader>();
+    const [search, setSearch] = useState(meta.search ?? "");
     const [loading, setLoading] = useState(true);
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
-    const [search, setSearch] = useState(meta.search ?? "");
+    const [viewReviewModalOpen, setViewReviewModalOpen] = useState(false);
+    const [editReviewModalOpen, setEditReviewModalOpen] = useState(false);
+    const [selectedReview, setSelectedReview] = useState<any | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
 
     const navigateWithLoading = (url: string) => {
         setLoading(true);
@@ -167,7 +192,17 @@ export default function ReviewListPage() {
                             <TableHead>Shop URL</TableHead>
                             <TableHead>Rating Mood</TableHead>
                             <TableHead>Rating</TableHead>
-                            <TableHead>Review Date</TableHead>
+                            <TableHead>
+                                <div className="flex items-center gap-2">
+                                    <span>Review Date</span>
+                                    <DynamicDateFilter
+                                        label="Review Date"
+                                        paramKey="reviewDate"
+                                        meta={meta}
+                                        navigateWithLoading={navigateWithLoading}
+                                    />
+                                </div>
+                            </TableHead>
                             <TableHead>Approached By</TableHead>
                             <TableHead>Actions</TableHead>
                         </TableRow>
@@ -186,24 +221,45 @@ export default function ReviewListPage() {
                             <TableRow key={rev.id}>
                                 <TableCell>{i + 1}</TableCell>
                                 <TableCell className="text-blue-600">
-                                    {rev.chat?.client?.shopDomain ??
+                                    {rev.shopUrl ?? rev.chat?.client?.shopDomain ??
                                         rev.meeting?.storeUrl ??
                                         "—"}
                                 </TableCell>
                                 <TableCell className="capitalize">{rev.ratingMood ?? "—"}</TableCell>
                                 <TableCell>{rev.agentRating ?? "—"}</TableCell>
                                 <TableCell>{rev.reviewDate ? new Date(rev.reviewDate).toLocaleDateString() : "—"}</TableCell>
-                                <TableCell>{rev.agentRating ?? "—"}</TableCell>
+                                <TableCell>{rev.approachByUser?.fullName ?? "—"}</TableCell>
 
                                 <TableCell>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon"><Eye /></Button>
+                                            <Button variant="ghost" className="cursor-pointer" size="icon">
+                                                <Ellipsis />
+                                            </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                            <DropdownMenuItem><Eye /> View</DropdownMenuItem>
-                                            <DropdownMenuItem><PenBox /> Edit</DropdownMenuItem>
-                                            <DropdownMenuItem className="text-red-600">
+                                            <DropdownMenuItem onClick={() => {
+                                                setSelectedReview(rev);
+                                                setViewReviewModalOpen(true);
+                                            }}>
+                                                <Eye /> View Details
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onClick={() => {
+                                                    setSelectedReview(rev);
+                                                    setEditReviewModalOpen(true);
+                                                }}
+                                            >
+                                                <PenBox /> Edit Review
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                                variant="destructive"
+                                                onClick={() => {
+                                                    setSelectedReview(rev);
+                                                    setDeleteDialogOpen(true);
+                                                }}
+                                            >
                                                 <Trash2 /> Delete
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
@@ -228,6 +284,17 @@ export default function ReviewListPage() {
                         open={reviewModalOpen}
                         onOpenChange={setReviewModalOpen}
                         refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+
+            {/* View review Modal */}
+            {viewReviewModalOpen && selectedReview && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <ViewReviewDetailsModal
+                        review={selectedReview}
+                        open={viewReviewModalOpen}
+                        onOpenChange={setViewReviewModalOpen}
                     />
                 </Suspense>
             )}

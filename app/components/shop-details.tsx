@@ -50,7 +50,7 @@ export function ShopDetails({ shopUrl }: ShopDetailsProps) {
         <section>
             <h2 className="text-lg font-semibold mb-3">Shop Details</h2>
             {isShopEmpty ? (
-                <div className="text-center py-4">
+                <div className="text-gray-400 text-sm text-center py-4">
                     No shop details found
                 </div>
             ) : (
