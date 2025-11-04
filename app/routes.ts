@@ -26,6 +26,7 @@ export default [
         route("tasks", "./routes/tasks/list.tsx"),
         route("meetings", "./routes/meetings/list.tsx"),
         route("marketing-funnels", "./routes/marketing-funnels/list.tsx"),
+        route("reviews", "./routes//reviews/list.tsx"),
         
         // settings routes
         route("settings/permissions", "./routes/settings/permission.list.tsx"),
