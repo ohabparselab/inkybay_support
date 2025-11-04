@@ -14,3 +14,25 @@ export const parseDate = (val: FormDataEntryValue | null) => {
     const date = new Date(val.toString());
     return isNaN(date.getTime()) ? null : date;
 };
+
+export const generateActivityDescription = (log: any): string => {
+    const { action, modelName, user, recordId } = log;
+
+    const actor = user?.fullName || "Someone";
+    const entity = modelName || "Record";
+
+    switch (action) {
+        case "CREATE":
+            return `${actor} created a new ${entity} (ID: ${recordId})`;
+        case "UPDATE":
+            return `${actor} updated ${entity} (ID: ${recordId})`;
+        case "DELETE":
+            return `${actor} deleted ${entity} (ID: ${recordId})`;
+        case "COMMENT":
+            return `${actor} commented on ${entity} (ID: ${recordId})`;
+        case "REVIEW":
+            return `${actor} reviewed ${entity} (ID: ${recordId})`;
+        default:
+            return `${actor} performed ${action?.toLowerCase()} on ${entity}`;
+    }
+}
