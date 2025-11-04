@@ -27,6 +27,7 @@ export default [
         route("meetings", "./routes/meetings/list.tsx"),
         route("marketing-funnels", "./routes/marketing-funnels/list.tsx"),
         route("reviews", "./routes//reviews/list.tsx"),
+        route("features", "./routes//features/list.tsx"),
 
         // settings routes
         route("settings/permissions", "./routes/settings/permission.list.tsx"),
@@ -66,6 +67,9 @@ export default [
     // review api routes
     route("api/reviews", "./api/reviews/index.ts"),
     route("api/reviews/:reviewId", "./api/reviews/$reviewId.ts"),
+    // review api routes
+    // route("api/features", "./api/features/index.ts"),
+    // route("api/features/:featureId", "./api/features/$featureId.ts"),
 
 
     // settings api

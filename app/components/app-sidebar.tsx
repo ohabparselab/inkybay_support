@@ -84,7 +84,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             },
             {
                 title: "Feature Requests",
-                url: "/feature-requests",
+                url: "/features",
                 icon: CircleQuestionMark,
             },
             {

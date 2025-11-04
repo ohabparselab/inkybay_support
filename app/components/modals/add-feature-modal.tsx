@@ -1,0 +1,127 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
+import { Button } from "~/components/ui/button";
+import { Label } from "~/components/ui/label";
+
+import { z } from "zod";
+import { ListRestart, Plus, X } from "lucide-react";
+import { Spinner } from "../ui/spinner";
+
+// Zod validation schema
+const addFeatureRequestSchema = z.object({
+    shopUrl: z.string().optional(),
+    shopName: z.string().optional(),
+    email:  z.string().or(z.string().email().optional()),
+    featureDetails: z.string().min(1, "Feature Details are required"),
+});
+
+type AddFeatureRequestInput = z.infer<typeof addFeatureRequestSchema>;
+
+interface AddFeatureRequestModalProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    refreshPage?: () => void;
+}
+
+export function AddFeatureRequestModal({ open, onOpenChange, refreshPage }: AddFeatureRequestModalProps) {
+
+    const [loading, setLoading] = useState(false);
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<AddFeatureRequestInput>({
+        resolver: zodResolver(addFeatureRequestSchema),
+        defaultValues: {
+            shopUrl: "",
+            shopName: "",
+            email: "",
+            featureDetails: "",
+        },
+    });
+
+    const onSubmit = async (data: AddFeatureRequestInput) => {
+        try {
+            setLoading(true);
+
+            const res = await fetch("/api/features", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.message || "Failed to add feature request");
+
+            toast.success("Feature request added successfully!");
+            reset();
+            onOpenChange(false);
+            if (refreshPage) refreshPage();
+        } catch (err: any) {
+            toast.error(err.message || "Something went wrong!");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Add Feature Request</DialogTitle>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-3">
+                    {/* Shop URL & Shop Name */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <Label className="mb-2">Shop URL</Label>
+                            <Input {...register("shopUrl")} placeholder="store.myshopify.com" />
+                            {errors.shopUrl && <p className="text-sm text-red-500">{errors.shopUrl.message}</p>}
+                        </div>
+                        <div>
+                            <Label className="mb-2">Shop Name</Label>
+                            <Input {...register("shopName")} placeholder="My Shopify Store" />
+                            {errors.shopName && <p className="text-sm text-red-500">{errors.shopName.message}</p>}
+                        </div>
+                    </div>
+
+                    {/* Email */}
+                    <div>
+                        <Label className="mb-2">Email</Label>
+                        <Input {...register("email")} placeholder="example@email.com" />
+                        {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+                    </div>
+
+                    {/* Feature Details */}
+                    <div>
+                        <Label className="mb-2">Feature Details</Label>
+                        <Textarea {...register("featureDetails")} placeholder="Describe the feature request..." className="h-[15vh]" />
+                        {errors.featureDetails && <p className="text-sm text-red-500">{errors.featureDetails.message}</p>}
+                    </div>
+
+                    {/* Footer Buttons */}
+                   <DialogFooter className="flex !justify-center gap-3 mt-6">
+                        <Button variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
+                            <X /> Cancel
+                        </Button>
+                        <Button variant="outline" onClick={() => reset()}>
+                            <ListRestart /> Reset
+                        </Button>
+                        <Button type="submit" disabled={loading}>
+                            {loading ? <Spinner /> : <Plus />} Add Feature Request
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
