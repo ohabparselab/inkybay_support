@@ -263,6 +263,15 @@ export const addReviewSchema = z.object({
     reviewSubmittedAt: z.date().optional(),
 });
 
+export const addFeatureRequestSchema = z.object({
+    shopUrl: z.string().optional(),
+    shopName: z.string().optional(),
+    email:  z.string().or(z.string().email().optional()),
+    featureDetails: z.string().min(1, "Feature Details are required"),
+});
+
+export type AddFeatureRequestInput = z.infer<typeof addFeatureRequestSchema>;
+
 export type AddReviewInput = z.infer<typeof addReviewSchema>;
 export type AddPlatformForm = z.infer<typeof addPlatformSchema>;
 export type AddProjectForm = z.infer<typeof addProjectSchema>;

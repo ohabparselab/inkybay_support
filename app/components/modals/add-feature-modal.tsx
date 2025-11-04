@@ -4,24 +4,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "~/components/ui/dialog";
-import { Input } from "~/components/ui/input";
+import { addFeatureRequestSchema, type AddFeatureRequestInput } from "~/lib/validations";
 import { Textarea } from "~/components/ui/textarea";
-import { Button } from "~/components/ui/button";
-import { Label } from "~/components/ui/label";
-
-import { z } from "zod";
 import { ListRestart, Plus, X } from "lucide-react";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import { Spinner } from "../ui/spinner";
 
-// Zod validation schema
-const addFeatureRequestSchema = z.object({
-    shopUrl: z.string().optional(),
-    shopName: z.string().optional(),
-    email:  z.string().or(z.string().email().optional()),
-    featureDetails: z.string().min(1, "Feature Details are required"),
-});
-
-type AddFeatureRequestInput = z.infer<typeof addFeatureRequestSchema>;
 
 interface AddFeatureRequestModalProps {
     open: boolean;
