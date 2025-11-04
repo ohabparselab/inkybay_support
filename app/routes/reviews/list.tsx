@@ -2,6 +2,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "~/components/ui/table";
 import { Eye, PenBox, Trash2, Search, AlertTriangle, Plus, Ellipsis } from "lucide-react";
 import { DynamicSelectFilter } from "~/components/dynamic-select-filter"
+import { DynamicDateFilter } from "~/components/dynamic-date-filter";
+import { CenterSpinner } from "~/components/ui/center-spinner";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { PaginationBar } from "~/components/pagination-bar";
 import { useLoaderData, useNavigate } from "react-router";
@@ -9,8 +11,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner"
-import { CenterSpinner } from "~/components/ui/center-spinner";
-import { DynamicDateFilter } from "~/components/dynamic-date-filter";
+import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 
 const AddReviewModal = lazy(() =>
     import("~/components/modals/add-review-modal").then((m) => ({ default: m.AddReviewModal }))
@@ -18,6 +19,10 @@ const AddReviewModal = lazy(() =>
 
 const ViewReviewDetailsModal = lazy(() =>
     import("~/components/modals/view-review-modal").then((m) => ({ default: m.ReviewDetailsModal }))
+);
+
+const EditReviewModal = lazy(() =>
+    import("~/components/modals/edit-review-modal").then((m) => ({ default: m.EditReviewModal }))
 );
 
 export const meta = () => [{ title: "Reviews | InkyBay" }];
@@ -31,9 +36,9 @@ export async function loader({ request }: any) {
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
 
-    const reviewDate = url.searchParams.get("reviewDate");
-    const reviewDateStart = url.searchParams.get("reviewDateStart");
-    const reviewDateEnd = url.searchParams.get("reviewDateEnd");
+    const reviewSubmittedAt = url.searchParams.get("reviewSubmittedAt");
+    const reviewSubmittedAtStart = url.searchParams.get("reviewSubmittedAtStart");
+    const reviewSubmittedAtEnd = url.searchParams.get("reviewSubmittedAtEnd");
 
     const ratingMood = url.searchParams.get("ratingMood");
 
@@ -49,25 +54,25 @@ export async function loader({ request }: any) {
 
     if (ratingMood) where.ratingMood = ratingMood;
 
-    if (reviewDate) {
-        const start = new Date(reviewDate);
+    if (reviewSubmittedAt) {
+        const start = new Date(reviewSubmittedAt);
         start.setHours(0, 0, 0, 0);
 
-        const end = new Date(reviewDate);
+        const end = new Date(reviewSubmittedAt);
         end.setHours(23, 59, 59, 999);
 
-        where.reviewDate = {
+        where.reviewSubmittedAt = {
             gte: start,
             lt: end,
         };
-    } else if (reviewDateStart && reviewDateEnd) {
-        const start = new Date(reviewDateStart);
+    } else if (reviewSubmittedAtStart && reviewSubmittedAtEnd) {
+        const start = new Date(reviewSubmittedAtStart);
         start.setHours(0, 0, 0, 0);
 
-        const end = new Date(reviewDateEnd);
+        const end = new Date(reviewSubmittedAtEnd);
         end.setHours(23, 59, 59, 999);
 
-        where.reviewDate = {
+        where.reviewSubmittedAt = {
             gte: start,
             lt: end,
         };
@@ -98,9 +103,9 @@ export async function loader({ request }: any) {
             limit,
             totalPages: Math.ceil(total / limit),
             search,
-            reviewDate,
-            reviewDateStart,
-            reviewDateEnd,
+            reviewSubmittedAt,
+            reviewSubmittedAtStart,
+            reviewSubmittedAtEnd,
             ratingMood
         }
     }
@@ -117,7 +122,6 @@ export default function ReviewListPage() {
     const [editReviewModalOpen, setEditReviewModalOpen] = useState(false);
     const [selectedReview, setSelectedReview] = useState<any | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
 
     const navigateWithLoading = (url: string) => {
         setLoading(true);
@@ -157,6 +161,21 @@ export default function ReviewListPage() {
         navigateWithLoading(window.location.pathname + window.location.search);
     };
 
+    const handleDelete = async () => {
+        if (!selectedReview) return;
+
+        try {
+            const res = await fetch(`/api/reviews/${selectedReview.id}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) toast.error("Failed to delete review.");
+            toast.success("Reviews deleted successfully.");
+            refreshPage();
+        } catch (err: any) {
+            toast.error(err.message || "Failed to delete review.");
+        }
+    }
+
     return (
         <div className="px-6 space-y-3">
             <div className="flex items-center justify-between">
@@ -194,10 +213,10 @@ export default function ReviewListPage() {
                             <TableHead>Rating</TableHead>
                             <TableHead>
                                 <div className="flex items-center gap-2">
-                                    <span>Review Date</span>
+                                    <span>Review Submitted At</span>
                                     <DynamicDateFilter
-                                        label="Review Date"
-                                        paramKey="reviewDate"
+                                        label="Review Submitted At"
+                                        paramKey="reviewSubmittedAt"
                                         meta={meta}
                                         navigateWithLoading={navigateWithLoading}
                                     />
@@ -227,7 +246,7 @@ export default function ReviewListPage() {
                                 </TableCell>
                                 <TableCell className="capitalize">{rev.ratingMood ?? "—"}</TableCell>
                                 <TableCell>{rev.agentRating ?? "—"}</TableCell>
-                                <TableCell>{rev.reviewDate ? new Date(rev.reviewDate).toLocaleDateString() : "—"}</TableCell>
+                                <TableCell>{rev.reviewSubmittedAt ? new Date(rev.reviewSubmittedAt).toLocaleDateString() : "—"}</TableCell>
                                 <TableCell>{rev.approachByUser?.fullName ?? "—"}</TableCell>
 
                                 <TableCell>
@@ -295,6 +314,29 @@ export default function ReviewListPage() {
                         review={selectedReview}
                         open={viewReviewModalOpen}
                         onOpenChange={setViewReviewModalOpen}
+                    />
+                </Suspense>
+            )}
+
+            {/* Edit Review Modal */}
+            {editReviewModalOpen && selectedReview && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <EditReviewModal
+                        review={selectedReview}
+                        open={editReviewModalOpen}
+                        onOpenChange={setEditReviewModalOpen}
+                        refreshPage={refreshPage}
+                    />
+                </Suspense>
+            )}
+            {deleteDialogOpen && selectedReview && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <DeleteConfirmDialog
+                        open={deleteDialogOpen}
+                        onOpenChange={setDeleteDialogOpen}
+                        title="Delete Review?"
+                        description="Are you sure you want to permanently delete this review? This action cannot be undone."
+                        onConfirm={async () => handleDelete()}
                     />
                 </Suspense>
             )}
