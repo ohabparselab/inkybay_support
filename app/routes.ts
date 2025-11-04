@@ -62,6 +62,9 @@ export default [
     route("api/marketing-funnels", "./api/marketing-funnels/index.ts"),
     route("api/marketing-funnels/get-marketing-funnels-by-client-id", "./api/marketing-funnels/get-marketing-funnels-by-client-id.ts"),
     route("api/marketing-funnels/:mfId", "./api/marketing-funnels/$mfId.ts"),
+
+    // review api routes
+    route("api/reviews", "./api/reviews/index.ts"),
     
     // settings api
     route("api/settings/projects", "./api/settings/projects/index.ts"),

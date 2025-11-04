@@ -1,35 +1,20 @@
+import { CalendarIcon, Plus, X, ListRestart, Star } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
 import { toast } from "sonner";
-import { CalendarIcon, Plus, X, ListRestart, Star } from "lucide-react";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { addReviewSchema, type AddReviewInput } from "~/lib/validations";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Spinner } from "@/components/ui/spinner";
-import { cn } from "@/lib/utils";
-import { z } from "zod";
-
-// Zod validation schema
-const addReviewSchema = z.object({
-    shopUrl: z.string().optional(),
-    shopName: z.string().optional(),
-    agentRating: z.number().optional(),
-    ratingMood: z.string().optional(),
-    reviewText: z.string().min(3, "Review text required"),
-    reviewApproachBy: z.string().optional(),
-    lastReviewApproach: z.date().optional(),
-    reviewSubmittedAt: z.date().optional(),
-});
-
-type AddReviewInput = z.infer<typeof addReviewSchema>;
 
 interface AddReviewModalProps {
     open: boolean;
@@ -69,7 +54,8 @@ export function AddReviewModal({ open, onOpenChange, refreshPage }: AddReviewMod
         try {
             setFormSubmitLoading(true);
 
-            console.log("======data===>>", data)
+            console.log("======data===>>", data);
+            // return;
             const res = await fetch("/api/reviews", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -104,7 +90,7 @@ export function AddReviewModal({ open, onOpenChange, refreshPage }: AddReviewMod
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <Label className="mb-2">Store URL</Label>
-                            <Input {...register("shopUrl")} placeholder="https://store.myshopify.com" />
+                            <Input {...register("shopUrl")} placeholder="store.myshopify.com" />
                             {errors.shopUrl && <p className="text-sm text-red-500">{errors.shopUrl.message}</p>}
                         </div>
                         <div>

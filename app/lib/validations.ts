@@ -252,6 +252,18 @@ export const addPlatformSchema = z.object({
     slug: z.string().min(2, "Slug is required")
 });
 
+export const addReviewSchema = z.object({
+    shopUrl: z.string().optional(),
+    shopName: z.string().optional(),
+    agentRating: z.number().optional(),
+    ratingMood: z.string().optional(),
+    reviewText: z.string().min(3, "Review text required"),
+    reviewApproachBy: z.string().optional(),
+    lastReviewApproach: z.date().optional(),
+    reviewSubmittedAt: z.date().optional(),
+});
+
+export type AddReviewInput = z.infer<typeof addReviewSchema>;
 export type AddPlatformForm = z.infer<typeof addPlatformSchema>;
 export type AddProjectForm = z.infer<typeof addProjectSchema>;
 export type AddMarketingFunnelInput = z.infer<typeof addMarketingFunnelSchema>;
