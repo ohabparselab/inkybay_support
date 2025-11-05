@@ -34,16 +34,14 @@ export async function loader({ request }: any) {
     const url = new URL(request.url);
     const page = Number(url.searchParams.get("page") || 1);
     const limit = Number(url.searchParams.get("limit") || 10);
-    const search = url.searchParams.get("search") || "";
     const skip = (page - 1) * limit;
+    const search = url.searchParams.get("search") || "";
     const searchLower = search.toLowerCase();
 
     const requestType = url.searchParams.get("requestType") || "";
-
     const completedDate = url.searchParams.get("completedDate");
     const completedDateStart = url.searchParams.get("completedDateStart");
     const completedDateEnd = url.searchParams.get("completedDateEnd");
-
     const createdAt = url.searchParams.get("createdAt");
     const createdAtStart = url.searchParams.get("createdAtStart");
     const createdAtEnd = url.searchParams.get("createdAtEnd");
@@ -53,9 +51,16 @@ export async function loader({ request }: any) {
     const where: any = search
         ? {
             OR: [
-                { appName: { contains: searchLower, mode: "insensitive" } },
-                { companyName: { contains: searchLower, mode: "insensitive" } },
-                { appUrl: { contains: searchLower, mode: "insensitive" } },
+                { appName: { contains: searchLower } },
+                { companyName: { contains: searchLower } },
+                { appUrl: { contains: searchLower } },
+                {
+                    emails: {
+                        some: {
+                            email: { contains: searchLower },
+                        },
+                    },
+                }
             ],
         }
         : {};
