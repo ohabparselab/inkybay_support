@@ -11,8 +11,7 @@ interface Comment {
 
 interface CommentBoxProps {
     parentType: "task" | "chat";
-    parentId?: number; // undefined for new parent
-    currentUserId: number;
+    parentId?: number;
     existingComments?: Comment[];
     onCommentAdded?: (comment: Comment) => void;
     onDraftCommentsChange?: (drafts: Comment[]) => void;
@@ -21,11 +20,11 @@ interface CommentBoxProps {
 export function CommentBox({
     parentType,
     parentId,
-    currentUserId,
     existingComments = [],
     onCommentAdded,
     onDraftCommentsChange,
 }: CommentBoxProps) {
+
     const [comments, setComments] = useState<Comment[]>(existingComments);
     const [replyTo, setReplyTo] = useState<number | null>(null);
     const [content, setContent] = useState("");
@@ -34,13 +33,17 @@ export function CommentBox({
     const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
     const [mentionQuery, setMentionQuery] = useState("");
     const editorRef = useRef<HTMLDivElement>(null);
-
+    console.log("---existingComments------->>", existingComments);
     // Fetch users for mentions
     useEffect(() => {
         fetch("/api/users")
             .then((res) => res.json())
             .then((data) => setUsers(data.users));
     }, []);
+
+    useEffect(() => {
+        setComments(existingComments);
+    }, [existingComments]);
 
     // Detect "@" mentions inside contenteditable
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
@@ -89,11 +92,11 @@ export function CommentBox({
 
     const handleSubmit = async () => {
         if (!content.trim() || !parentId) return;
-
+        console.log(content)
         const res = await fetch("/api/comments", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content, userId: currentUserId, [parentType + "Id"]: parentId }),
+            body: JSON.stringify({ content, [parentType + "Id"]: parentId }),
         });
         if (res.ok) {
             const saved: Comment = await res.json();
@@ -132,7 +135,7 @@ export function CommentBox({
                 onInput={handleInput}
                 contentEditable
                 className="border rounded p-2 min-h-[80px] focus:outline-none focus:ring focus:ring-blue-300"
-                // placeholder={replyTo ? "Write a reply..." : "Write a comment... use @ to mention someone"}
+            // placeholder={replyTo ? "Write a reply..." : "Write a comment... use @ to mention someone"}
             ></div>
 
             {/* Mentions dropdown */}

@@ -3,7 +3,7 @@ import { prisma } from "~/lib/prisma.server"
 export async function action({ request, params }: { request: Request; params: any }) {
 
     const mfId = Number(params.mfId);
-    if (!mfId) return new Response(JSON.stringify({ message: "Task ID required" }), { status: 400 });
+    if (!mfId) return new Response(JSON.stringify({ message: "funnels ID required" }), { status: 400 });
 
     switch (request.method.toUpperCase()) {
         case "PUT":

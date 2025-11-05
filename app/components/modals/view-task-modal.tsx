@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { HtmlViewer, HtmlViewerWithIframe } from "@/components/ui/html-viewer";
+import { CommentBox } from "../comment-box";
+import { useEffect, useState } from "react";
 
 interface ViewTaskDetailsModalProps {
     open: boolean;
@@ -21,9 +23,27 @@ interface ViewTaskDetailsModalProps {
 
 export function ViewTaskDetailsModal({ open, onOpenChange, task }: ViewTaskDetailsModalProps) {
 
+    const [comments, setComments] = useState<any>([]);
+
     if (!task) return null;
 
     const formatDate = (date?: Date | string | null) => date ? format(new Date(date), "PPPp") : "-";
+
+    const fetchComments = async () => {
+        try {
+
+            const res = await fetch("/api/task-comments/3");
+            const data = await res.json();
+            setComments(data.comments);
+
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        }
+    }
+
+    useEffect(() => {
+        fetchComments();
+    }, [task.id]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -70,7 +90,18 @@ export function ViewTaskDetailsModal({ open, onOpenChange, task }: ViewTaskDetai
                             <p><strong>Project:</strong> <Badge variant="secondary">{task.project?.name}</Badge></p>
                         </div>
                     </div>
+                    <h2 className="text-bold">Comments</h2>
+                    {/* <Separator />
+                    <CommentBox
+                        parentType="task"
+                        parentId={task.id}
+                        existingComments={comments}
+                        onCommentAdded={(newComment) => {
+                            setComments([...comments, newComment]);
+                        }}
+                    /> */}
                     <Separator />
+
                     <ShopDetails shopUrl={task.client.shopDomain} />
                     <Separator />
                     <ShopHistory shopUrl={task.client.shopDomain} />
