@@ -137,12 +137,13 @@ export function EditCollaborationModal({
         }
     };
 
-    if (loading)
+    if (loading) {
         return (
             <Dialog open={open} onOpenChange={onOpenChange}>
                 <CenterSpinner />
             </Dialog>
         );
+    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
