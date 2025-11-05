@@ -17,38 +17,38 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-
 import { AddCollaborationSchema, type AddCollaborationInput } from "~/lib/validations";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon, ListRestart, Plus, Save, X } from "lucide-react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
-import { CalendarIcon, ListRestart, Plus, X } from "lucide-react";
 import { CenterSpinner } from "@/components/ui/center-spinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect, Suspense } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { AddOptionModal } from "./add-option-modal";
 import { Spinner } from "@/components/ui/spinner";
-import { format } from "date-fns";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
-interface collaborationModalProps {
-    open: boolean,
-    onOpenChange: (open: boolean) => void,
-    refreshPage?: () => void
+interface EditCollaborationModalProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    refreshPage?: () => void;
+    collaborationId: number | null;
 }
 
-export function AddCollaborationModal({
+export function EditCollaborationModal({
     open,
     onOpenChange,
-    refreshPage
-}: collaborationModalProps) {
+    refreshPage,
+    collaborationId,
+}: EditCollaborationModalProps) {
 
     const [areaOptions, setAreaOptions] = useState<any[]>([]);
     const [statusOptions, setStatusOptions] = useState<any[]>([]);
-    const [users, setUsers] = useState<any>([]);
-    const [projects, setProjects] = useState<any>([]);
-    const [loadingUsers, setLoadingUsers] = useState(false);
-    const [loadingProjects, setLoadingProjects] = useState(false);
+    const [users, setUsers] = useState<any[]>([]);
+    const [projects, setProjects] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
     const [addStatusModalOpen, setAddStatusModalOpen] = useState(false);
     const [addColAreaModalOpen, setAddColAreaModalOpen] = useState(false);
 
@@ -72,68 +72,83 @@ export function AddCollaborationModal({
         name: "emails",
     });
 
-    const fetchUsers = async () => {
-        try {
-            setLoadingUsers(true);
-            const res = await fetch("/api/users");
-            const data = await res.json();
-            setUsers(data.users);
-        } catch (err) {
-            console.error("Failed to fetch users:", err);
-        } finally {
-            setLoadingUsers(false);
-        }
-    }
-
-    const fetchProjects = async () => {
-        try {
-            setLoadingProjects(true);
-            const res = await fetch("/api/settings/projects");
-            const data = await res.json();
-            setProjects(data.projects);
-        } catch (err) {
-            console.error("Failed to fetch projects:", err);
-        } finally {
-            setLoadingProjects(false);
-        }
-    }
-
+    // Fetch options (areas, statuses, users, projects)
     useEffect(() => {
         if (!open) return;
-
         fetch("/api/collaboration-areas")
-            .then(res => res.json())
-            .then(data => setAreaOptions(data.areas || []));
-
+            .then((res) => res.json())
+            .then((data) => setAreaOptions(data.areas || []));
         fetch("/api/collaboration-statuses")
-            .then(res => res.json())
-            .then(data => setStatusOptions(data.statuses || []));
-        fetchUsers();
-        fetchProjects();
+            .then((res) => res.json())
+            .then((data) => setStatusOptions(data.statuses || []));
+        fetch("/api/users")
+            .then((res) => res.json())
+            .then((data) => setUsers(data.users || []));
+        fetch("/api/settings/projects")
+            .then((res) => res.json())
+            .then((data) => setProjects(data.projects || []));
     }, [open]);
 
-    const onSubmit = async (data: AddCollaborationInput) => {
+    // Fetch existing data to edit
+    useEffect(() => {
+        if (!collaborationId || !open) return;
+        setLoading(true);
+        fetch(`/api/collaborations/${collaborationId}`)
+            .then((res) => res.json())
+            .then((data) => {
+                const c = data.collaboration;
+                reset({
+                    appName: c.appName,
+                    appUrl: c.appUrl || "",
+                    companyName: c.companyName || "",
+                    companyUrl: c.companyUrl || "",
+                    appDetails: c.appDetails || "",
+                    emails: c.emails?.map((e: any) => e.email) || [],
+                    projectId: c.projectId ? String(c.projectId) : undefined,
+                    appAddedDate: c.appAddedDate ? new Date(c.appAddedDate) : undefined,
+                    completedDate: c.completedDate ? new Date(c.completedDate) : undefined,
+                    collaborationAreas:
+                        c.collaborationAreas?.map((a: any) => a.areaOptionId) || [],
+                    statusId: c.statusId ? String(c.statusId) : undefined,
+                    sendById: c.sendById ? String(c.sendById) : undefined,
+                    comments: c.comments || "",
+                    meetingDetails: c.meetingDetails || "",
+                    requestType: c.requestType || undefined,
+                });
+            })
+            .catch(() => toast.error("Failed to fetch collaboration data"))
+            .finally(() => setLoading(false));
+    }, [collaborationId, open, reset]);
 
-        const res = await fetch("/api/collaborations", {
-            method: "POST",
+    // Submit Update
+    const onSubmit = async (data: AddCollaborationInput) => {
+        if (!collaborationId) return;
+        const res = await fetch(`/api/collaborations/${collaborationId}`, {
+            method: "PUT",
             body: JSON.stringify(data),
         });
 
         if (res.ok) {
-            toast.success('New collaboration added successfully.');
+            toast.success("Collaboration updated successfully.");
             onOpenChange(false);
-            reset();
             if (refreshPage) refreshPage();
         } else {
-            toast.error('Something is wrong, please again.');
+            toast.error("Failed to update collaboration.");
         }
     };
+
+    if (loading)
+        return (
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <CenterSpinner />
+            </Dialog>
+        );
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
                 <DialogHeader>
-                    <DialogTitle>Add Collaboration</DialogTitle>
+                    <DialogTitle>Edit Collaboration</DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -180,15 +195,12 @@ export function AddCollaborationModal({
                                     <Select
                                         onValueChange={field.onChange}
                                         value={field.value}
-                                        disabled={loadingProjects}
                                     >
                                         <SelectTrigger className="w-full">
-                                            <SelectValue placeholder={loadingProjects ? "Loading..." : "Select Project"} />
+                                            <SelectValue placeholder={"Select Project"} />
                                         </SelectTrigger>
                                         <SelectContent className="w-full">
-                                            {loadingProjects ? (
-                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
-                                            ) : projects.length === 0 ? (
+                                            {projects.length === 0 ? (
                                                 <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
                                             ) : (
                                                 projects.map((project: any) => (
@@ -241,32 +253,40 @@ export function AddCollaborationModal({
                         <div>
                             <Label className="mb-2">Collaboration Areas</Label>
                             <div className="grid grid-cols-2 m-4 gap-2">
-                                {
-                                    areaOptions.length === 0 && (
-                                        <div className="p-2 text-center text-sm text-muted-foreground">No Collaboration Areas Found</div>
-                                    )
-                                }
+                                {areaOptions.length === 0 && (
+                                    <div className="p-2 text-center text-sm text-muted-foreground">
+                                        No Collaboration Areas Found
+                                    </div>
+                                )}
+
                                 {areaOptions.map((area) => (
                                     <div key={area.id} className="flex items-start space-x-2">
-
-                                        <Checkbox
-                                            value={area.id}
-                                            onCheckedChange={(checked) => {
-                                                const current = control._formValues.collaborationAreas || [];
-                                                if (checked) {
-                                                    setValue("collaborationAreas", [...current, area.id]);
-                                                } else {
-                                                    setValue(
-                                                        "collaborationAreas",
-                                                        current.filter((id: number) => id !== area.id)
-                                                    );
-                                                }
+                                        <Controller
+                                            name="collaborationAreas"
+                                            control={control}
+                                            render={({ field: { value = [], onChange } }) => {
+                                                const isChecked = value.includes(area.id);
+                                                return (
+                                                    <>
+                                                        <Checkbox
+                                                            checked={isChecked}
+                                                            onCheckedChange={(checked) => {
+                                                                if (checked) {
+                                                                    onChange([...value, area.id]);
+                                                                } else {
+                                                                    onChange(value.filter((id: number) => id !== area.id));
+                                                                }
+                                                            }}
+                                                        />
+                                                        <Label>{area.name}</Label>
+                                                    </>
+                                                );
                                             }}
                                         />
-                                        <Label>{area.name}</Label>
                                     </div>
                                 ))}
                             </div>
+
                             <Button
                                 type="button"
                                 variant="outline"
@@ -391,15 +411,24 @@ export function AddCollaborationModal({
                         {/* Request Type */}
                         <div>
                             <Label className="mb-2">Request Type</Label>
-                            <Select onValueChange={(v) => setValue("requestType", v)}>
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select request type." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Sent">Sent</SelectItem>
-                                    <SelectItem value="Received">Received</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <Controller
+                                control={control}
+                                name="requestType"
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={"Select request type"} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Sent">Sent</SelectItem>
+                                            <SelectItem value="Received">Received</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </div>
                         <div>
                             <Label className="mb-2">Send By</Label>
@@ -410,15 +439,12 @@ export function AddCollaborationModal({
                                     <Select
                                         onValueChange={field.onChange}
                                         value={field.value}
-                                        disabled={loadingUsers}
                                     >
                                         <SelectTrigger className="w-full">
-                                            <SelectValue placeholder={loadingUsers ? "Loading..." : "Select sent by"} />
+                                            <SelectValue placeholder={"Select sent by"} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {loadingUsers ? (
-                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
-                                            ) : users.length === 0 ? (
+                                            {users.length === 0 ? (
                                                 <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
                                             ) : (
                                                 users.map((user: any) => (
@@ -451,31 +477,29 @@ export function AddCollaborationModal({
 
                     {/* Footer */}
                     <DialogFooter className="!justify-center flex w-full">
-                        <Button onClick={() => {
-                            onOpenChange(false);
-                            reset();
-                        }} variant="destructive">
+                        <Button
+                            onClick={() => {
+                                onOpenChange(false);
+                                reset();
+                            }}
+                            variant="destructive"
+                        >
                             <X />
                             Cancel
                         </Button>
-                        <Button onClick={() => {
-                            reset();
-                        }} variant="outline">
+                        <Button onClick={() => reset()} variant="outline">
                             <ListRestart />
                             Reset
                         </Button>
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                        >
-                            {
-                                isSubmitting ? (<Spinner />) : (<Plus className="h-4 w-4" />)
-                            }
-                            Add Collaboration
+                        <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? <Spinner /> : <Save className="h-4 w-4" />}
+                            Update Collaboration
                         </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
+
+            {/* Nested Add Option Modals */}
             {addColAreaModalOpen && (
                 <Suspense fallback={<CenterSpinner />}>
                     <AddOptionModal

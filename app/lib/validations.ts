@@ -270,8 +270,45 @@ export const addFeatureRequestSchema = z.object({
     featureDetails: z.string().min(1, "Feature Details are required"),
 });
 
-export type AddFeatureRequestInput = z.infer<typeof addFeatureRequestSchema>;
+export const CollaborationSchema = z.object({
+    appName: z.string().min(1, "App name is required"),
+    appUrl: z.string().optional().nullable(),
+    companyName: z.string().optional().nullable(),
+    companyUrl: z.string().optional().nullable(),
+    appDetails: z.string().optional().nullable(),
+    emails: z.array(z.string().email()).optional().default([]),
+    projectId: z.union([z.string(), z.number()]).optional().nullable(),
+    appAddedDate: z.string().optional().nullable(),
+    completedDate: z.string().optional().nullable(),
+    collaborationAreas: z.array(z.number()).optional().default([]),
+    statusId: z.union([z.string(), z.number()]).optional().nullable(),
+    sendById: z.union([z.string(), z.number()]).optional().nullable(),
+    comments: z.string().optional().nullable(),
+    meetingDetails: z.string().optional().nullable(),
+    requestType: z.string().optional().nullable(),
+});
 
+export const AddCollaborationSchema = z.object({
+    appName: z.string().min(2, "App Name field is required."),
+    appUrl: z.string().optional(),
+    companyName: z.string().optional(),
+    companyUrl: z.string().optional(),
+    appDetails: z.string().optional(),
+    emails: z.array(z.string().email("Invalid Email")).optional(),
+    projectId: z.string().optional(),
+    appAddedDate: z.date().optional(),
+    completedDate: z.date().optional(),
+    collaborationAreas: z.array(z.number()).optional(),
+    statusId: z.string().optional(),
+    sendById: z.string().optional(),
+    comments: z.string().optional(),
+    meetingDetails: z.string().optional(),
+    requestType: z.string().optional(),
+});
+
+export type AddCollaborationInput = z.infer<typeof AddCollaborationSchema>;
+export type CollaborationInput = z.infer<typeof CollaborationSchema>;
+export type AddFeatureRequestInput = z.infer<typeof addFeatureRequestSchema>;
 export type AddReviewInput = z.infer<typeof addReviewSchema>;
 export type AddPlatformForm = z.infer<typeof addPlatformSchema>;
 export type AddProjectForm = z.infer<typeof addProjectSchema>;

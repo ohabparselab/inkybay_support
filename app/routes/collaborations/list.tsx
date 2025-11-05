@@ -15,9 +15,9 @@ import { toast } from "sonner";
 //     import("~/components/modals/view-collaboration-modal").then((m) => ({ default: m.ViewCollaborationModal }))
 // );
 
-// const EditCollaborationModal = lazy(() =>
-//     import("~/components/modals/edit-collaboration-modal").then((m) => ({ default: m.EditCollaborationModal }))
-// );
+const EditCollaborationModal = lazy(() =>
+    import("~/components/modals/edit-collaboration-modal").then((m) => ({ default: m.EditCollaborationModal }))
+);
 
 const AddCollaborationModal = lazy(() =>
     import("~/components/modals/add-collaboration-modal").then((m) => ({ default: m.AddCollaborationModal }))
@@ -224,7 +224,7 @@ export default function CollaborationsListPage() {
                                                     setEditModalOpen(true);
                                                 }}
                                             >
-                                                <PenBox /> Edit
+                                                <PenBox /> Edit Collaboration
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem
@@ -257,17 +257,17 @@ export default function CollaborationsListPage() {
                 <Suspense fallback={<CenterSpinner />}>
                     <ViewCollaborationModal open={viewModalOpen} onOpenChange={setViewModalOpen} collaboration={selected} />
                 </Suspense>
-            )}
+            )} */}
             {editModalOpen && selected && (
                 <Suspense fallback={<CenterSpinner />}>
                     <EditCollaborationModal
                         open={editModalOpen}
                         onOpenChange={setEditModalOpen}
-                        collaboration={selected}
+                        collaborationId={selected.id}
                         refreshPage={refreshPage}
                     />
                 </Suspense>
-            )} */}
+            )}
             {deleteDialogOpen && selected && (
                 <Suspense fallback={<CenterSpinner />}>
                     <DeleteConfirmDialog
