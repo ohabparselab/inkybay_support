@@ -29,6 +29,7 @@ export default [
         route("reviews", "./routes/reviews/list.tsx"),
         route("features", "./routes/features/list.tsx"),
         route("activity-logs", "./routes/activity-logs/list.tsx"),
+        route("collaborations", "./routes/collaborations/list.tsx"),
 
         // settings routes
         route("settings/permissions", "./routes/settings/permission.list.tsx"),
