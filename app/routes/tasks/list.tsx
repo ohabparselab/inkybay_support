@@ -15,16 +15,16 @@ import {
 } from "~/components/ui/table";
 import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
 import { AlertTriangle, Ellipsis, Eye, Filter, PenBox, Plus, Search, Trash2 } from "lucide-react";
+import { DateAndDateRangeFilter } from "~/components/ui/date-range-filter";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
+import { StatusFilter } from "~/components/ui/status-filter";
 import { PaginationBar } from "~/components/pagination-bar";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
-import { DateAndDateRangeFilter } from "~/components/ui/date-range-filter";
-import { StatusFilter } from "~/components/ui/status-filter";
 
 const AddTaskModal = lazy(() =>
     import("~/components/modals/add-task-modal").then((m) => ({ default: m.AddTaskModal }))
@@ -215,7 +215,6 @@ export default function TasksListPage() {
     }, [tasks]);
 
    
-
     return (
         <div className="px-6 space-y-2">
             <div className="flex items-center justify-between">

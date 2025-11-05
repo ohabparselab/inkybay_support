@@ -1,15 +1,19 @@
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "~/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Eye, PenBox, Trash2, Plus, Search, Ellipsis } from "lucide-react";
+import { DynamicSelectFilter } from "~/components/dynamic-select-filter";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
+import { DynamicDateFilter } from "~/components/dynamic-date-filter";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { PaginationBar } from "~/components/pagination-bar";
 import { useState, useEffect, Suspense, lazy } from "react";
 import { useLoaderData, useNavigate } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Badge } from "~/components/ui/badge";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
+import { StatusFilter } from "~/components/ui/status-filter";
 
 const ViewCollaborationModal = lazy(() =>
     import("~/components/modals/view-collaboration-modal").then((m) => ({ default: m.ViewCollaborationModal }))
@@ -34,6 +38,18 @@ export async function loader({ request }: any) {
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
 
+    const requestType = url.searchParams.get("requestType") || "";
+
+    const completedDate = url.searchParams.get("completedDate");
+    const completedDateStart = url.searchParams.get("completedDateStart");
+    const completedDateEnd = url.searchParams.get("completedDateEnd");
+
+    const createdAt = url.searchParams.get("createdAt");
+    const createdAtStart = url.searchParams.get("createdAtStart");
+    const createdAtEnd = url.searchParams.get("createdAtEnd");
+
+    const statusId = url.searchParams.get("statusId");
+
     const where: any = search
         ? {
             OR: [
@@ -44,7 +60,64 @@ export async function loader({ request }: any) {
         }
         : {};
 
-    const [collaborations, total] = await Promise.all([
+    if (requestType) {
+        where.requestType = requestType;
+    }
+
+    if (completedDate) {
+        const start = new Date(completedDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(completedDate);
+        end.setHours(23, 59, 59, 999);
+
+        where.completedDate = {
+            gte: start,
+            lt: end,
+        };
+    } else if (completedDateStart && completedDateEnd) {
+        const start = new Date(completedDateStart);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(completedDateEnd);
+        end.setHours(23, 59, 59, 999);
+
+        where.completedDate = {
+            gte: start,
+            lt: end,
+        };
+    }
+
+    if (createdAt) {
+        const start = new Date(createdAt);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(createdAt);
+        end.setHours(23, 59, 59, 999);
+
+        where.createdAt = {
+            gte: start,
+            lt: end,
+        };
+    } else if (createdAtStart && createdAtEnd) {
+        const start = new Date(createdAtStart);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(createdAtEnd);
+        end.setHours(23, 59, 59, 999);
+
+        where.createdAt = {
+            gte: start,
+            lt: end,
+        };
+    }
+
+
+    if (statusId) {
+        where.statusId = Number(statusId);
+    }
+
+    const [collaborations, total, colStatuses] = await Promise.all([
         prisma.collaborationApp.findMany({
             where,
             skip,
@@ -63,23 +136,35 @@ export async function loader({ request }: any) {
             },
         }),
         prisma.collaborationApp.count({ where }),
+        prisma.collaborationStatus.findMany({
+            select: { id: true, name: true }
+        })
     ]);
 
     return {
         collaborations,
+        colStatuses,
         meta: {
             total,
             page,
             limit,
             totalPages: Math.ceil(total / limit),
             search,
+            requestType,
+            completedDate,
+            completedDateStart,
+            completedDateEnd,
+            createdAt,
+            createdAtStart,
+            createdAtEnd,
+            statusId
         },
     };
 }
 
 export default function CollaborationsListPage() {
-    
-    const { collaborations, meta } = useLoaderData<typeof loader>();
+
+    const { collaborations, meta, colStatuses } = useLoaderData<typeof loader>();
     const navigate = useNavigate();
 
     const [search, setSearch] = useState(meta.search ?? "");
@@ -171,11 +256,55 @@ export default function CollaborationsListPage() {
                             <TableHead>#</TableHead>
                             <TableHead>App Name</TableHead>
                             <TableHead>Company</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Product</TableHead>
-                            <TableHead>Request Type</TableHead>
+                            <TableHead>
+                                <div className="flex items-center gap-2">
+                                    <span>Status</span>
+                                    <StatusFilter
+                                        meta={meta}
+                                        statuses={colStatuses}
+                                        navigateWithLoading={navigateWithLoading}
+                                    />
+                                </div>
+                            </TableHead>
+                            <TableHead>
+                                <div className="flex items-center gap-2">
+                                    <span>Completed Date</span>
+                                    <DynamicDateFilter
+                                        label="Completed Date"
+                                        paramKey="completedDate"
+                                        meta={meta}
+                                        navigateWithLoading={navigateWithLoading}
+                                    />
+                                </div>
+                            </TableHead>
+                            <TableHead>
+                                <div className="flex items-center gap-2">
+                                    <span>Request Type</span>
+                                    <DynamicSelectFilter
+                                        label="Request Type"
+                                        paramKey="requestType"
+                                        meta={meta}
+                                        navigateWithLoading={navigateWithLoading}
+                                        options={[
+                                            { id: "Received", name: "Received" },
+                                            { id: "Sent", name: "Sent" },
+                                        ]}
+                                    />
+                                </div>
+                            </TableHead>
                             <TableHead>Collaboration Areas</TableHead>
                             <TableHead>Added By</TableHead>
+                            <TableHead>
+                                <div className="flex items-center gap-2">
+                                    <span>Created At</span>
+                                    <DynamicDateFilter
+                                        label="Created At"
+                                        paramKey="createdAt"
+                                        meta={meta}
+                                        navigateWithLoading={navigateWithLoading}
+                                    />
+                                </div>
+                            </TableHead>
                             <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -195,13 +324,13 @@ export default function CollaborationsListPage() {
                                 <TableCell>{c.appName}</TableCell>
                                 <TableCell>{c.companyName ?? "—"}</TableCell>
                                 <TableCell>{c.status?.name ?? "—"}</TableCell>
-                                <TableCell>{c.project?.name ?? "—"}</TableCell>
+                                <TableCell>{c.completedDate ? new Date(c.completedDate).toLocaleDateString() : 'N/A'}</TableCell>
                                 <TableCell>{c.requestType ?? "—"}</TableCell>
                                 <TableCell className="max-w-[200px] truncate">
-                                    {c.collaborationAreas.map((a: any) => a.areaOption.name).join(", ") || "—"}
+                                    {c.collaborationAreas.map((a: any) => <Badge variant="outline" className="ml-1">{a.areaOption.name}</Badge>) || "—"}
                                 </TableCell>
                                 <TableCell>{c.addedBy?.fullName ?? "—"}</TableCell>
-
+                                <TableCell>{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
                                 <TableCell>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
