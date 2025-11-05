@@ -488,7 +488,7 @@ model CollaborationApp {
 
     emails             CollaborationAppEmail[]
     collaborationAreas CollaborationAppArea[]
-    status             CollaborationStatuses?  @relation(fields: [statusId], references: [id])
+    status             CollaborationStatus?  @relation(fields: [statusId], references: [id])
     sendBy             User?                   @relation("SendByUser", fields: [sendById], references: [id])
     addedBy            User?                   @relation("AddedByUser", fields: [addedById], references: [id])
     project            Project?                @relation(fields: [projectId], references: [id])
@@ -506,19 +506,25 @@ model CollaborationAppArea {
     appId        Int
     areaOptionId Int
     app          CollaborationApp        @relation(fields: [appId], references: [id])
-    areaOption   CollaborationAreaOption @relation(fields: [areaOptionId], references: [id])
+    areaOption   CollaborationArea @relation(fields: [areaOptionId], references: [id])
 
     @@unique([appId, areaOptionId])
 }
 
-model CollaborationAreaOption {
+model CollaborationArea {
     id   Int                    @id @default(autoincrement())
     name String                 @unique
+    slug String                 @unique
+    createdAt      DateTime  @default(now())
+    updatedAt      DateTime  @updatedAt
     apps CollaborationAppArea[]
 }
 
-model CollaborationStatuses {
+model CollaborationStatus {
     id   Int                @id @default(autoincrement())
     name String             @unique
+    slug String             @unique
+    createdAt      DateTime  @default(now())
+    updatedAt      DateTime  @updatedAt
     apps CollaborationApp[]
 }
