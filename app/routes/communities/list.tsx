@@ -183,7 +183,7 @@ export default function CommunityListPage() {
             <div className="flex items-center justify-between">
                 <div className="relative w-full sm:w-64">
                     <Input
-                        placeholder="Search by Question, Project, or Added By..."
+                        placeholder="Search..."
                         className="pr-10"
                         value={search}
                         onChange={handleSearchChange}
