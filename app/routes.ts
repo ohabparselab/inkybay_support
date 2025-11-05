@@ -72,7 +72,11 @@ export default [
     // review api routes
     route("api/features", "./api/features/index.ts"),
     route("api/features/:featureId", "./api/features/$featureId.ts"),
-
+    
+    // collaborations api routes
+    route("api/collaboration-areas", "./api/collaborations/areas.ts"),
+    route("api/collaboration-statuses", "./api/collaborations/statues.ts"),
+    
 
     // settings api
     route("api/settings/projects", "./api/settings/projects/index.ts"),
