@@ -44,7 +44,8 @@ model User {
     comments               Comment[]
     commentMentions        CommentMention[]
     sendByUserApp          CollaborationApp[]     @relation("SendByUser")
-    AddedByUserApp         CollaborationApp[]     @relation("AddedByUser")
+    addedByUserApp         CollaborationApp[]     @relation("AddedByUser")
+    communities            Community[]
 
     @@index([email])
     @@map("users")
@@ -164,7 +165,8 @@ model Project {
     chats            Chat[]
     tasks            Task[]
     meetings         Meeting[]
-    CollaborationApp CollaborationApp[]
+    collaborationApp CollaborationApp[]
+    communities      Community[]
 
     @@map("projects")
 }
@@ -427,16 +429,17 @@ model ActivityLog {
 }
 
 model Comment {
-    id        Int       @id @default(autoincrement())
-    content   String    @db.Text
-    userId    Int
-    chatId    Int?
-    taskId    Int?
-    parentId  Int?
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
-    isDeleted Boolean   @default(false)
-    deletedAt DateTime?
+    id          Int       @id @default(autoincrement())
+    content     String    @db.Text
+    userId      Int
+    chatId      Int?
+    taskId      Int?
+    communityId Int?
+    parentId    Int?
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+    isDeleted   Boolean   @default(false)
+    deletedAt   DateTime?
 
     // Relations
     user User  @relation(fields: [userId], references: [id])
@@ -447,7 +450,8 @@ model Comment {
     replies Comment[] @relation("CommentReplies")
 
     // Mentions (many-to-many)
-    mentions CommentMention[]
+    mentions    CommentMention[]
+    communities Community?       @relation(fields: [communityId], references: [id])
 
     @@index([chatId])
     @@index([taskId])
@@ -488,7 +492,7 @@ model CollaborationApp {
 
     emails             CollaborationAppEmail[]
     collaborationAreas CollaborationAppArea[]
-    status             CollaborationStatus?  @relation(fields: [statusId], references: [id])
+    status             CollaborationStatus?    @relation(fields: [statusId], references: [id])
     sendBy             User?                   @relation("SendByUser", fields: [sendById], references: [id])
     addedBy            User?                   @relation("AddedByUser", fields: [addedById], references: [id])
     project            Project?                @relation(fields: [projectId], references: [id])
@@ -502,29 +506,62 @@ model CollaborationAppEmail {
 }
 
 model CollaborationAppArea {
-    id           Int                     @id @default(autoincrement())
+    id           Int               @id @default(autoincrement())
     appId        Int
     areaOptionId Int
-    app          CollaborationApp        @relation(fields: [appId], references: [id])
+    app          CollaborationApp  @relation(fields: [appId], references: [id])
     areaOption   CollaborationArea @relation(fields: [areaOptionId], references: [id])
 
     @@unique([appId, areaOptionId])
 }
 
 model CollaborationArea {
-    id   Int                    @id @default(autoincrement())
-    name String                 @unique
-    slug String                 @unique
-    createdAt      DateTime  @default(now())
-    updatedAt      DateTime  @updatedAt
-    apps CollaborationAppArea[]
+    id        Int                    @id @default(autoincrement())
+    name      String                 @unique
+    slug      String                 @unique
+    createdAt DateTime               @default(now())
+    updatedAt DateTime               @updatedAt
+    apps      CollaborationAppArea[]
 }
 
 model CollaborationStatus {
-    id   Int                @id @default(autoincrement())
-    name String             @unique
-    slug String             @unique
-    createdAt      DateTime  @default(now())
-    updatedAt      DateTime  @updatedAt
-    apps CollaborationApp[]
+    id        Int                @id @default(autoincrement())
+    name      String             @unique
+    slug      String             @unique
+    createdAt DateTime           @default(now())
+    updatedAt DateTime           @updatedAt
+    apps      CollaborationApp[]
+}
+
+model Community {
+    id          Int       @id @default(autoincrement())
+    question    String
+    questionUrl String
+    reply       String?   @db.Text
+    listedDate  DateTime?
+    statusId    Int?
+    projectId   Int?
+    addedById   Int?
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+
+    // Relations
+    project  Project?         @relation(fields: [projectId], references: [id])
+    addedBy  User?            @relation(fields: [addedById], references: [id])
+    status   CommunityStatus? @relation(fields: [statusId], references: [id])
+    comments Comment[]
+
+    @@map("communities")
+}
+
+model CommunityStatus {
+    id        Int      @id @default(autoincrement())
+    name      String   @unique
+    slug      String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    communities Community[]
+
+    @@map("community_statuses")
 }
