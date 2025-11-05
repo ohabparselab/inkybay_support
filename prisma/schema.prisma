@@ -43,6 +43,8 @@ model User {
     activityLogs           ActivityLog[]
     comments               Comment[]
     commentMentions        CommentMention[]
+    sendByUserApp          CollaborationApp[]     @relation("SendByUser")
+    AddedByUserApp         CollaborationApp[]     @relation("AddedByUser")
 
     @@index([email])
     @@map("users")
@@ -158,10 +160,11 @@ model Project {
     deletedAt DateTime?
 
     // Relations
-    platforms Platform[]
-    chats     Chat[]
-    tasks     Task[]
-    meetings  Meeting[]
+    platforms        Platform[]
+    chats            Chat[]
+    tasks            Task[]
+    meetings         Meeting[]
+    CollaborationApp CollaborationApp[]
 
     @@map("projects")
 }
@@ -462,4 +465,60 @@ model CommentMention {
 
     @@unique([commentId, mentionedId])
     @@map("comment_mentions")
+}
+
+model CollaborationApp {
+    id             Int       @id @default(autoincrement())
+    projectId      Int?
+    appName        String
+    appUrl         String?
+    companyName    String?
+    companyUrl     String?
+    appDetails     String?   @db.Text
+    appAddedDate   DateTime?
+    statusId       Int?
+    completedDate  DateTime?
+    comments       String?   @db.Text
+    meetingDetails String?   @db.Text
+    sendById       Int?
+    addedById      Int?
+    requestType    String?
+    createdAt      DateTime  @default(now())
+    updatedAt      DateTime  @updatedAt
+
+    emails             CollaborationAppEmail[]
+    collaborationAreas CollaborationAppArea[]
+    status             CollaborationStatuses?  @relation(fields: [statusId], references: [id])
+    sendBy             User?                   @relation("SendByUser", fields: [sendById], references: [id])
+    addedBy            User?                   @relation("AddedByUser", fields: [addedById], references: [id])
+    project            Project?                @relation(fields: [projectId], references: [id])
+}
+
+model CollaborationAppEmail {
+    id    Int              @id @default(autoincrement())
+    email String
+    appId Int
+    app   CollaborationApp @relation(fields: [appId], references: [id])
+}
+
+model CollaborationAppArea {
+    id           Int                     @id @default(autoincrement())
+    appId        Int
+    areaOptionId Int
+    app          CollaborationApp        @relation(fields: [appId], references: [id])
+    areaOption   CollaborationAreaOption @relation(fields: [areaOptionId], references: [id])
+
+    @@unique([appId, areaOptionId])
+}
+
+model CollaborationAreaOption {
+    id   Int                    @id @default(autoincrement())
+    name String                 @unique
+    apps CollaborationAppArea[]
+}
+
+model CollaborationStatuses {
+    id   Int                @id @default(autoincrement())
+    name String             @unique
+    apps CollaborationApp[]
 }
