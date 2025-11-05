@@ -18,7 +18,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +27,8 @@ import { CalendarIcon, ListRestart, Plus, X } from "lucide-react";
 import { Spinner } from "../ui/spinner";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
+import { CenterSpinner } from "../ui/center-spinner";
+import { AddOptionModal } from "./add-option-modal";
 
 // Validation Schema
 const CollaborationSchema = z.object({
@@ -69,6 +71,8 @@ export function AddCollaborationModal({
     const [projects, setProjects] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [loadingProjects, setLoadingProjects] = useState(false);
+    const [addStatusModalOpen, setAddStatusModalOpen] = useState(false);
+    const [addColAreaModalOpen, setAddColAreaModalOpen] = useState(false);
 
     const {
         register,
@@ -122,7 +126,7 @@ export function AddCollaborationModal({
 
         fetch("/api/collaboration-areas")
             .then(res => res.json())
-            .then(data => setAreaOptions(data.options || []));
+            .then(data => setAreaOptions(data.areas || []));
 
         fetch("/api/collaboration-statuses")
             .then(res => res.json())
@@ -180,10 +184,6 @@ export function AddCollaborationModal({
                             <Input {...register("companyUrl")} placeholder="https://..." />
                         </div>
                     </div>
-
-                    {/* Company Name */}
-
-
                     {/* Details */}
                     <div>
                         <Label className="mb-2">App Details</Label>
@@ -260,7 +260,7 @@ export function AddCollaborationModal({
                         {/* Collaboration Areas */}
                         <div>
                             <Label className="mb-2">Collaboration Areas</Label>
-                            <div className="grid grid-cols-2 mt-2 gap-2">
+                            <div className="grid grid-cols-2 m-4 gap-2">
                                 {
                                     areaOptions.length === 0 && (
                                         <div className="p-2 text-center text-sm text-muted-foreground">No Collaboration Areas Found</div>
@@ -268,7 +268,7 @@ export function AddCollaborationModal({
                                 }
                                 {areaOptions.map((area) => (
                                     <div key={area.id} className="flex items-start space-x-2">
-                                        <Label>{area.name}</Label>
+
                                         <Checkbox
                                             value={area.id}
                                             onCheckedChange={(checked) => {
@@ -283,15 +283,15 @@ export function AddCollaborationModal({
                                                 }
                                             }}
                                         />
+                                        <Label>{area.name}</Label>
                                     </div>
                                 ))}
                             </div>
                             <Button
                                 type="button"
-                                // size="sm"
                                 variant="outline"
                                 onClick={() => {
-                                    // setAddStatusModalOpen(true);
+                                    setAddColAreaModalOpen(true);
                                 }}
                             >
                                 <Plus className="h-4 w-4 mr-1" /> Add Area
@@ -319,7 +319,7 @@ export function AddCollaborationModal({
                                                 ) : (
                                                     statusOptions.map((status: any) => (
                                                         <SelectItem key={status.id} value={String(status.id)}>
-                                                            {status.fullName}
+                                                            {status.name}
                                                         </SelectItem>
                                                     ))
                                                 )}
@@ -331,7 +331,7 @@ export function AddCollaborationModal({
                                     type="button"
                                     variant="outline"
                                     onClick={() => {
-                                        // setAddStatusModalOpen(true);
+                                        setAddStatusModalOpen(true);
                                     }}
                                 >
                                     <Plus className="h-4 w-4 mr-1" /> Add Status
@@ -496,6 +496,33 @@ export function AddCollaborationModal({
                     </DialogFooter>
                 </form>
             </DialogContent>
+            {addColAreaModalOpen && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <AddOptionModal
+                        open={addColAreaModalOpen}
+                        onOpenChange={setAddColAreaModalOpen}
+                        setItems={setAreaOptions}
+                        endpoint="/api/collaboration-areas"
+                        title="Add New Area"
+                        label="Area Name"
+                        successMessage="Collaboration area added successfully."
+                    />
+                </Suspense>
+            )}
+
+            {addStatusModalOpen && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <AddOptionModal
+                        open={addStatusModalOpen}
+                        onOpenChange={setAddStatusModalOpen}
+                        setItems={setStatusOptions}
+                        endpoint="/api/collaboration-statuses"
+                        title="Add New Status"
+                        label="Status Name"
+                        successMessage="Collaboration status added successfully."
+                    />
+                </Suspense>
+            )}
         </Dialog>
     );
 }
