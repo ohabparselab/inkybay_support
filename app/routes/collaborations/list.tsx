@@ -11,9 +11,9 @@ import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
 
-// const ViewCollaborationModal = lazy(() =>
-//     import("~/components/modals/view-collaboration-modal").then((m) => ({ default: m.ViewCollaborationModal }))
-// );
+const ViewCollaborationModal = lazy(() =>
+    import("~/components/modals/view-collaboration-modal").then((m) => ({ default: m.ViewCollaborationModal }))
+);
 
 const EditCollaborationModal = lazy(() =>
     import("~/components/modals/edit-collaboration-modal").then((m) => ({ default: m.EditCollaborationModal }))
@@ -243,7 +243,6 @@ export default function CollaborationsListPage() {
                         ))}
                     </TableBody>
                 </Table>
-
                 <PaginationBar meta={meta} onPageChange={handlePageChange} onLimitChange={handleLimitChange} />
             </div>
 
@@ -253,11 +252,11 @@ export default function CollaborationsListPage() {
                     <AddCollaborationModal open={addModalOpen} onOpenChange={setAddModalOpen} refreshPage={refreshPage} />
                 </Suspense>
             )}
-            {/* {viewModalOpen && selected && (
+            {viewModalOpen && selected && (
                 <Suspense fallback={<CenterSpinner />}>
-                    <ViewCollaborationModal open={viewModalOpen} onOpenChange={setViewModalOpen} collaboration={selected} />
+                    <ViewCollaborationModal open={viewModalOpen} onOpenChange={setViewModalOpen} collaborationId={selected.id} />
                 </Suspense>
-            )} */}
+            )}
             {editModalOpen && selected && (
                 <Suspense fallback={<CenterSpinner />}>
                     <EditCollaborationModal
