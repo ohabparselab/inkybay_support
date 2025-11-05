@@ -203,7 +203,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                                 />
                                 <Button
                                     type="button"
-                                    size="sm"
+                                    // size="sm"
                                     variant="outline"
                                     onClick={() => {
                                         setAddStatusModalOpen(true);

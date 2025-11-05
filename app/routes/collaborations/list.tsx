@@ -19,9 +19,9 @@ import { toast } from "sonner";
 //     import("~/components/modals/edit-collaboration-modal").then((m) => ({ default: m.EditCollaborationModal }))
 // );
 
-// const AddCollaborationModal = lazy(() =>
-//     import("~/components/modals/add-collaboration-modal").then((m) => ({ default: m.AddCollaborationModal }))
-// );
+const AddCollaborationModal = lazy(() =>
+    import("~/components/modals/add-collaboration-modal").then((m) => ({ default: m.AddCollaborationModal }))
+);
 
 export const meta = () => [{ title: "Collaborations | InkyBay" }];
 
@@ -248,12 +248,12 @@ export default function CollaborationsListPage() {
             </div>
 
             {/* Modals */}
-            {/* {addModalOpen && (
+            {addModalOpen && (
                 <Suspense fallback={<CenterSpinner />}>
                     <AddCollaborationModal open={addModalOpen} onOpenChange={setAddModalOpen} refreshPage={refreshPage} />
                 </Suspense>
             )}
-            {viewModalOpen && selected && (
+            {/* {viewModalOpen && selected && (
                 <Suspense fallback={<CenterSpinner />}>
                     <ViewCollaborationModal open={viewModalOpen} onOpenChange={setViewModalOpen} collaboration={selected} />
                 </Suspense>
