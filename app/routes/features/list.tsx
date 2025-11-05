@@ -189,7 +189,7 @@ export default function FeatureRequestListPage() {
             <div className="flex items-center justify-between">
                 <h1 className="text-xl font-semibold">Feature Requests</h1>
                 <Button onClick={() => setAddModalOpen(true)}>
-                    <Plus /> Add New Feature Request
+                    <Plus /> Add Feature Request
                 </Button>
             </div>
 

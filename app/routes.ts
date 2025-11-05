@@ -28,15 +28,15 @@ export default [
         route("marketing-funnels", "./routes/marketing-funnels/list.tsx"),
         route("reviews", "./routes/reviews/list.tsx"),
         route("features", "./routes/features/list.tsx"),
-        route("activity-logs", "./routes/activity-logs/list.tsx"),
         route("collaborations", "./routes/collaborations/list.tsx"),
-
+        route("communities", "./routes/communities/list.tsx"),
         // settings routes
         route("settings/permissions", "./routes/settings/permission.list.tsx"),
         route("settings/modules", "./routes/settings/modules.list.tsx"),
         route("settings/projects", "./routes/settings/projects.list.tsx"),
         route("settings/platforms", "./routes/settings/platforms.list.tsx"),
-
+        
+        route("activity-logs", "./routes/activity-logs/list.tsx"),
     ]),
     // api routes
     route("api/auth/login", "./api/auth/login.ts"),

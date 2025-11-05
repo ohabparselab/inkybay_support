@@ -94,7 +94,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             },
             {
                 title: "Shopify Communities",
-                url: "/shopify-communities",
+                url: "/communities",
                 icon: Handbag,
             },
             ...(isSuperAdmin ? [
