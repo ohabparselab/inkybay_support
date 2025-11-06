@@ -450,8 +450,8 @@ model Comment {
     replies Comment[] @relation("CommentReplies")
 
     // Mentions (many-to-many)
-    mentions    CommentMention[]
-    communities Community?       @relation(fields: [communityId], references: [id])
+    mentions  CommentMention[]
+    community Community?       @relation(fields: [communityId], references: [id])
 
     @@index([chatId])
     @@index([taskId])
@@ -467,7 +467,7 @@ model CommentMention {
     comment   Comment @relation(fields: [commentId], references: [id])
     mentioned User    @relation(fields: [mentionedId], references: [id])
 
-    @@unique([commentId, mentionedId])
+    // @@unique([commentId, mentionedId])
     @@map("comment_mentions")
 }
 

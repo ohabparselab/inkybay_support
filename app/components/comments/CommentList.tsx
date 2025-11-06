@@ -45,7 +45,6 @@ export function CommentList({ contextId, contextType, users }: CommentListProps)
                 ))}
             </div>
             <CommentInput users={users} onSubmit={addComment} placeholder="Add a comment..." />
-            
         </div>
     );
 }

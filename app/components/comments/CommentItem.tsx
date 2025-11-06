@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { CommentInput } from "./CommentInput";
 import { MentionTooltip } from "./MentionTooltip";
-import { Button } from "../ui/button";
+import { CommentInput } from "./CommentInput";
+import { useState } from "react";
 
 interface CommentItemProps {
     comment: any;
@@ -12,7 +11,7 @@ interface CommentItemProps {
 export function CommentItem({ comment, users, onReply }: CommentItemProps) {
 
     const [showReply, setShowReply] = useState(false);
-    
+
     const renderContent = (text: string) => {
         const parts = text.split(/(@\[[^\]]+\]\(\d+\))/g);
         return parts.map((part, i) => {
@@ -38,15 +37,15 @@ export function CommentItem({ comment, users, onReply }: CommentItemProps) {
             <div className="flex items-start gap-3">
                 {/* Avatar */}
                 <img
-                    src={comment.user.avatar || "/avatar-default.svg"}
-                    alt={comment.user.fullName}
+                    src={comment.user?.avatar || "/avatar-default.svg"}
+                    alt={comment.user?.fullName}
                     className="w-8 h-8 rounded-full object-cover mt-1"
                 />
 
                 <div className="flex-1">
                     {/* Name and timestamp */}
                     <div className="flex items-center gap-2">
-                        <strong className="text-sm">{comment.user.fullName}</strong>
+                        <strong className="text-sm">{comment.user?.fullName}</strong>
                         <span className="text-xs text-gray-400">{new Date(comment.createdAt).toLocaleString()}</span>
                     </div>
 
@@ -56,7 +55,8 @@ export function CommentItem({ comment, users, onReply }: CommentItemProps) {
                     {/* Reply button */}
                     <button
                         onClick={() => setShowReply(!showReply)}
-                        className="text-xs text-gray-500 hover:underline mt-1"
+                        className={`text-xs mt-1 hover:underline ${showReply ? "text-red-500" : "text-blue-600"
+                            }`}
                     >
                         {showReply ? "Cancel" : "Reply"}
                     </button>
@@ -67,7 +67,7 @@ export function CommentItem({ comment, users, onReply }: CommentItemProps) {
                             <CommentInput
                                 users={users}
                                 onSubmit={async (content, mentions) => onReply(content, mentions, comment.id)}
-                                placeholder={`Reply to ${comment.user.fullName}...`}
+                                placeholder={`Reply to ${comment.user?.fullName}...`}
                             />
                         </div>
                     )}

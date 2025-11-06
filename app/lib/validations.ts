@@ -318,6 +318,15 @@ export const AddCommunitySchema = z.object({
     mentions: z.array(z.number().optional()),
 });
 
+export const addCommentSchema = z.object({
+    content: z.string().min(1, "Comment content is required"),
+    mentions: z.array(z.number()).optional(),
+    parentId: z.number().optional(),
+    chatId: z.number().optional(),
+    taskId: z.number().optional(),
+    communityId: z.number().optional(),
+});
+
 export type AddCommunityInput = z.infer<typeof AddCommunitySchema>;
 export type AddCollaborationInput = z.infer<typeof AddCollaborationSchema>;
 export type CollaborationInput = z.infer<typeof CollaborationSchema>;

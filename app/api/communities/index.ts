@@ -66,7 +66,7 @@ const createCommunity = async (request: Request) => {
                 data: {
                     content: value.comments,
                     user: { connect: { id: userId } },
-                    communities: { connect: { id: community.id } },
+                    community: { connect: { id: community.id } },
                 },
             });
 
