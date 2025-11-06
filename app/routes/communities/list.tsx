@@ -14,13 +14,13 @@ import { Badge } from "~/components/ui/badge";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
 
-// const ViewCommunityModal = lazy(() =>
-//     import("~/components/modals/view-community-modal").then((m) => ({ default: m.ViewCommunityModal }))
-// );
+const ViewCommunityModal = lazy(() =>
+    import("~/components/modals/view-community-modal").then((m) => ({ default: m.ViewCommunityModal }))
+);
 
-// const EditCommunityModal = lazy(() =>
-//     import("~/components/modals/edit-community-modal").then((m) => ({ default: m.EditCommunityModal }))
-// );
+const EditCommunityModal = lazy(() =>
+    import("~/components/modals/edit-community-modal").then((m) => ({ default: m.EditCommunityModal }))
+);
 
 const AddCommunityModal = lazy(() =>
     import("~/components/modals/add-community-modal").then((m) => ({ default: m.AddCommunityModal }))
@@ -199,7 +199,7 @@ export default function CommunityListPage() {
                         <TableRow>
                             <TableHead>#</TableHead>
                             <TableHead>Question</TableHead>
-                            <TableHead>URL</TableHead>
+                            {/* <TableHead>URL</TableHead> */}
                             <TableHead>Project</TableHead>
                             <TableHead>Added By</TableHead>
                             <TableHead>
@@ -214,7 +214,7 @@ export default function CommunityListPage() {
                                     <DynamicDateFilter label="Listed Date" paramKey="listedDate" meta={meta} navigateWithLoading={navigateWithLoading} />
                                 </div>
                             </TableHead>
-                            <TableHead>Comments</TableHead>
+                            <TableHead>Created At</TableHead>
                             <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -232,16 +232,16 @@ export default function CommunityListPage() {
                             <TableRow key={c.id}>
                                 <TableCell>{i + 1}</TableCell>
                                 <TableCell>{c.question}</TableCell>
-                                <TableCell>
+                                {/* <TableCell>
                                     <a href={c.questionUrl} target="_blank" className="text-blue-600 inline-flex items-center gap-1 underline">
                                         {c.questionUrl} <ExternalLink className="w-4 h-4" />
                                     </a>
-                                </TableCell>
-                                <TableCell>{c.project?.projectName ?? "—"}</TableCell>
+                                </TableCell> */}
+                                <TableCell>{c.project?.name ?? "—"}</TableCell>
                                 <TableCell>{c.addedBy?.fullName ?? "—"}</TableCell>
                                 <TableCell>{c.status?.name ?? "—"}</TableCell>
                                 <TableCell>{c.listedDate ? new Date(c.listedDate).toLocaleDateString() : 'N/A'}</TableCell>
-                                <TableCell>{c.comments.length}</TableCell>
+                                <TableCell>{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
                                 <TableCell>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
@@ -276,16 +276,16 @@ export default function CommunityListPage() {
                     <AddCommunityModal open={addModalOpen} onOpenChange={setAddModalOpen} refreshPage={refreshPage} />
                 </Suspense>
             )}
-            {/* {viewModalOpen && selected && (
+            {viewModalOpen && selected && (
                 <Suspense fallback={<CenterSpinner />}>
                     <ViewCommunityModal open={viewModalOpen} onOpenChange={setViewModalOpen} communityId={selected.id} />
                 </Suspense>
             )}
             {editModalOpen && selected && (
                 <Suspense fallback={<CenterSpinner />}>
-                    <EditCommunityModal open={editModalOpen} onOpenChange={setEditModalOpen} communityId={selected.id} refreshPage={refreshPage} />
+                    <EditCommunityModal open={editModalOpen} onOpenChange={setEditModalOpen} community={selected} refreshPage={refreshPage} />
                 </Suspense>
-            )} */}
+            )}
             {deleteDialogOpen && selected && (
                 <Suspense fallback={<CenterSpinner />}>
                     <DeleteConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title="Delete Question?" description="Are you sure you want to permanently delete this question?" onConfirm={handleDelete} />

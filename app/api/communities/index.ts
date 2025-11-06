@@ -37,8 +37,11 @@ const createCommunity = async (request: Request) => {
             questionUrl: value.questionUrl,
             reply: value.reply || null,
             listedDate: value.listedDate ? new Date(value.listedDate) : null,
-            addedBy: { connect: { id: userId } },
         };
+
+        if (value.addedById) {
+            communityData.addedBy = { connect: { id: Number(value.addedById) } };
+        }
 
         if(value?.statusId){
             communityData.status = value.statusId ? { connect: { id: Number(value.statusId) } } : undefined;
