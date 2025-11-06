@@ -22,9 +22,9 @@ import { toast } from "sonner";
 //     import("~/components/modals/edit-community-modal").then((m) => ({ default: m.EditCommunityModal }))
 // );
 
-// const AddCommunityModal = lazy(() =>
-//     import("~/components/modals/add-community-modal").then((m) => ({ default: m.AddCommunityModal }))
-// );
+const AddCommunityModal = lazy(() =>
+    import("~/components/modals/add-community-modal").then((m) => ({ default: m.AddCommunityModal }))
+);
 
 export const meta = () => [{ title: "Community Questions | InkyBay" }];
 
@@ -271,12 +271,12 @@ export default function CommunityListPage() {
             </div>
 
             {/* Modals */}
-            {/* {addModalOpen && (
+            {addModalOpen && (
                 <Suspense fallback={<CenterSpinner />}>
                     <AddCommunityModal open={addModalOpen} onOpenChange={setAddModalOpen} refreshPage={refreshPage} />
                 </Suspense>
             )}
-            {viewModalOpen && selected && (
+            {/* {viewModalOpen && selected && (
                 <Suspense fallback={<CenterSpinner />}>
                     <ViewCommunityModal open={viewModalOpen} onOpenChange={setViewModalOpen} communityId={selected.id} />
                 </Suspense>

@@ -306,6 +306,18 @@ export const AddCollaborationSchema = z.object({
     requestType: z.string().optional(),
 });
 
+export const AddCommunitySchema = z.object({
+    question: z.string().min(3, "Question field is required."),
+    questionUrl: z.string().url("Please enter a valid hyperlink."),
+    projectId: z.string().optional(),
+    listedDate: z.date().optional(),
+    addedById: z.string().optional(),
+    reply: z.string().optional(),
+    statusId: z.string().optional(),
+    comments: z.string().optional(),
+});
+
+export type AddCommunityInput = z.infer<typeof AddCommunitySchema>;
 export type AddCollaborationInput = z.infer<typeof AddCollaborationSchema>;
 export type CollaborationInput = z.infer<typeof CollaborationSchema>;
 export type AddFeatureRequestInput = z.infer<typeof addFeatureRequestSchema>;
