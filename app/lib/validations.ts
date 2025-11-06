@@ -315,6 +315,7 @@ export const AddCommunitySchema = z.object({
     reply: z.string().optional(),
     statusId: z.string().optional(),
     comments: z.string().optional(),
+    mentions: z.array(z.number().optional()),
 });
 
 export type AddCommunityInput = z.infer<typeof AddCommunitySchema>;

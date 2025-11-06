@@ -23,6 +23,7 @@ import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { Plus, X, ListRestart, CalendarIcon } from "lucide-react";
 import { CenterSpinner } from "@/components/ui/center-spinner";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { CommentInput } from "../comments/CommentInput";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Suspense, useEffect, useState } from "react";
 import { AddOptionModal } from "./add-option-modal";
@@ -48,12 +49,15 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
         register,
         handleSubmit,
         control,
+        setValue,
         reset,
+        watch,
         formState: { errors, isSubmitting },
     } = useForm<AddCommunityInput>({
         resolver: zodResolver(AddCommunitySchema),
         defaultValues: {
             comments: "",
+            mentions: [],
         },
     });
 
@@ -68,7 +72,6 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
             fetch("/api/users").then((res) => res.json()),
             fetch("/api/communities-statuses").then((res) => res.json()),
         ]);
-        console.log(projectsRes, usersRes)
         setProjects(projectsRes.projects || []);
         setUsers(usersRes.users || []);
         setStatusOptions(statusRes.statuses || []);
@@ -81,6 +84,8 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
 
     const onSubmit = async (data: AddCommunityInput) => {
         try {
+            console.log("====form data=====>>", data);
+
             const res = await fetch("/api/communities", {
                 method: "POST",
                 body: JSON.stringify(data),
@@ -94,6 +99,8 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
             toast.error(err.message || "Something went wrong.");
         }
     };
+
+    console.log("=========>>error", errors)
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -244,9 +251,21 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
                             error={errors.reply?.message} />
                     </div>
                     {/* Comments */}
-                    <div>
+                    {/* <div>
                         <Label className="mb-2">Comments</Label>
                         <Textarea {...register(`comments`)} placeholder="Enter comment details..." />
+                    </div> */}
+                    <div>
+                        <Label className="mb-2">Comment</Label>
+                        <CommentInput
+                            value={watch("comments")}
+                            onChange={(value:any, mentions:any) => {
+                                setValue("comments", value);
+                                setValue("mentions", mentions);
+                            }}
+                            onSubmit={async () => { }} 
+                            users={users}
+                        />
                     </div>
 
                     {/* Footer */}
