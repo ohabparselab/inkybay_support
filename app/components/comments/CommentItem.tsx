@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CommentInput } from "./CommentInput";
 import { MentionTooltip } from "./MentionTooltip";
+import { Button } from "../ui/button";
 
 interface CommentItemProps {
     comment: any;
@@ -9,12 +10,13 @@ interface CommentItemProps {
 }
 
 export function CommentItem({ comment, users, onReply }: CommentItemProps) {
-    const [showReply, setShowReply] = useState(false);
 
+    const [showReply, setShowReply] = useState(false);
+    
     const renderContent = (text: string) => {
-        const parts = text.split(/(@\[([^\]]+)\]\((\d+)\))/g);
+        const parts = text.split(/(@\[[^\]]+\]\(\d+\))/g);
         return parts.map((part, i) => {
-            const match = part.match(/@\[([^\]]+)\]\((\d+)\)/);
+            const match = part.match(/@\[(.+?)\]\((\d+)\)/);
             if (match) {
                 const name = match[1];
                 const id = Number(match[2]);
@@ -30,34 +32,56 @@ export function CommentItem({ comment, users, onReply }: CommentItemProps) {
         });
     };
 
+
     return (
-        <div className="border-l pl-3 mt-3">
-            <div className="flex justify-between items-start">
-                <div>
-                    <strong>{comment.user.fullName}</strong>
-                    <p className="text-sm">{renderContent(comment.content)}</p>
+        <div className="flex flex-col border-l border-gray-200 pl-4 mt-3">
+            <div className="flex items-start gap-3">
+                {/* Avatar */}
+                <img
+                    src={comment.user.avatar || "/avatar-default.svg"}
+                    alt={comment.user.fullName}
+                    className="w-8 h-8 rounded-full object-cover mt-1"
+                />
+
+                <div className="flex-1">
+                    {/* Name and timestamp */}
+                    <div className="flex items-center gap-2">
+                        <strong className="text-sm">{comment.user.fullName}</strong>
+                        <span className="text-xs text-gray-400">{new Date(comment.createdAt).toLocaleString()}</span>
+                    </div>
+
+                    {/* Comment content */}
+                    <p className="text-sm mt-1">{renderContent(comment.content)}</p>
+
+                    {/* Reply button */}
+                    <button
+                        onClick={() => setShowReply(!showReply)}
+                        className="text-xs text-gray-500 hover:underline mt-1"
+                    >
+                        {showReply ? "Cancel" : "Reply"}
+                    </button>
+
+                    {/* Reply input */}
+                    {showReply && (
+                        <div className="ml-6 mt-2">
+                            <CommentInput
+                                users={users}
+                                onSubmit={async (content, mentions) => onReply(content, mentions, comment.id)}
+                                placeholder={`Reply to ${comment.user.fullName}...`}
+                            />
+                        </div>
+                    )}
+
+                    {/* Nested replies */}
+                    {comment.replies?.length > 0 && (
+                        <div className="ml-6 mt-3 space-y-3">
+                            {comment.replies.map((reply: any) => (
+                                <CommentItem key={reply.id} comment={reply} users={users} onReply={onReply} />
+                            ))}
+                        </div>
+                    )}
                 </div>
-                <button
-                    onClick={() => setShowReply(!showReply)}
-                    className="text-xs text-gray-500 hover:underline"
-                >
-                    Reply
-                </button>
             </div>
-
-            {showReply && (
-                <div className="ml-6 mt-2">
-                    <CommentInput
-                        users={users}
-                        onSubmit={async (c, m) => onReply(c, m, comment.id)}
-                        placeholder={`Reply to ${comment.user.fullName}`}
-                    />
-                </div>
-            )}
-
-            {comment.replies?.map((reply: any) => (
-                <CommentItem key={reply.id} comment={reply} users={users} onReply={onReply} />
-            ))}
         </div>
     );
 }

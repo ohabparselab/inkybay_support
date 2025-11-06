@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { CommentItem } from "./CommentItem";
 import { CommentInput } from "./CommentInput";
+import { Label } from "../ui/label";
 
 interface CommentListProps {
     contextId: number;
@@ -9,7 +10,7 @@ interface CommentListProps {
 }
 
 export function CommentList({ contextId, contextType, users }: CommentListProps) {
-    
+
     const [comments, setComments] = useState<any[]>([]);
 
     const fetchComments = async () => {
@@ -37,13 +38,14 @@ export function CommentList({ contextId, contextType, users }: CommentListProps)
     };
 
     return (
-        <div>
-            <CommentInput users={users} onSubmit={addComment} />
-            <div className="mt-4">
+        <div className="space-y-3">
+            <div className="mt-4 space-y-3">
                 {comments.map((c) => (
                     <CommentItem key={c.id} comment={c} users={users} onReply={addComment} />
                 ))}
             </div>
+            <CommentInput users={users} onSubmit={addComment} placeholder="Add a comment..." />
+            
         </div>
     );
 }

@@ -59,7 +59,7 @@ export function CommentInput({
                     .map((u) => ({ id: u.id, display: u.fullName }))}
                 displayTransform={(id, display) => `@${display}`}
                 appendSpaceOnAdd={true}
-                markup="@[\__display__](__id__)"
+                markup="@[__display__](__id__)"
                 style={mentionStyle}
             />
         </MentionsInput>

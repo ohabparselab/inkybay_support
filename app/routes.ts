@@ -96,6 +96,7 @@ export default [
     
     // comments api routes
     route("/api/task-comments/:taskId", "./api/comments/comments.$taskId.ts"),
+    route("/api/comments", "./api/comments/index.ts"),
 
     // dashboard api
     route("api/dashboard", "./api/dashboard/index.ts"),

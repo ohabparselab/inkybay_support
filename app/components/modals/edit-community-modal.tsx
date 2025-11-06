@@ -29,6 +29,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Spinner } from "@/components/ui/spinner";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { CommentInput } from "../comments/CommentInput";
+import { CommentList } from "../comments/CommentList";
 
 interface EditCommunityModalProps {
     open: boolean;
@@ -283,7 +285,7 @@ export function EditCommunityModal({
                     {/* Comments */}
                     <div>
                         <Label className="mb-2">Comments</Label>
-                        <Textarea {...register("comments")} placeholder="Enter comment details..." />
+                        <CommentList contextId={community.id} contextType="community" users={users} />
                     </div>
 
                     {/* Footer */}
