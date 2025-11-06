@@ -22,6 +22,7 @@ import { AddCommunitySchema, type AddCommunityInput } from "~/lib/validations";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { Plus, X, ListRestart, CalendarIcon } from "lucide-react";
 import { CenterSpinner } from "@/components/ui/center-spinner";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Suspense, useEffect, useState } from "react";
 import { AddOptionModal } from "./add-option-modal";
@@ -37,7 +38,7 @@ interface CommunityModalProps {
 }
 
 export function AddCommunityModal({ open, onOpenChange, refreshPage }: CommunityModalProps) {
-    
+
     const [statusOptions, setStatusOptions] = useState<any[]>([]);
     const [projects, setProjects] = useState<any[]>([]);
     const [users, setUsers] = useState<any[]>([]);
@@ -80,8 +81,6 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
 
     const onSubmit = async (data: AddCommunityInput) => {
         try {
-            console.log("=======>>", data);
-
             const res = await fetch("/api/communities", {
                 method: "POST",
                 body: JSON.stringify(data),
@@ -98,7 +97,7 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
                 <DialogHeader>
                     <DialogTitle>Add Question</DialogTitle>
                 </DialogHeader>
@@ -235,6 +234,14 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
                                 )}
                             />
                         </div>
+                    </div>
+                    <div>
+                        <RichTextEditor
+                            control={control}
+                            name="reply"
+                            label="Reply"
+                            placeholder="Enter reply details..."
+                            error={errors.reply?.message} />
                     </div>
                     {/* Comments */}
                     <div>
