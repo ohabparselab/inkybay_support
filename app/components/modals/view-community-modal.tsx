@@ -5,16 +5,16 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { HtmlViewerWithIframe } from "@/components/ui/html-viewer";
+import { CalendarIcon, ExternalLink, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, X } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { HtmlViewerWithIframe } from "../ui/html-viewer";
 
 interface ViewCommunityModalProps {
     open: boolean;
@@ -66,38 +66,35 @@ export function ViewCommunityModal({
                     </div>
                 ) : (
                     <ScrollArea className="max-h-[75vh] pr-3">
-                        <div className="space-y-6">
+                        <div className="space-y-3">
                             {/* Question */}
-                            <div>
-                                <Label className="text-base font-semibold">Question</Label>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                    {community.question || "N/A"}
-                                </p>
-                            </div>
-
-                            {/* Question URL */}
-                            {community.questionUrl && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label className="text-base font-semibold">Question</Label>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                        {community.question || "N/A"}
+                                    </p>
+                                </div>
                                 <div>
                                     <Label className="text-base font-semibold">Question URL</Label>
                                     <a
                                         href={community.questionUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-blue-600 hover:underline break-all text-sm mt-1 block"
+                                        className="text-blue-600 inline-flex items-center hover:underline break-all text-sm gap-1"
                                     >
-                                        {community.questionUrl}
+                                        {community.questionUrl || "N/A"} <ExternalLink className="w-4 h-4" />
                                     </a>
                                 </div>
-                            )}
+                            </div>
 
-                            <Separator />
 
                             {/* Project, User, Status */}
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label className="font-semibold">Project</Label>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                        {community.project?.projectName || "N/A"}
+                                        {community.project?.name || "N/A"}
                                     </p>
                                 </div>
 
@@ -114,19 +111,20 @@ export function ViewCommunityModal({
                                         {community.status?.name || "N/A"}
                                     </p>
                                 </div>
+                                {/* Listed Date */}
+                                <div>
+                                    <Label className="font-semibold flex items-center gap-1">
+                                        <CalendarIcon className="w-4 h-4" /> Listed Date
+                                    </Label>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                        {community.listedDate
+                                            ? format(new Date(community.listedDate), "PPP")
+                                            : "N/A"}
+                                    </p>
+                                </div>
                             </div>
 
-                            {/* Listed Date */}
-                            <div>
-                                <Label className="font-semibold flex items-center gap-1">
-                                    <CalendarIcon className="w-4 h-4" /> Listed Date
-                                </Label>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                    {community.listedDate
-                                        ? format(new Date(community.listedDate), "PPP")
-                                        : "N/A"}
-                                </p>
-                            </div>
+
 
                             <Separator />
 
@@ -168,7 +166,7 @@ export function ViewCommunityModal({
                     </ScrollArea>
                 )}
 
-                <DialogFooter className="!justify-center flex gap-2 mt-4">
+                <DialogFooter className="justify-center flex gap-2 mt-4">
                     <Button variant="destructive" onClick={() => onOpenChange(false)}>
                         <X className="w-4 h-4 mr-1" /> Close
                     </Button>
