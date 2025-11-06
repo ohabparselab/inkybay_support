@@ -43,10 +43,10 @@ const createCommunity = async (request: Request) => {
             communityData.addedBy = { connect: { id: Number(value.addedById) } };
         }
 
-        if(value?.statusId){
+        if (value?.statusId) {
             communityData.status = value.statusId ? { connect: { id: Number(value.statusId) } } : undefined;
         }
-        if(value?.projectId){
+        if (value?.projectId) {
             communityData.project = value.projectId ? { connect: { id: Number(value.projectId) } } : undefined;
 
         }
@@ -61,6 +61,31 @@ const createCommunity = async (request: Request) => {
             },
         });
 
+        if (value.comments && value.comments.trim() !== "") {
+            const comment = await prisma.comment.create({
+                data: {
+                    content: value.comments,
+                    user: { connect: { id: userId } },
+                    communities: { connect: { id: community.id } },
+                },
+            });
+
+            if (Array.isArray(value.mentions) && value.mentions.length > 0) {
+                const validMentions = (value.mentions || []).filter(
+                    (mId): mId is number => typeof mId === "number"
+                );
+
+                for (const mId of validMentions) {
+                    await prisma.commentMention.create({
+                        data: {
+                            commentId: comment.id,
+                            mentionedId: mId,
+                        },
+                    });
+                }
+            }
+        }
+
         // Log activity
         const logsParams = {
             userId,
@@ -69,7 +94,7 @@ const createCommunity = async (request: Request) => {
             recordId: community.id,
             metaData: { community },
         };
-        
+
         await ActivityLog(logsParams);
 
         return Response.json({
