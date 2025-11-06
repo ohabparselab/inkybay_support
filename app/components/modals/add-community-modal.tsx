@@ -37,6 +37,7 @@ interface CommunityModalProps {
 }
 
 export function AddCommunityModal({ open, onOpenChange, refreshPage }: CommunityModalProps) {
+    
     const [statusOptions, setStatusOptions] = useState<any[]>([]);
     const [projects, setProjects] = useState<any[]>([]);
     const [users, setUsers] = useState<any[]>([]);
@@ -60,12 +61,11 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
     //     name: "comments",
     // });
 
-    // Fetch projects, users, status options
     const fetchData = async () => {
         const [projectsRes, usersRes, statusRes] = await Promise.all([
             fetch("/api/settings/projects").then((res) => res.json()),
             fetch("/api/users").then((res) => res.json()),
-            fetch("/api/community-statuses").then((res) => res.json()),
+            fetch("/api/communities-statuses").then((res) => res.json()),
         ]);
         console.log(projectsRes, usersRes)
         setProjects(projectsRes.projects || []);
@@ -80,7 +80,9 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
 
     const onSubmit = async (data: AddCommunityInput) => {
         try {
-            const res = await fetch("/api/community", {
+            console.log("=======>>", data);
+
+            const res = await fetch("/api/communities", {
                 method: "POST",
                 body: JSON.stringify(data),
             });
@@ -262,7 +264,7 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
                         open={addStatusModalOpen}
                         onOpenChange={setAddStatusModalOpen}
                         setItems={setStatusOptions}
-                        endpoint="/api/community-statuses"
+                        endpoint="/api/communities-statuses"
                         title="Add New Status"
                         label="Status Name"
                         successMessage="Status added successfully."

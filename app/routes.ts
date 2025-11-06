@@ -78,6 +78,11 @@ export default [
     route("api/collaborations/:collaborationId", "./api/collaborations/$collaborationId.ts"),
     route("api/collaboration-areas", "./api/collaborations/areas.ts"),
     route("api/collaboration-statuses", "./api/collaborations/statues.ts"),
+
+     // communities api routes
+    route("api/communities", "./api/communities/index.ts"),
+    route("api/communities/:communityId", "./api/communities/$communityId.ts"),
+    route("api/communities-statuses", "./api/communities/statues.ts"),
     
 
     // settings api

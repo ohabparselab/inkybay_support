@@ -158,7 +158,7 @@ export default function CommunityListPage() {
     const handleDelete = async () => {
         if (!selected) return;
         try {
-            const res = await fetch(`/api/community/${selected.id}`, { method: "DELETE" });
+            const res = await fetch(`/api/communities/${selected.id}`, { method: "DELETE" });
             if (!res.ok) toast.error("Failed to delete question.");
             toast.success("Question deleted successfully.");
             refreshPage();
