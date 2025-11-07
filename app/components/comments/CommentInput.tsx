@@ -8,6 +8,7 @@ interface CommentInputProps {
     placeholder?: string;
     value?: string;
     isSubmitting?: boolean;
+    sendButtonShow?: boolean;
     readOnly?: boolean;
     onChange?: (content: string, mentions: number[]) => void;
 }
@@ -20,8 +21,9 @@ export function CommentInput({
     readOnly = false,
     placeholder = "Type a comment...",
     isSubmitting = false,
+    sendButtonShow = true,
 }: CommentInputProps) {
-    
+
     const [content, setContent] = useState(value || "");
 
     const handleChange = (
@@ -75,16 +77,24 @@ export function CommentInput({
             </div>
 
             {/* Send button */}
-            <button
-                onClick={handleSubmit}
-                disabled={readOnly || isSubmitting || !content.trim()}
-                className={`p-2 rounded-full transition ${content.trim()
-                        ? "bg-blue-600 hover:bg-blue-700 text-white"
-                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    }`}
-            >
-                <SendHorizontal size={30} />
-            </button>
+
+
+            {
+                sendButtonShow && (
+                    <button
+                        onClick={handleSubmit}
+                        disabled={readOnly || isSubmitting || !content.trim()}
+                        className={`p-2 rounded-full transition ${content.trim()
+                            ? "bg-blue-600 hover:bg-blue-700 text-white"
+                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                            }`}
+                    >
+                        <SendHorizontal size={30} />
+                    </button>
+                )
+            }
+
+
         </div>
     );
 }

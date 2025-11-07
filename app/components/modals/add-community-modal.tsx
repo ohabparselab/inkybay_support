@@ -250,11 +250,6 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
                             placeholder="Enter reply details..."
                             error={errors.reply?.message} />
                     </div>
-                    {/* Comments */}
-                    {/* <div>
-                        <Label className="mb-2">Comments</Label>
-                        <Textarea {...register(`comments`)} placeholder="Enter comment details..." />
-                    </div> */}
                     <div>
                         <Label className="mb-2">Comment</Label>
                         <CommentInput
@@ -265,6 +260,7 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
                             }}
                             onSubmit={async () => { }} 
                             users={users}
+                            sendButtonShow={false}
                         />
                     </div>
 

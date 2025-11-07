@@ -5,6 +5,7 @@ import { addTaskSchema, type AddTaskFormInput } from "~/lib/validations";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { CalendarIcon, ListRestart, Save, X } from "lucide-react";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { CommentList } from "@/components/comments/CommentList";
 import { CenterSpinner } from "@/components/ui/center-spinner";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,6 +31,7 @@ interface EditTaskModalProps {
 export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTaskModalProps) {
 
     const [users, setUsers] = useState<any[]>([]);
+    const [currentUserId, setCurrentUserId] = useState<any>();
     const [projects, setProjects] = useState<any>([]);
     const [statuses, setStatuses] = useState<{ id: number, name: string }[]>([]);
     const [addStatusModalOpen, setAddStatusModalOpen] = useState(false);
@@ -56,6 +58,8 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
             const res = await fetch("/api/users");
             const data = await res.json();
             setUsers(data.users);
+            setCurrentUserId(data.currentUserId);
+
         } catch (err) {
             console.error("Failed to fetch users:", err);
         } finally {
@@ -70,8 +74,6 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         });
-
-        console.log(res.ok)
 
         if (res.ok) {
             toast.success("Task updated successfully!");
@@ -340,10 +342,9 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
                         <Textarea {...register("notes")} placeholder="Enter note details..." />
                     </div>
 
-                    {/* Comments */}
                     <div>
                         <Label className="mb-2">Comments</Label>
-                        <Textarea {...register("comments")} placeholder="Enter comments..." />
+                        <CommentList contextId={task.id} currentUserId={currentUserId} contextType="task" users={users} />
                     </div>
 
                     {/* Footer */}

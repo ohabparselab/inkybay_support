@@ -192,7 +192,8 @@ export const addTaskSchema = z.object({
     solvedBy: z.string().optional(),
     projectId: z.string({error: "Please select project."}),
     notes: z.string().optional(),
-    comments: z.string().optional()
+    comments: z.string().optional(),
+    mentions: z.array(z.number().optional()),
 });
 
 export const createStatusSchema = z.object({

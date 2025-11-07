@@ -1,6 +1,6 @@
+import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server"
 import { addTaskSchema } from "~/lib/validations"
 import { prisma } from "~/lib/prisma.server"
-import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server"
 import { getUserId } from "~/session.server"
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
@@ -98,16 +98,29 @@ const createTask = async (request: Request) => {
             data: taskData
         });
 
-        if (value.comments) {
-            const commentCreateParams = {
-                taskId: task.id,
-                content: value.comments,
-                userId: userId
-            }
-            await prisma.comment.create({
-                data: commentCreateParams,
+        if (value.comments && value.comments.trim() !== "") {
+            const comment = await prisma.comment.create({
+                data: {
+                    content: value.comments,
+                    user: { connect: { id: userId } },
+                    task: { connect: { id: task.id } },
+                },
             });
 
+            if (Array.isArray(value.mentions) && value.mentions.length > 0) {
+                const validMentions = (value.mentions || []).filter(
+                    (mId): mId is number => typeof mId === "number"
+                );
+
+                for (const mId of validMentions) {
+                    await prisma.commentMention.create({
+                        data: {
+                            commentId: comment.id,
+                            mentionedId: mId,
+                        },
+                    });
+                }
+            }
         }
 
         const logsParams = {

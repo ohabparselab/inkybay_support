@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { CommentInput } from "../comments/CommentInput";
 
 const AddStatusModal = lazy(() =>
     import('~/components/modals/add-status-modal').then(module => ({ default: module.AddStatusModal }))
@@ -35,8 +36,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
-
-    const { control, register, handleSubmit, formState: { errors }, reset } = useForm<AddTaskFormInput>({
+    const { control, register, watch, setValue, handleSubmit, formState: { errors }, reset } = useForm<AddTaskFormInput>({
         resolver: zodResolver(addTaskSchema),
         defaultValues: {
             providedBy: "",
@@ -380,7 +380,16 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                     {/* Comments */}
                     <div>
                         <Label className="mb-2">Comments</Label>
-                        <Textarea {...register("comments")} placeholder="Write comments..." />
+                        <CommentInput
+                            value={watch("comments")}
+                            onChange={(value: any, mentions: any) => {
+                                setValue("comments", value);
+                                setValue("mentions", mentions);
+                            }}
+                            onSubmit={async () => { }}
+                            users={users}
+                            sendButtonShow={false}
+                        />
                     </div>
 
                     {/* Footer */}
