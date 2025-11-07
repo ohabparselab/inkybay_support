@@ -48,6 +48,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
             solvedBy: "",
             notes: "",
             comments: "",
+            mentions: [],
         },
     });
 
