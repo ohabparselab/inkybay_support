@@ -62,7 +62,8 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
             reviewAsked: false,
             reviewStatus: false,
             agentRating: 0,
-            externalChat: externalChat
+            externalChat: externalChat,
+            mentions: [],
         },
     });
 
@@ -159,6 +160,8 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
             toast.error('Something is wrong, please again.');
         }
     };
+
+    console.log(errors);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
