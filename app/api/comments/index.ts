@@ -5,6 +5,7 @@ import { getUserId } from "~/session.server";
 
 export async function loader({ request }: { request: Request }) {
     try {
+
         const url = new URL(request.url);
         const contextType = url.searchParams.get("type");
         const contextId = url.searchParams.get("id");
@@ -13,7 +14,9 @@ export async function loader({ request }: { request: Request }) {
             return Response.json({ success: false, message: "Missing type or id parameter" }, { status: 400 });
         }
 
-        const where: any = {};
+        const where: any = {
+            parentId: null
+        };
 
         if (contextType == 'community') {
             where.communityId = Number(contextId)
@@ -24,13 +27,22 @@ export async function loader({ request }: { request: Request }) {
         }
 
         const comments = await prisma.comment.findMany({
-            where: where,
-            orderBy: { createdAt: "desc" },
+            where,
+            orderBy: { createdAt: "asc" },
             include: {
-                user: {
-                    select: { id: true, fullName: true, avatar: true },
-                },
-                replies: true
+                user: { select: { id: true, fullName: true, avatar: true } },
+                replies: {
+                    orderBy: { createdAt: "asc" },
+                    include: {
+                        user: { select: { id: true, fullName: true, avatar: true } },
+                        replies: {
+                            orderBy: { createdAt: "asc" },
+                            include: {
+                                user: { select: { id: true, fullName: true, avatar: true } },
+                            }
+                        }
+                    }
+                }
             },
         });
 

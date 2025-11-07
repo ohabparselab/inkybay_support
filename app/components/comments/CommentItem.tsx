@@ -61,7 +61,15 @@ export function CommentItem({ comment, users, onReply }: CommentItemProps) {
                         {showReply ? "Cancel" : "Reply"}
                     </button>
 
-                    {/* Reply input */}
+                    {/* Nested replies */}
+                    {comment.replies?.length > 0 && (
+                        <div className="ml-6 mt-3 space-y-3">
+                            {comment.replies.map((reply: any) => (
+                                <CommentItem key={reply.id} comment={reply} users={users} onReply={onReply} />
+                            ))}
+                        </div>
+                    )}
+
                     {showReply && (
                         <div className="ml-6 mt-2">
                             <CommentInput
@@ -69,15 +77,6 @@ export function CommentItem({ comment, users, onReply }: CommentItemProps) {
                                 onSubmit={async (content, mentions) => onReply(content, mentions, comment.id)}
                                 placeholder={`Reply to ${comment.user?.fullName}...`}
                             />
-                        </div>
-                    )}
-
-                    {/* Nested replies */}
-                    {comment.replies?.length > 0 && (
-                        <div className="ml-6 mt-3 space-y-3">
-                            {comment.replies.map((reply: any) => (
-                                <CommentItem key={reply.id} comment={reply} users={users} onReply={onReply} />
-                            ))}
                         </div>
                     )}
                 </div>
