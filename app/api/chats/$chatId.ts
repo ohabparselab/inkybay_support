@@ -27,9 +27,6 @@ const updateChat = async (chatId: number, request: Request) => {
         // --- CHAT DATA ---
         const chatData: any = {
             clientQuery: formData.get("clientQuery")?.toString() || null,
-            handleBy: formData.get("handleBy") ? Number(formData.get("handleBy")) : null,
-            clientId: formData.get("clientId") ? Number(formData.get("clientId")) : null,
-            projectId: formData.get("projectId") ? Number(formData.get("projectId")) : null,
             chatDate: formData.get("chatDate") ? new Date(formData.get("chatDate") as string) : null,
             storefrontPassword: formData.get("storefrontPassword")?.toString() || null,
             externalChat: formData.get("externalChat") === "true",
@@ -38,12 +35,27 @@ const updateChat = async (chatId: number, request: Request) => {
             shopEmail: formData.get("shopEmail")?.toString() || null,
             clientFeedback: formData.get("clientFeedback")?.toString() || null,
             storeDetails: formData.get("storeDetails")?.toString() || null,
-            agentComments: formData.get("agentComments")?.toString() || null,
             otherStoresUrl: formData.get("otherStoresUrl")?.toString() || null,
             changesMadeByAgent: formData.get("changesMadeByAgent")?.toString() || null,
             updatedBy: Number(userId),
             updatedAt: new Date(),
         };
+
+        const handleBy = formData.get("handleBy") ? Number(formData.get("handleBy")) : null;
+        const clientId = formData.get("clientId") ? Number(formData.get("clientId")) : null;
+        const projectId =  formData.get("projectId") ? Number(formData.get("projectId")) : null;
+
+        if (handleBy) {
+            chatData.handleBy = handleBy;
+        }
+
+        if (clientId) {
+            chatData.clientId = clientId;
+        }
+
+        if (projectId) {
+            chatData.projectId = projectId;
+        }
 
         // --- Handle Chat Transcript Upload ---
         const chatTranscriptFile = formData.get("chatTranscript") as File | null;
@@ -168,12 +180,12 @@ const updateChat = async (chatId: number, request: Request) => {
             modelName: "chat",
             recordId: updatedChat.id,
             changes: {
-                    chatData: updatedChat,
-                    reviewData: updatedReview,
-                    featureRequestData: featureRequest,
-                    tags: tags,
-                    clientEmails: clientEmails
-                }
+                chatData: updatedChat,
+                reviewData: updatedReview,
+                featureRequestData: featureRequest,
+                tags: tags,
+                clientEmails: clientEmails
+            }
         }
 
         await ActivityLog(logsParams);

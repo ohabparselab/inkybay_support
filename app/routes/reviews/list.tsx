@@ -44,13 +44,32 @@ export async function loader({ request }: any) {
 
     const where: any = search
         ? {
-            OR: [
-                { chat: { client: { shopDomain: { contains: searchLower } } } },
-                { meeting: { storeUrl: { contains: searchLower } } },
-                { reviewText: { contains: searchLower } },
+            AND: [
+                {
+                    OR: [
+                        { chat: { client: { shopDomain: { contains: searchLower } } } },
+                        { meeting: { storeUrl: { contains: searchLower } } },
+                        { reviewText: { contains: searchLower } },
+                    ],
+                },
+                {
+                    NOT: {
+                        reviewText: null,
+                    },
+                },
+                {
+                    reviewText: { not: "" },
+                },
             ],
         }
-        : {};
+        : {
+            NOT: {
+                OR: [
+                    { reviewText: null },
+                    { reviewText: "" },
+                ],
+            },
+        };
 
     if (ratingMood) where.ratingMood = ratingMood;
 
@@ -230,7 +249,7 @@ export default function ReviewListPage() {
                     <TableBody>
                         {reviews.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                                <TableCell colSpan={6} className="text-center py-50 text-muted-foreground">
                                     No reviews found
                                 </TableCell>
                             </TableRow>
