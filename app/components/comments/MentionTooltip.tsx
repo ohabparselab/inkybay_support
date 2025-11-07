@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 export function MentionTooltip({ userId, children }: { userId: number; children: React.ReactNode }) {
+    
     const [user, setUser] = useState<any>(null);
 
     useEffect(() => {

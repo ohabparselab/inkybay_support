@@ -26,7 +26,7 @@ export function CommentItem({ comment, users, onReply }: CommentItemProps) {
     };
 
     const handleReplySubmit = async (content: string, mentions: number[]) => {
-        // 1️⃣ Create reply on backend
+        // Create reply on backend
         const res = await fetch("/api/comments", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -43,11 +43,10 @@ export function CommentItem({ comment, users, onReply }: CommentItemProps) {
 
         const data = await res.json();
 
-        // Optimistically show reply immediately
         if (data.success && data.comment) {
             setReplies((prev) => [...prev, data.comment]);
             setShowReplies(true);
-            setShowReplyBox(false);
+            // setShowReplyBox(false);
         }
     };
 

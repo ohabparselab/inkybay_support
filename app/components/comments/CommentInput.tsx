@@ -1,5 +1,6 @@
 import { MentionsInput, Mention } from "react-mentions";
 import { useState } from "react";
+import { Send, SendHorizontal } from "lucide-react"; // optional icon (from lucide-react)
 
 interface CommentInputProps {
     onSubmit: (content: string, mentions: number[]) => Promise<void>;
@@ -18,6 +19,7 @@ export function CommentInput({
     users = [],
     readOnly = false,
     placeholder = "Type a comment...",
+    isSubmitting = false,
 }: CommentInputProps) {
     const [content, setContent] = useState(value || "");
 
@@ -34,35 +36,55 @@ export function CommentInput({
     const handleKeyDown = async (e: React.KeyboardEvent) => {
         if (e.key === "Enter" && !e.shiftKey && !readOnly) {
             e.preventDefault();
-            const mentionIds = extractMentions(content, users);
-            await onSubmit(content, mentionIds);
-            setContent("");
+            await handleSubmit();
         }
     };
 
-    return (
-        <MentionsInput
-            value={content}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            allowSuggestionsAboveCursor={true}
-            disabled={readOnly}
-            className="react-mentions w-full"
-            style={mentionsInputStyle}
+    const handleSubmit = async () => {
+        if (!content.trim()) return;
+        const mentionIds = extractMentions(content, users);
+        await onSubmit(content, mentionIds);
+        setContent("");
+    };
 
-        >
-            <Mention
-                trigger="@"
-                data={users
-                    .filter((u) => u && u.id != null && u.fullName)
-                    .map((u) => ({ id: u.id, display: u.fullName }))}
-                displayTransform={(id, display) => `@${display}`}
-                appendSpaceOnAdd={true}
-                markup="@[__display__](__id__)"
-                style={mentionStyle}
-            />
-        </MentionsInput>
+    return (
+        <div className="flex items-center gap-2 mt-2">
+            <div className="flex-1">
+                <MentionsInput
+                    value={content}
+                    onChange={handleChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder={placeholder}
+                    allowSuggestionsAboveCursor={true}
+                    disabled={readOnly}
+                    className="react-mentions w-full"
+                    style={mentionsInputStyle}
+                >
+                    <Mention
+                        trigger="@"
+                        data={users
+                            .filter((u) => u && u.id != null && u.fullName)
+                            .map((u) => ({ id: u.id, display: u.fullName }))}
+                        displayTransform={(id, display) => `@${display}`}
+                        appendSpaceOnAdd={true}
+                        markup="@[__display__](__id__)"
+                        style={mentionStyle}
+                    />
+                </MentionsInput>
+            </div>
+
+            {/* Send button */}
+            <button
+                onClick={handleSubmit}
+                disabled={readOnly || isSubmitting || !content.trim()}
+                className={`p-2 rounded-full transition ${content.trim()
+                        ? "bg-blue-600 hover:bg-blue-700 text-white"
+                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    }`}
+            >
+                <SendHorizontal size={30} />
+            </button>
+        </div>
     );
 }
 
@@ -76,55 +98,56 @@ function extractMentions(content: string, users: any[]) {
 
 const mentionsInputStyle = {
     control: {
-        backgroundColor: '#fff',
+        backgroundColor: "transparent",
         fontSize: 14,
-        fontWeight: 'normal',
+        fontWeight: "normal",
     },
 
-    '&multiLine': {
+    "&multiLine": {
         control: {
             minHeight: 63,
         },
         highlighter: {
-            padding: 9,
-            border: '1px solid transparent',
+            padding: 20,
+            border: "1px solid transparent",
         },
         input: {
-            padding: 9,
-            border: '1px solid silver',
+            padding: 20,
+            border: "1px solid silver",
+            borderRadius: "50px",
         },
     },
 
-    '&singleLine': {
-        display: 'inline-block',
+    "&singleLine": {
+        display: "inline-block",
         width: 180,
 
         highlighter: {
             padding: 1,
-            border: '2px inset transparent',
+            border: "2px inset transparent",
         },
         input: {
             padding: 1,
-            border: '2px inset',
+            border: "2px inset",
         },
     },
 
     suggestions: {
         list: {
-            backgroundColor: 'white',
-            border: '1px solid rgba(0,0,0,0.15)',
+            backgroundColor: "white",
+            border: "1px solid rgba(0,0,0,0.15)",
             fontSize: 14,
         },
         item: {
-            padding: '5px 15px',
-            borderBottom: '1px solid rgba(0,0,0,0.15)',
-            '&focused': {
-                backgroundColor: '#dcd7f7',
+            padding: "5px 15px",
+            borderBottom: "1px solid rgba(0,0,0,0.15)",
+            "&focused": {
+                backgroundColor: "#dcd7f7",
             },
         },
-    }
-}
+    },
+};
 
 const mentionStyle = {
-    backgroundColor: '#dcd7f7',
+    backgroundColor: "#dcd7f7",
 };
