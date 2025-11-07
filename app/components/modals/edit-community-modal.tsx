@@ -19,7 +19,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AddCommunitySchema, type AddCommunityInput } from "~/lib/validations";
 import { useForm, Controller } from "react-hook-form";
-import { Plus, X, Save, CalendarIcon } from "lucide-react";
+import { Plus, X, Save, CalendarIcon, ListRestart } from "lucide-react";
 import { CenterSpinner } from "@/components/ui/center-spinner";
 import { RichTextEditor } from "../ui/rich-text-editor";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,7 +46,7 @@ export function EditCommunityModal({
     refreshPage,
 }: EditCommunityModalProps) {
 
-    
+
     const [statusOptions, setStatusOptions] = useState<any[]>([]);
     const [projects, setProjects] = useState<any[]>([]);
     const [users, setUsers] = useState<any[]>([]);
@@ -284,28 +284,37 @@ export function EditCommunityModal({
                             error={errors.reply?.message}
                         />
                     </div>
-
-                    {/* Comments */}
+                    {/* Footer */}
+                    <DialogFooter className="!justify-center flex w-full">
+                        <Button onClick={() => {
+                            onOpenChange(false);
+                            reset();
+                        }} variant="destructive">
+                            <X />
+                            Cancel
+                        </Button>
+                        <Button onClick={() => {
+                            reset();
+                        }} variant="outline">
+                            <ListRestart />
+                            Reset
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting}
+                        >
+                            {
+                                isSubmitting ? (<Spinner />) : (<Save className="h-4 w-4" />)
+                            }
+                            Save Changes
+                        </Button>
+                    </DialogFooter>
+                     {/* Comments */}
                     <div>
                         <Label className="mb-2">Comments</Label>
                         <CommentList contextId={community.id} currentUserId={currentUserId} contextType="community" users={users} />
                     </div>
 
-                    {/* Footer */}
-                    <DialogFooter className="!justify-center flex gap-2">
-                        <Button
-                            variant="destructive"
-                            onClick={() => {
-                                onOpenChange(false);
-                                reset();
-                            }}
-                        >
-                            <X /> Cancel
-                        </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? <Spinner /> : <Save className="w-4 h-4 mr-1" />} Update Question
-                        </Button>
-                    </DialogFooter>
                 </form>
             </DialogContent>
 

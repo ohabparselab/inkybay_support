@@ -476,25 +476,28 @@ export function EditCollaborationModal({
                         <Textarea {...register("meetingDetails")} placeholder="Enter comments details..." />
                     </div>
 
-                    {/* Footer */}
                     <DialogFooter className="!justify-center flex w-full">
-                        <Button
-                            onClick={() => {
-                                onOpenChange(false);
-                                reset();
-                            }}
-                            variant="destructive"
-                        >
+                        <Button onClick={() => {
+                            onOpenChange(false);
+                            reset();
+                        }} variant="destructive">
                             <X />
                             Cancel
                         </Button>
-                        <Button onClick={() => reset()} variant="outline">
+                        <Button onClick={() => {
+                            reset();
+                        }} variant="outline">
                             <ListRestart />
                             Reset
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? <Spinner /> : <Save className="h-4 w-4" />}
-                            Update Collaboration
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting}
+                        >
+                            {
+                                isSubmitting ? (<Spinner />) : (<Save className="h-4 w-4" />)
+                            }
+                            Save Changes
                         </Button>
                     </DialogFooter>
                 </form>

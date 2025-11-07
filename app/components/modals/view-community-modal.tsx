@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { CommentList } from "../comments/CommentList";
 
 interface ViewCommunityModalProps {
     open: boolean;
@@ -27,6 +28,9 @@ export function ViewCommunityModal({
     onOpenChange,
     communityId,
 }: ViewCommunityModalProps) {
+
+    const [users, setUsers] = useState<any[]>([]);
+    const [currentUserId, setCurrentUserId] = useState<any>();
     const [loading, setLoading] = useState(false);
     const [community, setCommunity] = useState<any>(null);
 
@@ -45,8 +49,19 @@ export function ViewCommunityModal({
         }
     };
 
+      const fetchData = async () => {
+        const [usersRes] = await Promise.all([
+            fetch("/api/users").then((res) => res.json()),
+        ]);
+        setUsers(usersRes.users || []);
+        setCurrentUserId(usersRes.currentUserId);
+    };
+
     useEffect(() => {
-        if (open && communityId) fetchCommunity();
+        if (open && communityId) {
+            fetchData();
+            fetchCommunity();
+        }
     }, [open, communityId]);
 
     return (
@@ -142,25 +157,8 @@ export function ViewCommunityModal({
 
                             {/* Comments */}
                             <div>
-                                <Label className="text-base font-semibold">Comments</Label>
-                                <div className="mt-2 space-y-2">
-                                    {community.comments?.length > 0 ? (
-                                        community.comments.map((comment: any) => (
-                                            <div
-                                                key={comment.id}
-                                                className="border p-2 rounded-md bg-muted/20 text-sm"
-                                            >
-                                                <p>{comment.content}</p>
-                                                <p className="text-xs text-muted-foreground mt-1">
-                                                    — {comment.user?.fullName || "Unknown"} (
-                                                    {format(new Date(comment.createdAt), "PPP")})
-                                                </p>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-sm text-muted-foreground">No comments yet</p>
-                                    )}
-                                </div>
+                                <Label className="mb-2">Comments</Label>
+                                <CommentList contextId={community.id} currentUserId={currentUserId} contextType="community" users={users} />
                             </div>
                         </div>
                     </ScrollArea>
