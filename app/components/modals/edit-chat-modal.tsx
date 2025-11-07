@@ -147,8 +147,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                     : undefined,
                 reviewApproachBy: chat.review?.reviewApproachBy?.toString() || "",
                 ratingMood: chat.review?.ratingMood?.toString() || "",
-                externalChat: chat.externalChat,
-                mentions: []
+                externalChat: chat.externalChat,                
             });
         }
     }, [chat, reset]);

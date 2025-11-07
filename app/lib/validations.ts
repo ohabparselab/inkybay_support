@@ -178,7 +178,7 @@ export const addChatSchema = z.object({
     otherStoresUrl: z.string().optional(),
     changesMadeByAgent: z.string().optional(),
     comments: z.string().optional(),
-    mentions: z.array(z.number().optional()),
+    mentions: z.array(z.number().optional()).optional(),
 });
 
 export const addTaskSchema = z.object({
@@ -194,7 +194,7 @@ export const addTaskSchema = z.object({
     projectId: z.string({error: "Please select project."}),
     notes: z.string().optional(),
     comments: z.string().optional(),
-    mentions: z.array(z.number().optional()),
+    mentions: z.array(z.number().optional()).optional(),
 });
 
 export const createStatusSchema = z.object({
@@ -317,7 +317,7 @@ export const AddCommunitySchema = z.object({
     reply: z.string().optional(),
     statusId: z.string().optional(),
     comments: z.string().optional(),
-    mentions: z.array(z.number().optional()),
+    mentions: z.array(z.number().optional()).optional(),
 });
 
 export const addCommentSchema = z.object({

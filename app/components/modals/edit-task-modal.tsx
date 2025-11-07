@@ -114,10 +114,11 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
                 solvedBy: String(task.solvedBy || ""),
                 projectId: String(task.projectId || ""),
                 notes: task.notes || "",
-                comments: task.comments || "",
             });
         }
     }, [task, open, reset]);
+
+    console.log(errors);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

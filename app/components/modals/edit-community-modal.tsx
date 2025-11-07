@@ -98,7 +98,6 @@ export function EditCommunityModal({
                 projectId: community.projectId ? String(community.projectId) : "",
                 addedById: community.addedById ? String(community.addedById) : "",
                 statusId: community.statusId ? String(community.statusId) : "",
-                comments: "",
             });
         }
     }, [open, community, reset]);
@@ -284,6 +283,11 @@ export function EditCommunityModal({
                             error={errors.reply?.message}
                         />
                     </div>
+                    {/* Comments */}
+                    <div>
+                        <Label className="mb-2">Comments</Label>
+                        <CommentList contextId={community.id} currentUserId={currentUserId} contextType="community" users={users} />
+                    </div>
                     {/* Footer */}
                     <DialogFooter className="!justify-center flex w-full">
                         <Button onClick={() => {
@@ -309,11 +313,7 @@ export function EditCommunityModal({
                             Save Changes
                         </Button>
                     </DialogFooter>
-                     {/* Comments */}
-                    <div>
-                        <Label className="mb-2">Comments</Label>
-                        <CommentList contextId={community.id} currentUserId={currentUserId} contextType="community" users={users} />
-                    </div>
+
 
                 </form>
             </DialogContent>
