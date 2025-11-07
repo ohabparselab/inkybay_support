@@ -5,6 +5,7 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { CommentList } from "@/components/comments/CommentList";
 import { ShopDetails } from "@/components/shop-details";
 import { ShopHistory } from "@/components/shop-history";
 import { Separator } from "@/components/ui/separator";
@@ -12,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 import { format } from "date-fns";
+import { useEffect, useState } from "react";
 
 interface ViewChatDetailsModalProps {
     open: boolean;
@@ -22,6 +24,22 @@ interface ViewChatDetailsModalProps {
 export function ViewChatDetailsModal({ open, onOpenChange, chat }: ViewChatDetailsModalProps) {
     if (!chat) return null;
     const formatDate = (date?: Date | string | null) => date ? format(new Date(date), "PPPp") : "-";
+    const [users, setUsers] = useState<any[]>([]);
+    const [currentUserId, setCurrentUserId] = useState<any>();
+
+    const fetchData = async () => {
+        const [usersRes] = await Promise.all([
+            fetch("/api/users").then((res) => res.json()),
+        ]);
+        setUsers(usersRes.users || []);
+        setCurrentUserId(usersRes.currentUserId);
+    };
+
+    useEffect(() => {
+        if (open) {
+            fetchData();
+        }
+    }, [open]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -80,7 +98,6 @@ export function ViewChatDetailsModal({ open, onOpenChange, chat }: ViewChatDetai
                             </p>
                             <p><strong>Handled By:</strong> {chat.handleByUser?.fullName || "-"}</p>
                             <p><strong>Changes Made By Agent:</strong> {chat?.changesMadeByAgent || "N/A"}</p>
-                            <p><strong>Agent Comment:</strong> {chat?.agentComments || "N/A"}</p>
                             <p><strong>Client Feedback:</strong> {chat?.clientFeedback || "N/A"}</p>
                             <p><strong>Other Store Url:</strong> {chat?.otherStoresUrl || "N/A"}</p>
                             <p>
@@ -132,6 +149,11 @@ export function ViewChatDetailsModal({ open, onOpenChange, chat }: ViewChatDetai
                             <p><strong>Rating Mood/Client nature:</strong> {chat?.review?.ratingMood || "N/A"}</p>
                             <p><strong>Project:</strong> {chat?.project?.name || "N/A"}</p>
                         </div>
+                    </div>
+                    <Separator />
+                    <div>
+                        <h3 className="mb-2">Comments</h3>
+                        <CommentList contextId={chat.id} currentUserId={currentUserId} contextType="chat" users={users} />
                     </div>
                     <Separator />
                     <ShopDetails shopUrl={chat?.client?.shopDomain} />

@@ -189,7 +189,6 @@ model Chat {
     shopEmail          String?   @db.Text
     clientFeedback     String?   @db.Text
     storeDetails       String?   @db.Text
-    agentComments      String?   @db.Text
     otherStoresUrl     String?   @db.Text
     changesMadeByAgent String?   @db.Text
     isDeleted          Boolean   @default(false)

@@ -47,6 +47,8 @@ const createChat = async (request: Request) => {
             return Response.json({ success: false, message: "Client query is required." }, { status: 400 });
         }
 
+        const comments = formData.get("comments")?.toString() || null;
+        const mentions = formData.get("mentions")?.toString() || null;
         // --- CHAT DATA ---
         const chatData: any = {
             clientQuery: clientQuery,
@@ -61,7 +63,6 @@ const createChat = async (request: Request) => {
             shopEmail: formData.get("shopEmail")?.toString() || null,
             clientFeedback: formData.get("clientFeedback")?.toString() || null,
             storeDetails: formData.get("storeDetails")?.toString() || null,
-            agentComments: formData.get("agentComments")?.toString() || null,
             otherStoresUrl: formData.get("otherStoresUrl")?.toString() || null,
             changesMadeByAgent: formData.get("changesMadeByAgent")?.toString() || null,
             createdBy: Number(userId),
@@ -76,6 +77,31 @@ const createChat = async (request: Request) => {
 
         // --- CREATE CHAT ---
         const chat = await prisma.chat.create({ data: chatData });
+
+        if (comments && comments.trim() !== "") {
+            const comment = await prisma.comment.create({
+                data: {
+                    content: comments,
+                    user: { connect: { id: userId } },
+                    chat: { connect: { id: chat.id } },
+                },
+            });
+
+            if (Array.isArray(mentions) && mentions.length > 0) {
+                const validMentions = (mentions || []).filter(
+                    (mId): mId is number => typeof mId === "number"
+                );
+
+                for (const mId of validMentions) {
+                    await prisma.commentMention.create({
+                        data: {
+                            commentId: comment.id,
+                            mentionedId: mId,
+                        },
+                    });
+                }
+            }
+        }
 
         // --- REVIEW DATA ---
         const reviewData: any = {

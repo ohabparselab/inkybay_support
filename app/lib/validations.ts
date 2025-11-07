@@ -175,9 +175,10 @@ export const addChatSchema = z.object({
     featureRequest: z.string().optional(),
     agentRating: z.number().min(0).max(10).optional(),
     ratingMood: z.string().optional(),
-    agentComments: z.string().optional(),
     otherStoresUrl: z.string().optional(),
     changesMadeByAgent: z.string().optional(),
+    comments: z.string().optional(),
+    mentions: z.array(z.number().optional()),
 });
 
 export const addTaskSchema = z.object({

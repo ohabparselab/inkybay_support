@@ -26,8 +26,9 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { TagsInput } from "../ui/tags";
-import { Spinner } from "../ui/spinner";
+import { CommentList } from "@/components/comments/CommentList";
+import { Spinner } from "@/components/ui/spinner";
+import { TagsInput } from "@/components/ui/tags";
 
 interface EditChatModalProps {
     open: boolean;
@@ -40,10 +41,9 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
 
     const [projects, setProjects] = useState<any>([]);
     const [users, setUsers] = useState<any[]>([]);
+    const [currentUserId, setCurrentUserId] = useState<any>();
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [loadingProjects, setLoadingProjects] = useState(false);
-
-    console.log("chat.externalChat=======,", chat.externalChat)
 
     const {
         control,
@@ -67,7 +67,6 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
             clientFeedback: chat?.clientFeedback || "",
             storeDetails: chat?.storeDetails || "",
             featureRequest: chat?.featureRequest?.featureDetails || "",
-            agentComments: chat?.agentComments || "",
             otherStoresUrl: chat?.otherStoresUrl || "",
             changesMadeByAgent: chat?.changesMadeByAgent || "",
             chatDate: chat?.chatDate ? new Date(chat.chatDate) : undefined,
@@ -90,6 +89,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
             const res = await fetch("/api/users");
             const data = await res.json();
             setUsers(data.users);
+            setCurrentUserId(data.currentUserId);
         } catch (err) {
             console.error("Failed to fetch users:", err);
         } finally {
@@ -130,7 +130,6 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                 clientFeedback: chat.clientFeedback || "",
                 storeDetails: chat.storeDetails || "",
                 featureRequest: chat.featureRequest?.featureDetails || "",
-                agentComments: chat.agentComments || "",
                 otherStoresUrl: chat.otherStoresUrl || "",
                 changesMadeByAgent: chat.changesMadeByAgent || "",
                 chatDate: chat.chatDate ? new Date(chat.chatDate) : undefined,
@@ -644,7 +643,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                     {/* Agent Comments */}
                     <div>
                         <Label className="mb-2">Comments</Label>
-                        <Textarea {...register("agentComments")} placeholder="Write comments..." />
+                        <CommentList contextId={chat.id} currentUserId={currentUserId} contextType="chat" users={users} />
                     </div>
 
                     <DialogFooter className="!justify-center flex w-full">

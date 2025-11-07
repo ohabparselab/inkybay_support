@@ -1,7 +1,7 @@
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { addChatSchema, type AddChatFormInput } from "~/lib/validations";
 import { Badge, CalendarIcon, ListRestart, Plus, Star, X } from "lucide-react";
+import { addChatSchema, type AddChatFormInput } from "~/lib/validations";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,9 +26,10 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
+import { TagsInput } from "@/components/ui/tags";
 import { toast } from "sonner";
-import { TagsInput } from "../ui/tags";
-import { Spinner } from "../ui/spinner";
+import { CommentInput } from "../comments/CommentInput";
 
 interface AddChatModalProps {
     clientId?: number | null;
@@ -594,7 +595,16 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                     {/* Agent Comments */}
                     <div>
                         <Label className="mb-2">Comments</Label>
-                        <Textarea {...register("agentComments")} placeholder="Write comments..." />
+                        <CommentInput
+                            value={watch("comments")}
+                            onChange={(value: any, mentions: any) => {
+                                setValue("comments", value);
+                                setValue("mentions", mentions);
+                            }}
+                            onSubmit={async () => { }}
+                            users={users}
+                            sendButtonShow={false}
+                        />
                     </div>
 
                     <DialogFooter className="!justify-center flex w-full">
@@ -616,7 +626,7 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                             disabled={isSubmitting}
                         >
                             {
-                                isSubmitting ? (<Spinner/>) : (<Plus className="h-4 w-4" />)
+                                isSubmitting ? (<Spinner />) : (<Plus className="h-4 w-4" />)
                             }
                             Add New Chat
                         </Button>

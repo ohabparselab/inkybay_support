@@ -49,7 +49,7 @@ export function ViewCommunityModal({
         }
     };
 
-      const fetchData = async () => {
+    const fetchData = async () => {
         const [usersRes] = await Promise.all([
             fetch("/api/users").then((res) => res.json()),
         ]);
