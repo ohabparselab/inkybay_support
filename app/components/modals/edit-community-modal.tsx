@@ -45,7 +45,8 @@ export function EditCommunityModal({
     community,
     refreshPage,
 }: EditCommunityModalProps) {
-    console.log("===community=== ", community);
+
+    
     const [statusOptions, setStatusOptions] = useState<any[]>([]);
     const [projects, setProjects] = useState<any[]>([]);
     const [users, setUsers] = useState<any[]>([]);

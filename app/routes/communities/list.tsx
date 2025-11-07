@@ -47,13 +47,6 @@ export async function loader({ request }: any) {
             OR: [
                 { question: { contains: searchLower } },
                 { questionUrl: { contains: searchLower } },
-                {
-                    comments: {
-                        some: {
-                            comment: { contains: searchLower },
-                        },
-                    },
-                },
             ],
         }
         : {};
@@ -84,7 +77,6 @@ export async function loader({ request }: any) {
                 project: true,
                 addedBy: true,
                 status: true,
-                comments: true,
             },
         }),
         prisma.community.count({ where }),

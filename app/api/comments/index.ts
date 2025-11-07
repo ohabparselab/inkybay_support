@@ -5,54 +5,46 @@ import { getUserId } from "~/session.server";
 
 export async function loader({ request }: { request: Request }) {
     try {
-
         const url = new URL(request.url);
         const contextType = url.searchParams.get("type");
         const contextId = url.searchParams.get("id");
+        const threadId = url.searchParams.get("threadId");
 
+        // Case 1: Load replies for one parent
+        if (threadId) {
+            const replies = await prisma.comment.findMany({
+                where: { parentId: Number(threadId) },
+                orderBy: { createdAt: "asc" },
+                include: {
+                    user: { select: { id: true, fullName: true, avatar: true } },
+                },
+            });
+            return Response.json({ success: true, replies });
+        }
+
+        // Case 2: Load top-level comments only
         if (!contextType || !contextId) {
-            return Response.json({ success: false, message: "Missing type or id parameter" }, { status: 400 });
+            return Response.json({ success: false, message: "Missing type or id" }, { status: 400 });
         }
 
-        const where: any = {
-            parentId: null
-        };
-
-        if (contextType == 'community') {
-            where.communityId = Number(contextId)
-        }
-
-        if (contextType == 'task') {
-            where.taskId = Number(contextId)
-        }
+        const where: any = { parentId: null };
+        if (contextType === "community") where.communityId = Number(contextId);
+        if (contextType === "task") where.taskId = Number(contextId);
+        if (contextType === "chat") where.chatId = Number(contextId);
 
         const comments = await prisma.comment.findMany({
             where,
             orderBy: { createdAt: "asc" },
             include: {
                 user: { select: { id: true, fullName: true, avatar: true } },
-                replies: {
-                    orderBy: { createdAt: "asc" },
-                    include: {
-                        user: { select: { id: true, fullName: true, avatar: true } },
-                        replies: {
-                            orderBy: { createdAt: "asc" },
-                            include: {
-                                user: { select: { id: true, fullName: true, avatar: true } },
-                            }
-                        }
-                    }
-                }
+                _count: { select: { replies: true } },
             },
         });
 
         return Response.json({ success: true, comments });
     } catch (error: any) {
         console.error("Error fetching comments:", error);
-        return Response.json(
-            { success: false, message: "Failed to load comments", error: error.message },
-            { status: 500 }
-        );
+        return Response.json({ success: false, message: error.message }, { status: 500 });
     }
 }
 

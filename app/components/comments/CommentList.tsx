@@ -42,6 +42,7 @@ export function CommentList({ contextId, contextType, users }: CommentListProps)
             <div className="mt-4 space-y-3">
                 {comments.map((c) => (
                     <CommentItem key={c.id} comment={c} users={users} onReply={addComment} />
+                    
                 ))}
             </div>
             <CommentInput users={users} onSubmit={addComment} placeholder="Add a comment..." />
