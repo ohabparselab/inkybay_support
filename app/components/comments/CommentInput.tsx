@@ -21,6 +21,7 @@ export function CommentInput({
     placeholder = "Type a comment...",
     isSubmitting = false,
 }: CommentInputProps) {
+    
     const [content, setContent] = useState(value || "");
 
     const handleChange = (
