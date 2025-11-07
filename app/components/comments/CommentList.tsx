@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { CommentItem } from "./CommentItem";
 import { CommentInput } from "./CommentInput";
-import { Label } from "../ui/label";
+import { toast } from "sonner";
 
 interface CommentListProps {
+    currentUserId: number;
     contextId: number;
     contextType: "task" | "chat" | "community";
     users: any[];
 }
 
-export function CommentList({ contextId, contextType, users }: CommentListProps) {
+export function CommentList({ contextId, contextType, users, currentUserId }: CommentListProps) {
 
     const [comments, setComments] = useState<any[]>([]);
 
@@ -37,12 +38,35 @@ export function CommentList({ contextId, contextType, users }: CommentListProps)
         if (data.success) fetchComments();
     };
 
+    const editComment = async (commentId: number, content: string, mentions: number[]) => {
+        try {
+            const res = await fetch(`/api/comments/${commentId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ content, mentions }),
+            });
+            const data = await res.json();
+            if (!data.success) toast.error('Failed to update comment');
+            if (data.success) fetchComments();
+        } catch (err: any) {
+            console.error("Failed to edit comment:", err);
+            toast.error('Failed to edit comment, please again.');
+        }
+    };
+
     return (
         <div className="space-y-3">
             <div className="mt-4 space-y-3">
                 {comments.map((c) => (
-                    <CommentItem key={c.id} comment={c} users={users} onReply={addComment} />
-                    
+                    <CommentItem
+                        key={c.id}
+                        comment={c}
+                        users={users}
+                        currentUserId={currentUserId}
+                        onReply={addComment}
+                        onEdit={editComment}
+                    />
+
                 ))}
             </div>
             <CommentInput users={users} onSubmit={addComment} placeholder="Add a comment..." />

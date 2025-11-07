@@ -10,11 +10,12 @@ const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, 
 // loader to fetch all users for listing
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
+    const userId = await getUserId(request);
     const users = await prisma.user.findMany({
         where: {role: { slug: 'user' }},
       select: { id: true, fullName: true, email: true },
     });
-    return Response.json({ users });
+    return Response.json({ currentUserId: userId, users });
   } catch (err: any) {
     return Response.json({ users: [], error: err.message }, { status: 500 });
   }

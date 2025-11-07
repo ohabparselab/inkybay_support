@@ -50,6 +50,7 @@ export function EditCommunityModal({
     const [statusOptions, setStatusOptions] = useState<any[]>([]);
     const [projects, setProjects] = useState<any[]>([]);
     const [users, setUsers] = useState<any[]>([]);
+    const [currentUserId, setCurrentUserId] = useState<any>();
     const [addStatusModalOpen, setAddStatusModalOpen] = useState(false);
 
     const {
@@ -81,6 +82,7 @@ export function EditCommunityModal({
         ]);
         setProjects(projectsRes.projects || []);
         setUsers(usersRes.users || []);
+        setCurrentUserId(usersRes.currentUserId);
         setStatusOptions(statusRes.statuses || []);
     };
 
@@ -286,7 +288,7 @@ export function EditCommunityModal({
                     {/* Comments */}
                     <div>
                         <Label className="mb-2">Comments</Label>
-                        <CommentList contextId={community.id} contextType="community" users={users} />
+                        <CommentList contextId={community.id} currentUserId={currentUserId} contextType="community" users={users} />
                     </div>
 
                     {/* Footer */}

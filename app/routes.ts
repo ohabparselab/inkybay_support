@@ -95,8 +95,8 @@ export default [
     route("/api/inkybay/:kind", "./api/api.inkybay.$kind.tsx"),
     
     // comments api routes
-    route("/api/task-comments/:taskId", "./api/comments/comments.$taskId.ts"),
     route("/api/comments", "./api/comments/index.ts"),
+    route("/api/comments/:commentId", "./api/comments/$commentId.ts"),
 
     // dashboard api
     route("api/dashboard", "./api/dashboard/index.ts"),
