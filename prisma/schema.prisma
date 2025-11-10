@@ -46,6 +46,8 @@ model User {
     sendByUserApp          CollaborationApp[]     @relation("SendByUser")
     addedByUserApp         CollaborationApp[]     @relation("AddedByUser")
     communities            Community[]
+    notifications          Notification[]         @relation("UserNotifications")
+    triggeredActions       Notification[]         @relation("ActorNotifications")
 
     @@index([email])
     @@map("users")
@@ -563,4 +565,29 @@ model CommunityStatus {
     communities Community[]
 
     @@map("community_statuses")
+}
+
+enum NotificationType {
+    CHAT
+    TASK
+    COMMUNITY
+}
+
+model Notification {
+    id        Int              @id @default(autoincrement())
+    userId    Int               // recipient user
+    actorId   Int?              // who triggered (optional)
+    type      NotificationType  // "CHAT" | "TASK" | "COMMUNITY"
+    title     String            // short title like "New Comment on your post"
+    message   String?           // optional longer message
+    entityId  Int               // id of the related entity
+    isRead    Boolean          @default(false)
+    readAt    DateTime?         // timestamp when marked read
+    createdAt DateTime         @default(now())
+    updatedAt DateTime         @updatedAt
+
+    // Relations
+    user  User  @relation("UserNotifications", fields: [userId], references: [id])
+    actor User? @relation("ActorNotifications", fields: [actorId], references: [id])
+
 }
