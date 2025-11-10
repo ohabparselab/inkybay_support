@@ -38,6 +38,7 @@ export default [
         
         route("activity-logs", "./routes/activity-logs/list.tsx"),
     ]),
+    
     // api routes
     route("api/auth/login", "./api/auth/login.ts"),
     route("api/users", "./api/users/index.ts"),
@@ -85,20 +86,21 @@ export default [
     
     // notifications api routes
     route("api/notifications", "./api/notifications/index.ts"),
-    route("/api/notifications/:notificationId", "./api/notifications/$notificationId.ts"),
+    route("api/notifications/:notificationId", "./api/notifications/$notificationId.ts"),
+    route("api/notifications/mark-all-read", "./api/notifications/mark-all-read.ts"),
 
     // settings api
     route("api/settings/projects", "./api/settings/projects/index.ts"),
     route("api/settings/projects/:projectId", "./api/settings/projects/$projectId.ts"),
-    route("/api/settings/platforms", "./api/settings/platforms/index.ts"),
+    route("api/settings/platforms", "./api/settings/platforms/index.ts"),
     route("api/settings/platforms/:platformId", "./api/settings/platforms/$platformId.ts"),
 
     //inkybay search api
-    route("/api/inkybay/:kind", "./api/api.inkybay.$kind.tsx"),
+    route("api/inkybay/:kind", "./api/api.inkybay.$kind.tsx"),
     
     // comments api routes
-    route("/api/comments", "./api/comments/index.ts"),
-    route("/api/comments/:commentId", "./api/comments/$commentId.ts"),
+    route("api/comments", "./api/comments/index.ts"),
+    route("api/comments/:commentId", "./api/comments/$commentId.ts"),
 
     // dashboard api
     route("api/dashboard", "./api/dashboard/index.ts"),

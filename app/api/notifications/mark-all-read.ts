@@ -1,25 +1,23 @@
 import { prisma } from "~/lib/prisma.server";
+import { getUserId } from "~/session.server";
 
 export async function action({ request, params }: { request: Request; params: any }) {
 
-    const notificationId = Number(params.notificationId);
-    if (!notificationId) return new Response(JSON.stringify({ message: "Notification ID required" }), { status: 400 });
-
     switch (request.method.toUpperCase()) {
-        case "PATCH":
-            return await updateNotificationRead(notificationId);
+        case "POST":
+            return await notificationMarkAsRead(request);
         default:
             return new Response(JSON.stringify({ message: "Method not allowed" }), { status: 405 });
     }
 }
 
-const updateNotificationRead = async (id: number) => {
+const notificationMarkAsRead = async (request: Request) => {
     try {
-        await prisma.notification.update({
-            where: { id: Number(id) },
+        const userId = await getUserId(request);
+        await prisma.notification.updateMany({
+            where: { userId: userId },
             data: { isRead: true },
         });
-
         return Response.json({ success: true });
     } catch (error) {
         return Response.json({ success: false, error: "Failed to mark as read" }, { status: 500 });
