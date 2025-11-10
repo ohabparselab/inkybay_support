@@ -27,7 +27,7 @@ export async function loader({ request }: { request: Request }) {
                 },
                 skip,
                 take: limit,
-                orderBy: { createdAt: "asc" },
+                orderBy: { createdAt: "desc" },
                 include: {
                     user: { select: { id: true, fullName: true, avatar: true } },
                 },

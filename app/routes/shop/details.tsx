@@ -1229,7 +1229,7 @@ export default function ShopDetailsPage() {
             {viewTaskModalOpen && selectedTask && (
                 <Suspense fallback={<CenterSpinner />}>
                     <ViewTaskDetailsModal
-                        task={selectedTask}
+                        taskId={selectedTask.id}
                         open={viewTaskModalOpen}
                         onOpenChange={setViewTaskModalOpen}
                     />
