@@ -25,6 +25,8 @@ export async function loader({ request }: { request: Request }) {
                 where: {
                     userId: userId
                 },
+                skip,
+                take: limit,
                 orderBy: { createdAt: "asc" },
                 include: {
                     user: { select: { id: true, fullName: true, avatar: true } },
@@ -43,7 +45,6 @@ export async function loader({ request }: { request: Request }) {
             notifications,
             totalCount,
         });
-        
     } catch (error: any) {
         console.error("Error fetching comments:", error);
         return Response.json({ success: false, message: error.message }, { status: 500 });
