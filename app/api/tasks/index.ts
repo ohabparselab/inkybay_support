@@ -1,9 +1,9 @@
-import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server"
-import { addTaskSchema } from "~/lib/validations"
-import { prisma } from "~/lib/prisma.server"
-import { getUserId } from "~/session.server"
+import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server";
+import { addTaskSchema } from "~/lib/validations";
+import { prisma } from "~/lib/prisma.server";
+import { getUserId } from "~/session.server";
 
-const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
+const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 });
 
 //  MAIN CONTROLLER HANDLER
 export const action = async ({ request }: { request: Request }) => {

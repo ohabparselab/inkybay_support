@@ -419,7 +419,7 @@ export default function TasksListPage() {
             {viewTaskModalOpen && selectedTask && (
                 <Suspense fallback={<CenterSpinner />}>
                     <ViewTaskDetailsModal
-                        task={selectedTask}
+                        taskId={selectedTask.id}
                         open={viewTaskModalOpen}
                         onOpenChange={setViewTaskModalOpen}
                     />

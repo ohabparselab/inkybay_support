@@ -3,6 +3,41 @@ import { addTaskSchema } from "~/lib/validations";
 import { prisma } from "~/lib/prisma.server";
 import { getUserId } from "~/session.server";
 
+export async function loader({ params }: { params: any }) {
+
+    try {
+        const taskId = Number(params.taskId);
+        if (!taskId) return new Response(JSON.stringify({ message: "Task ID required" }), { status: 400 });
+        const task = await prisma.task.findUnique({
+            where: {
+                id: taskId
+            },
+            include: {
+                client: {
+                    select: {
+                        id: true, shopDomain: true, shopName: true,
+                        clientEmail: {
+                            select: { id: true, email: true },
+                        },
+                    },
+                },
+                providedByUser: { select: { id: true, fullName: true } },
+                solvedByUser: { select: { id: true, fullName: true } },
+                status: { select: { id: true, name: true } },
+                project: { select: { id: true, name: true } },
+            },
+        })
+
+        return Response.json({
+            success: true,
+            task
+        });
+    } catch (error: any) {
+        console.error("Error fetching comments:", error);
+        return Response.json({ success: false, message: error.message }, { status: 500 });
+    }
+}
+
 export async function action({ request, params }: { request: Request; params: any }) {
 
     const taskId = Number(params.taskId);
