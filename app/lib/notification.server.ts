@@ -2,7 +2,7 @@ import { NotificationType } from "@prisma/client";
 import { prisma } from "./prisma.server";
 import { getUserInfoById } from "./user.server";
 
-interface CreateNotification {
+export interface CreateNotification {
     userId: number,
     actorId: number,
     type: NotificationType,
@@ -14,8 +14,7 @@ export async function createNotification(createParams: CreateNotification) {
     try {
         const { userId, actorId, type, entityId } = createParams;
 
-        const mentionedUser = await getUserInfoById(userId);
-        const actorUser = await getUserInfoById(actorId);
+        const actorUser = await getUserInfoById(userId);
 
         const notificationData: any = {
             userId: userId,

@@ -45,7 +45,7 @@ export function CommentInput({
 
     const handleSubmit = async () => {
         if (!content.trim()) return;
-        const mentionIds = extractMentions(content, users);
+        const mentionIds = extractMentions(content);
         await onSubmit(content, mentionIds);
         setContent("");
     };
@@ -99,11 +99,14 @@ export function CommentInput({
     );
 }
 
-function extractMentions(content: string, users: any[]) {
+function extractMentions(content: string): number[] {
     const mentionIds: number[] = [];
-    users.forEach((u) => {
-        if (content.includes(`@${u.fullName}`)) mentionIds.push(u.id);
-    });
+    const mentionRegex = /@\[[^\]]+\]\((\d+)\)/g; // ✅ correct regex pattern
+    let match;
+
+    while ((match = mentionRegex.exec(content)) !== null) {
+        mentionIds.push(Number(match[1]));
+    }
     return mentionIds;
 }
 

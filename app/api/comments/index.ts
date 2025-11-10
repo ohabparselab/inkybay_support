@@ -1,5 +1,7 @@
 import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server";
+import { createNotification } from "~/lib/notification.server";
 import { addCommentSchema } from "~/lib/validations";
+import { NotificationType } from "@prisma/client";
 import { prisma } from "~/lib/prisma.server";
 import { getUserId } from "~/session.server";
 
@@ -100,9 +102,28 @@ const createComment = async (request: Request) => {
         // Handle mentions
         if (value.mentions && value.mentions.length > 0) {
             for (const mentionedId of value.mentions) {
+
                 await prisma.commentMention.create({
                     data: { commentId: comment.id, mentionedId },
                 });
+
+                const notificationData:any = {
+                    userId: mentionedId,
+                    actorId: userId,
+                };
+                
+                // detect entity and set type + entityId
+                if (value.chatId) {
+                    notificationData.type = NotificationType.CHAT;
+                    notificationData.entityId = Number(value.chatId);
+                } else if (value.taskId) {
+                    notificationData.type = NotificationType.TASK;
+                    notificationData.entityId = Number(value.taskId);
+                } else if (value.communityId) {
+                    notificationData.type = NotificationType.COMMUNITY;
+                    notificationData.entityId = Number(value.communityId);
+                }
+                await createNotification(notificationData);
             }
         }
 

@@ -54,7 +54,6 @@ const updateTask = async (taskId: number, request: Request) => {
             storeAccess: value.storeAccess,
             taskAddedDate: value.taskAddedDate ? new Date(value.taskAddedDate) : null,
             notes: value.notes,
-            // comments: value.comments,
             updatedAt: new Date(),
             project: { connect: { id: projectId } },
             providedByUser: { connect: { id: providedBy } },

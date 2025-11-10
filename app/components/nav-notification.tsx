@@ -24,40 +24,14 @@ import {
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { useFetcher } from "react-router"
+import { useState } from "react"
 
 export function NavNotification() {
-    
-    const { isMobile } = useSidebar()
-    const fetcher = useFetcher()
 
-    // Example notification data
-    const notifications = [
-        {
-            id: 1,
-            type: "message",
-            title: "New message from John Doe",
-            time: "2 min ago",
-            icon: MessageSquare,
-            color: "text-blue-500",
-        },
-        {
-            id: 2,
-            type: "alert",
-            title: "Server maintenance scheduled",
-            time: "1 hr ago",
-            icon: AlertCircle,
-            color: "text-red-500",
-        },
-        {
-            id: 3,
-            type: "success",
-            title: "Payment received successfully",
-            time: "3 hrs ago",
-            icon: CheckCircle,
-            color: "text-green-500",
-        },
-    ]
+    const { isMobile } = useSidebar()
+    const [notifications, setNotifications] = useState<any[]>([]);
+
+
 
     const unreadCount = notifications.length
 
@@ -73,14 +47,14 @@ export function NavNotification() {
                             <div className="flex gap-2">
                                 <Bell size={20} /> Notifications
                             </div>
-                            <div className="relative inline-flex items-center text-sm font-medium text-center">
-                                <Bell />
-                                {unreadCount > 0 && (
+                            {unreadCount > 0 && (
+                                <div className="relative inline-flex items-center text-sm font-medium text-center">
+                                    <Bell />
                                     <div className="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900">
                                         {unreadCount}
                                     </div>
-                                )}
-                            </div>
+                                </div>
+                            )}
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
@@ -91,13 +65,11 @@ export function NavNotification() {
                     >
                         <div className="flex items-center justify-between px-3 py-2">
                             <h4 className="font-semibold text-sm">Notifications</h4>
-                            <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
+                            {/* <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
                                 Mark all read
-                            </Button>
+                            </Button> */}
                         </div>
-
                         <DropdownMenuSeparator />
-
                         <div className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700">
                             {notifications.length > 0 ? (
                                 notifications.map((n) => (
@@ -116,18 +88,22 @@ export function NavNotification() {
                                     </DropdownMenuItem>
                                 ))
                             ) : (
-                                <p className="text-center text-sm text-muted-foreground py-4">
-                                    No new notifications
+                                <p className="text-center text-sm text-muted-foreground py-20">
+                                    No notifications found.
                                 </p>
                             )}
                         </div>
-
-                        <DropdownMenuSeparator />
-                        <div className="flex justify-center p-2">
-                            <Button variant="link" size="sm" className="text-blue-600">
-                                View All Notifications
-                            </Button>
-                        </div>
+                        {notifications.length > 7 && (
+                            <>
+                                <DropdownMenuSeparator />
+                                <div className="flex justify-center p-2">
+                                    <Button variant="link" size="sm" className="text-blue-600">
+                                        See previous Notifications
+                                    </Button>
+                                </div>
+                            </>
+                        )
+                        }
                     </DropdownMenuContent>
                 </DropdownMenu>
             </SidebarMenuItem>
