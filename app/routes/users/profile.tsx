@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { toast } from "sonner";
+import { charIconGen } from "~/lib/helper.sever";
 
 export async function loader({ request }: LoaderFunctionArgs) {
 
@@ -75,15 +76,6 @@ export default function ProfilePage() {
         }
     };
 
-    // fallback initials
-    const initials =
-        currentUser.fullName
-            ?.split(" ")
-            .map((n: string) => n[0])
-            .join("")
-            .toUpperCase() || "?";
-        console.log(preview);
-
     return (
         <div className="max-w-2xl mx-auto py-10">
             <Card className="shadow-md">
@@ -92,7 +84,7 @@ export default function ProfilePage() {
                         {preview ? (
                             <AvatarImage src={preview} alt={currentUser.fullName || "User"} />
                         ) : (
-                            <AvatarFallback>{initials}</AvatarFallback>
+                            <AvatarFallback>{charIconGen(currentUser.fullName || "SS")}</AvatarFallback>
                         )}
                     </Avatar>
                     <CardTitle>Edit Profile</CardTitle>

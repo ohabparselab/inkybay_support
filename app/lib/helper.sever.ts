@@ -36,3 +36,14 @@ export const generateActivityDescription = (log: any): string => {
             return `${actor} performed ${action?.toLowerCase()} on ${entity}`;
     }
 }
+
+export const charIconGen = (str: string) => {
+
+    const char = str?.split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase() || "?";
+
+    return char;
+
+}
