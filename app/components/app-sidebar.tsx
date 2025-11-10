@@ -31,6 +31,7 @@ import {
     SidebarRail,
 } from "@/components/ui/sidebar"
 import { useOutletContext } from "react-router";
+import { NavNotification } from "./nav-notification";
 
 type RootContext = { currentUser: Awaited<ReturnType<typeof import("~/lib/user.server").getUser>> | null };
 
@@ -153,6 +154,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <NavMain items={data.navMain as any} />
             </SidebarContent>
             <SidebarFooter>
+                <NavNotification/>
                 <NavUser user={data.user} />
                 <span className="text-[10px]">Version: {pkg.version}</span>
             </SidebarFooter>

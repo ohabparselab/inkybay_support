@@ -30,6 +30,7 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar"
 import { Link, useFetcher } from "react-router";
+import { Button } from "./ui/button"
 
 export function NavUser({
     user,
@@ -97,10 +98,6 @@ export function NavUser({
                                     Change Password
                                 </DropdownMenuItem>
                             </Link>
-                            <DropdownMenuItem>
-                                <Bell />
-                                Notifications
-                            </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <fetcher.Form method="post" action="/logout">
