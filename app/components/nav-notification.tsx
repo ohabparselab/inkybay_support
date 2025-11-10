@@ -21,9 +21,9 @@ import {
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { charIconGen } from "~/lib/helper.sever"
-import { Button } from "@/components/ui/button"
 import { formatDistanceToNow } from "date-fns"
 import { useEffect, useState } from "react"
+import { Button } from "./ui/button"
 
 export function NavNotification() {
 
@@ -40,6 +40,47 @@ export function NavNotification() {
     useEffect(() => {
         fetchNotifications()
     }, []);
+
+    const handleReadNotification = async (notificationId: number) => {
+        try {
+            const res = await fetch(`/api/notifications/${notificationId}`, {
+                method: "PATCH",
+            })
+            if (res.ok) {
+                setNotifyInfo((prev: any) => {
+                    const updated = { ...prev }
+                    updated.notifications = updated.notifications.map((n: any) =>
+                        n.id === notificationId ? { ...n, isRead: true } : n
+                    )
+                    updated.unreadCount = updated.notifications.filter((n: any) => !n.isRead).length
+                    return updated
+                })
+            }
+        } catch (err) {
+            console.error("Error marking notification read:", err)
+        }
+    }
+
+    const handleMarkAllRead = async () => {
+        try {
+            const res = await fetch("/api/notifications/mark-all-read", {
+                method: "POST",
+            });
+            const data = await res.json();
+            if (data.success) {
+                setNotifyInfo((prev: any) => ({
+                    ...prev,
+                    notifications: prev.notifications.map((n: any) => ({
+                        ...n,
+                        isRead: true,
+                    })),
+                    unreadCount: 0,
+                }));
+            }
+        } catch (err) {
+            console.error("Failed to mark all as read", err);
+        }
+    };
 
     return (
         <SidebarMenu>
@@ -71,8 +112,15 @@ export function NavNotification() {
                     >
                         <div className="flex items-center justify-between px-3 py-2">
                             <h4 className="font-semibold text-sm">Notifications</h4>
-                            <Button variant="link" size="sm" className="text-blue-600">
-                                See all Notifications
+                            <Button
+                                variant="link"
+                                size="sm"
+                                className="text-blue-600"
+                                onClick={() => {
+                                    handleMarkAllRead();
+                                }}
+                            >
+                                Mark all as read
                             </Button>
                         </div>
                         <DropdownMenuSeparator />
@@ -81,7 +129,11 @@ export function NavNotification() {
                                 notifyInfo?.notifications?.map((n: any) => (
                                     <DropdownMenuItem
                                         key={n.id}
-                                        className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 cursor-pointer"
+                                        onClick={() => handleReadNotification(n.id)}
+                                        className={`flex border-b items-center gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 ${!n.isRead
+                                            ? "bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60"
+                                            : "bg-transparent hover:bg-muted/40"
+                                            }`}
                                     >
                                         <Avatar className="h-auto w-8">
                                             {n.user?.avatar ? (
@@ -90,15 +142,29 @@ export function NavNotification() {
                                                 <AvatarFallback>{charIconGen(n.user?.fullName || "SS")}</AvatarFallback>
                                             )}
                                         </Avatar>
-                                        {/* <MessageSquare className="size-5 mt-0.5 text-green-600"/> */}
+
                                         <div className="flex-1">
-                                            <p className="text-sm font-medium">{n.title}</p>
+                                            <p
+                                                className={`text-sm font-medium ${!n.isRead
+                                                    ? "text-gray-900 dark:text-white"
+                                                    : "text-gray-600 font-bold dark:text-gray-400"
+                                                    }`}
+                                            >
+                                                {n.title}
+                                            </p>
                                             <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                                <Clock className="size-3" /> {formatDistanceToNow(n.createdAt)}
+                                                <Clock className="size-3" /> {formatDistanceToNow(n.createdAt)} ago
                                             </p>
                                         </div>
-                                        <ChevronRight className="size-4 text-muted-foreground" />
+
+                                        <ChevronRight
+                                            className={`size-4 ${!n.isRead
+                                                ? "text-blue-500 dark:text-blue-400"
+                                                : "text-muted-foreground"
+                                                }`}
+                                        />
                                     </DropdownMenuItem>
+
                                 ))
                             ) : (
                                 <p className="text-center text-sm text-muted-foreground py-20">
@@ -106,17 +172,6 @@ export function NavNotification() {
                                 </p>
                             )}
                         </div>
-                        {/* {notifyInfo?.notifications?.length > 10 && (
-                            <>
-                                <DropdownMenuSeparator />
-                                <div className="flex justify-center p-2">
-                                    <Button variant="link" size="sm" className="text-blue-600">
-                                        See all Notifications
-                                    </Button>
-                                </div>
-                            </>
-                        )
-                        } */}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </SidebarMenuItem>

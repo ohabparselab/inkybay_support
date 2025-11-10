@@ -85,6 +85,7 @@ export default [
     
     // notifications api routes
     route("api/notifications", "./api/notifications/index.ts"),
+    route("/api/notifications/:notificationId", "./api/notifications/$notificationId.ts"),
 
     // settings api
     route("api/settings/projects", "./api/settings/projects/index.ts"),
