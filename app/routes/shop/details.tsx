@@ -1185,7 +1185,7 @@ export default function ShopDetailsPage() {
             )}
             {viewChatModal && selectedChat && (
                 <Suspense fallback={<CenterSpinner />}>
-                    <ViewChatDetailsModal chat={selectedChat} open={viewChatModal} onOpenChange={setViewChatModal} />
+                    <ViewChatDetailsModal chatId={selectedChat.id} open={viewChatModal} onOpenChange={setViewChatModal} />
                 </Suspense>
             )}
             {editChatModal && selectedChat && (

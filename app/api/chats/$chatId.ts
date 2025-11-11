@@ -3,6 +3,43 @@ import { prisma } from "~/lib/prisma.server";
 import { uploadFile } from "~/lib/upload.server";
 import { getUserId } from "~/session.server";
 
+export async function loader({ params }: { params: any }) {
+    try {
+        const chatId = Number(params.chatId);
+        if (!chatId) return new Response(JSON.stringify({ message: "Chat ID required" }), { status: 400 });
+        const chat = await prisma.chat.findUnique({
+            where: {
+                id: chatId
+            },
+            include: {
+                client: {
+                    select: {
+                        id: true,
+                        shopDomain: true,
+                        shopName: true,
+                        clientEmail: { select: { id: true, email: true } },
+                    },
+                },
+                handleByUser: { select: { id: true, fullName: true, email: true } },
+                createdByUser: { select: { id: true, fullName: true } },
+                updatedByUser: { select: { id: true, fullName: true } },
+                chatTags: { include: { tag: { select: { name: true } } } },
+                review: { include: { approachByUser: true } },
+                project: { select: { name: true } },
+                featureRequest: true,
+            }
+        })
+
+        return Response.json({
+            success: true,
+            chat
+        });
+    } catch (error: any) {
+        console.error("Error fetching tasks:", error);
+        return Response.json({ success: false, message: error.message }, { status: 500 });
+    }
+}
+
 export async function action({ request, params }: { request: Request; params: any }) {
 
     const chatId = Number(params.chatId);
@@ -43,7 +80,7 @@ const updateChat = async (chatId: number, request: Request) => {
 
         const handleBy = formData.get("handleBy") ? Number(formData.get("handleBy")) : null;
         const clientId = formData.get("clientId") ? Number(formData.get("clientId")) : null;
-        const projectId =  formData.get("projectId") ? Number(formData.get("projectId")) : null;
+        const projectId = formData.get("projectId") ? Number(formData.get("projectId")) : null;
 
         if (handleBy) {
             chatData.handleBy = handleBy;

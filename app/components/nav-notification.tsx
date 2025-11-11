@@ -30,6 +30,12 @@ const ViewTaskDetailsModal = lazy(() =>
     import("~/components/modals/view-task-modal").then((m) => ({ default: m.ViewTaskDetailsModal }))
 );
 
+const ViewChatDetailsModal = lazy(() =>
+    import("~/components/modals/view-chat-modal").then((m) => ({
+        default: m.ViewChatDetailsModal,
+    }))
+);
+
 export function NavNotification() {
 
     const [selectedTaskId, setSelectedTaskId] = useState<any | null>(null);
@@ -218,6 +224,16 @@ export function NavNotification() {
                         taskId={selectedTaskId}
                         open={viewTaskModalOpen}
                         onOpenChange={setViewTaskModalOpen}
+                    />
+                </Suspense>
+            )}
+
+            {viewChatModalOpen && selectedChatId && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <ViewChatDetailsModal
+                        chatId={selectedChatId}
+                        open={viewChatModalOpen}
+                        onOpenChange={setViewChatModalOpen}
                     />
                 </Suspense>
             )}

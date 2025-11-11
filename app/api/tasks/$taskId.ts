@@ -33,7 +33,7 @@ export async function loader({ params }: { params: any }) {
             task
         });
     } catch (error: any) {
-        console.error("Error fetching comments:", error);
+        console.error("Error fetching tasks:", error);
         return Response.json({ success: false, message: error.message }, { status: 500 });
     }
 }
