@@ -2,6 +2,9 @@ import { uploadFile } from "~/lib/upload.server"
 import { prisma } from "~/lib/prisma.server"
 import { getUserId } from "~/session.server"
 import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server"
+import { getUserInfoById } from "~/lib/user.server"
+import { createNotification } from "~/lib/notification.server"
+import { NotificationType } from "@prisma/client"
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
 
@@ -99,6 +102,19 @@ const createChat = async (request: Request) => {
                             mentionedId: mId,
                         },
                     });
+
+                    const actorUser = await getUserInfoById(userId);
+
+                    const notificationData: any = {
+                        userId: mId,
+                        actorId: userId,
+                        type: NotificationType.CHAT,
+                        entityId: chat.id,
+                        title: `${actorUser.fullName} mentioned you a comment on chat.`,
+                        message: "You have a new mentioned comment in chat please check",
+                    };
+                    
+                    await createNotification(notificationData);
                 }
             }
         }

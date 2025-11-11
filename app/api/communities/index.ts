@@ -37,6 +37,7 @@ const createCommunity = async (request: Request) => {
             questionUrl: value.questionUrl,
             reply: value.reply || null,
             listedDate: value.listedDate ? new Date(value.listedDate) : null,
+            createdBy: Number(userId),
         };
 
         if (value.addedById) {
