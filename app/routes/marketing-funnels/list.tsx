@@ -15,6 +15,10 @@ import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
 
+const GenerateReportModal = lazy(() =>
+    import("~/components/modals/generate-report-modal").then((m) => ({ default: m.GenerateReportModal }))
+);
+
 const AddMarketingFunnelModal = lazy(() =>
     import("~/components/modals/add-marketing-funnel-modal").then((m) => ({ default: m.AddMarketingFunnelModal }))
 );
@@ -184,6 +188,7 @@ export default function MarketingFunnelListPage() {
     const [viewMarketingFunnelModalOpen, setViewMarketingFunnelModalOpen] = useState(false);
     const [editMarketingFunnelModalOpen, setEditMarketingFunnelModalOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [generateReportModalOpen, setGenerateReportModalOpen] = useState(false);
     const navigate = useNavigate();
 
     const rootData = useRouteLoaderData("root") as any;
@@ -264,6 +269,9 @@ export default function MarketingFunnelListPage() {
         <div className="px-6 space-y-2">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold tracking-tight">Marketing Funnels</h1>
+                <Button onClick={() => setGenerateReportModalOpen(true)}>
+                    <Plus /> Generate Reports
+                </Button>
             </div>
 
             <div className="w-full space-y-4">
@@ -536,6 +544,12 @@ export default function MarketingFunnelListPage() {
                         onConfirm={async () => handleDelete()}
                     />
                 </Suspense>
+            )}
+            {generateReportModalOpen && (
+                <GenerateReportModal
+                    open={generateReportModalOpen}
+                    onOpenChange={setGenerateReportModalOpen}
+                />
             )}
         </div>
     );
