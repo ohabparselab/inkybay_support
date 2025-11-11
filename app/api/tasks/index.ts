@@ -2,6 +2,9 @@ import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server";
 import { addTaskSchema } from "~/lib/validations";
 import { prisma } from "~/lib/prisma.server";
 import { getUserId } from "~/session.server";
+import { NotificationType } from "@prisma/client";
+import { createNotification } from "~/lib/notification.server";
+import { getUserInfoById } from "~/lib/user.server";
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 });
 
@@ -113,6 +116,8 @@ const createTask = async (request: Request) => {
                     (mId): mId is number => typeof mId === "number"
                 );
 
+                const actorUser = await getUserInfoById(userId);
+
                 for (const mId of validMentions) {
                     await prisma.commentMention.create({
                         data: {
@@ -120,6 +125,16 @@ const createTask = async (request: Request) => {
                             mentionedId: mId,
                         },
                     });
+                    const notificationData: any = {
+                        userId: mId,
+                        actorId: userId,
+                        type: NotificationType.TASK,
+                        entityId: task.id,
+                        title: `${actorUser.fullName} mentioned you a comment on task.`,
+                        message: "You have a new mentioned comment in task please check",
+                    };
+
+                    await createNotification(notificationData);
                 }
             }
         }

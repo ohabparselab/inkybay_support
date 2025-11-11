@@ -95,6 +95,8 @@ const createChat = async (request: Request) => {
                     (mId): mId is number => typeof mId === "number"
                 );
 
+                const actorUser = await getUserInfoById(userId);
+
                 for (const mId of validMentions) {
                     await prisma.commentMention.create({
                         data: {
@@ -102,8 +104,6 @@ const createChat = async (request: Request) => {
                             mentionedId: mId,
                         },
                     });
-
-                    const actorUser = await getUserInfoById(userId);
 
                     const notificationData: any = {
                         userId: mId,
@@ -113,7 +113,7 @@ const createChat = async (request: Request) => {
                         title: `${actorUser.fullName} mentioned you a comment on chat.`,
                         message: "You have a new mentioned comment in chat please check",
                     };
-                    
+
                     await createNotification(notificationData);
                 }
             }
