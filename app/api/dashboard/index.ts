@@ -17,6 +17,11 @@ export async function action({ request }: ActionFunctionArgs) {
             totalMeetings,
             todayMeetings,
             upcomingMeetings,
+            totalReviews,
+            totalFeatureRequest,
+            totalCollaboration,
+            totalCommunities,
+
         ] = await Promise.all([
             prisma.task.count({ where: { isDeleted: false } }),
             prisma.task.findMany({
@@ -67,6 +72,19 @@ export async function action({ request }: ActionFunctionArgs) {
                     user: { select: { fullName: true, email: true } },
                 },
             }),
+            prisma.review.count({
+                where: {
+                    NOT: {
+                        OR: [
+                            { reviewText: null },
+                            { reviewText: "" },
+                        ],
+                    },
+                }
+            }),
+            prisma.featureRequest.count({}),
+            prisma.collaborationApp.count({}),
+            prisma.community.count({}),
         ]);
 
         const pendingTaskCount = await prisma.task.count({
@@ -83,6 +101,10 @@ export async function action({ request }: ActionFunctionArgs) {
                 totalChats,
                 totalFunnels,
                 totalMeetings,
+                totalReviews,
+                totalFeatureRequest,
+                totalCollaboration,
+                totalCommunities,
                 todayMeetingCount: todayMeetings.length,
                 upcomingMeetingCount: upcomingMeetings.length,
             },
