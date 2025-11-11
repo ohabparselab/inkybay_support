@@ -76,12 +76,15 @@ const createTask = async (request: Request) => {
             providedByUser: { connect: { id: providedBy } },
             status: { connect: { id: statusId } },
             project: { connect: { id: projectId } },
-            createdBy: Number(userId),
         };
 
         // Connect solvedBy only if provided
         if (solvedBy) {
             taskData.solvedByUser = { connect: { id: solvedBy } };
+        }
+
+        if (userId) {
+            taskData.createdByUser = { connect: { id: Number(userId) } };
         }
 
         if (value?.emails && value?.emails.length > 0) {

@@ -132,8 +132,6 @@ const createComment = async (request: Request) => {
                     await createNotification(notificationData);
                 }
             }
-
-            await createNotification(notificationData);
         }
 
         // Handle Task comment notifications
@@ -153,6 +151,7 @@ const createComment = async (request: Request) => {
                     notificationData.userId = taskInfo.createdBy;
                     notificationData.title = `${actorUser.fullName} commented on your task.`;
                     notificationData.message = "You have a new comment in your task. Please check.";
+
                     await createNotification(notificationData);
                 }
             } else {
@@ -164,8 +163,6 @@ const createComment = async (request: Request) => {
                     await createNotification(notificationData);
                 }
             }
-
-            await createNotification(notificationData);
         }
 
         // Handle Community comment notifications
@@ -196,8 +193,6 @@ const createComment = async (request: Request) => {
                     await createNotification(notificationData);
                 }
             }
-
-            await createNotification(notificationData);
         }
 
 
