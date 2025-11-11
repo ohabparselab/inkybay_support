@@ -34,6 +34,8 @@ model User {
     meeting                Meeting[]
     handledChats           Chat[]                 @relation("ChatHandledBy")
     createdChats           Chat[]                 @relation("ChatCreatedBy")
+    createdTasks           Task[]                 @relation("TaskCreatedBy")
+    createdCommunities     Community[]            @relation("CommunityCreatedBy")
     updatedChats           Chat[]                 @relation("ChatUpdatedBy")
     approachedReviews      Review[]               @relation("ReviewApproachedBy")
     createdReviews         Review[]               @relation("ReviewCreatedBy")
@@ -319,6 +321,7 @@ model Task {
     taskAddedDate DateTime?
     notes         String?   @db.Text
     createdAt     DateTime  @default(now())
+    createdBy     Int?
     updatedAt     DateTime  @updatedAt
     isDeleted     Boolean   @default(false)
     deletedAt     DateTime?
@@ -327,6 +330,7 @@ model Task {
     client         Client    @relation(fields: [clientId], references: [id])
     providedByUser User      @relation("UserProvidedTasks", fields: [providedBy], references: [id])
     solvedByUser   User?     @relation("UserSolvedTasks", fields: [solvedBy], references: [id])
+    createdByUser  User?     @relation("TaskCreatedBy", fields: [createdBy], references: [id])
     status         Status?   @relation(fields: [statusId], references: [id])
     project        Project?  @relation(fields: [projectId], references: [id])
     comments       Comment[]
@@ -544,13 +548,15 @@ model Community {
     projectId   Int?
     addedById   Int?
     createdAt   DateTime  @default(now())
+    createdBy   Int?
     updatedAt   DateTime  @updatedAt
 
     // Relations
-    project  Project?         @relation(fields: [projectId], references: [id])
-    addedBy  User?            @relation(fields: [addedById], references: [id])
-    status   CommunityStatus? @relation(fields: [statusId], references: [id])
-    comments Comment[]
+    project       Project?         @relation(fields: [projectId], references: [id])
+    addedBy       User?            @relation(fields: [addedById], references: [id])
+    createdByUser User?            @relation("CommunityCreatedBy", fields: [createdBy], references: [id])
+    status        CommunityStatus? @relation(fields: [statusId], references: [id])
+    comments      Comment[]
 
     @@map("communities")
 }
@@ -575,19 +581,18 @@ enum NotificationType {
 
 model Notification {
     id        Int              @id @default(autoincrement())
-    userId    Int               // recipient user
-    actorId   Int?              // who triggered (optional)
-    type      NotificationType  // "CHAT" | "TASK" | "COMMUNITY"
-    title     String            // short title like "New Comment on your post"
-    message   String?           // optional longer message
-    entityId  Int               // id of the related entity
+    userId    Int // recipient user
+    actorId   Int? // who triggered (optional)
+    type      NotificationType // "CHAT" | "TASK" | "COMMUNITY"
+    title     String // short title like "New Comment on your post"
+    message   String? // optional longer message
+    entityId  Int // id of the related entity
     isRead    Boolean          @default(false)
-    readAt    DateTime?         // timestamp when marked read
+    readAt    DateTime? // timestamp when marked read
     createdAt DateTime         @default(now())
     updatedAt DateTime         @updatedAt
 
     // Relations
     user  User  @relation("UserNotifications", fields: [userId], references: [id])
     actor User? @relation("ActorNotifications", fields: [actorId], references: [id])
-
 }
