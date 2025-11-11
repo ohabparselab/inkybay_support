@@ -21,10 +21,10 @@ import {
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { lazy, Suspense, useEffect, useState } from "react"
+import { CenterSpinner } from "./ui/center-spinner"
 import { charIconGen } from "~/lib/helper.sever"
 import { formatDistanceToNow } from "date-fns"
 import { Button } from "./ui/button"
-import { CenterSpinner } from "./ui/center-spinner"
 
 const ViewTaskDetailsModal = lazy(() =>
     import("~/components/modals/view-task-modal").then((m) => ({ default: m.ViewTaskDetailsModal }))
@@ -34,6 +34,10 @@ const ViewChatDetailsModal = lazy(() =>
     import("~/components/modals/view-chat-modal").then((m) => ({
         default: m.ViewChatDetailsModal,
     }))
+);
+
+const ViewCommunityModal = lazy(() =>
+    import("~/components/modals/view-community-modal").then((m) => ({ default: m.ViewCommunityModal }))
 );
 
 export function NavNotification() {
@@ -234,6 +238,16 @@ export function NavNotification() {
                         chatId={selectedChatId}
                         open={viewChatModalOpen}
                         onOpenChange={setViewChatModalOpen}
+                    />
+                </Suspense>
+            )}
+
+            {viewCommunityModalOpen && selectedCommunityId && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <ViewCommunityModal
+                        open={viewCommunityModalOpen}
+                        onOpenChange={setViewCommunityModalOpen}
+                        communityId={selectedCommunityId}
                     />
                 </Suspense>
             )}
