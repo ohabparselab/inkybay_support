@@ -25,7 +25,7 @@ export async function action({ request, params }: { request: Request; params: an
 //
 // [PUT] Update Comment
 //
-export const updateComment = async (commentId: number, request: Request) => {
+const updateComment = async (commentId: number, request: Request) => {
     try {
         const userId = await getUserId(request);
         const data = await request.json();
@@ -100,7 +100,7 @@ export const updateComment = async (commentId: number, request: Request) => {
 //
 // [DELETE] Hard Delete Comment
 //
-export const deleteComment = async (commentId: number, request: Request) => {
+const deleteComment = async (commentId: number, request: Request) => {
     try {
         const userId = await getUserId(request);
 
