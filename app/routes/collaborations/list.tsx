@@ -1,19 +1,19 @@
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "~/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { Eye, PenBox, Trash2, Plus, Search, Ellipsis } from "lucide-react";
+import { Eye, PenBox, Trash2, Plus, Search, Ellipsis, AlertTriangle } from "lucide-react";
+import { useLoaderData, useNavigate, useRouteLoaderData } from "react-router";
 import { DynamicSelectFilter } from "~/components/dynamic-select-filter";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { DynamicDateFilter } from "~/components/dynamic-date-filter";
 import { CenterSpinner } from "~/components/ui/center-spinner";
+import { StatusFilter } from "~/components/ui/status-filter";
 import { PaginationBar } from "~/components/pagination-bar";
 import { useState, useEffect, Suspense, lazy } from "react";
-import { useLoaderData, useNavigate } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Badge } from "~/components/ui/badge";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
-import { StatusFilter } from "~/components/ui/status-filter";
 
 const ViewCollaborationModal = lazy(() =>
     import("~/components/modals/view-collaboration-modal").then((m) => ({ default: m.ViewCollaborationModal }))
@@ -180,6 +180,13 @@ export default function CollaborationsListPage() {
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [addModalOpen, setAddModalOpen] = useState(false);
 
+    const rootData = useRouteLoaderData("root") as any;
+    const permissions = rootData?.permissions ?? [];
+    const canView = permissions.includes("collaborations.view");
+    const canEdit = permissions.includes("collaboration.edit");
+    const canDelete = permissions.includes("collaboration.delete");
+    const canCreate = permissions.includes("collaboration.create");
+
     const navigateWithLoading = (url: string) => {
         setLoading(true);
         navigate(url, { replace: true });
@@ -236,9 +243,13 @@ export default function CollaborationsListPage() {
         <div className="px-6 space-y-3">
             <div className="flex items-center justify-between">
                 <h1 className="text-xl font-semibold">Collaborations</h1>
-                <Button onClick={() => setAddModalOpen(true)}>
-                    <Plus /> Add Collaboration
-                </Button>
+                {
+                    canCreate && (
+                        <Button onClick={() => setAddModalOpen(true)}>
+                            <Plus /> Add Collaboration
+                        </Button>
+                    )
+                }
             </div>
 
             <div className="flex items-center justify-between">
@@ -313,68 +324,107 @@ export default function CollaborationsListPage() {
                             <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
-
                     <TableBody>
-                        {collaborations.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={9} className="text-center py-50 text-muted-foreground">
-                                    No collaborations found
-                                </TableCell>
-                            </TableRow>
-                        )}
-
-                        {collaborations.map((c: any, i: number) => (
-                            <TableRow key={c.id}>
-                                <TableCell>{i + 1}</TableCell>
-                                <TableCell>{c.appName}</TableCell>
-                                <TableCell>{c.companyName ?? "—"}</TableCell>
-                                <TableCell>{c.status?.name ?? "—"}</TableCell>
-                                <TableCell>{c.completedDate ? new Date(c.completedDate).toLocaleDateString() : 'N/A'}</TableCell>
-                                <TableCell>{c.requestType ?? "—"}</TableCell>
-                                <TableCell className="max-w-[200px] truncate">
-                                    {c.collaborationAreas.map((a: any) => <Badge variant="outline" className="ml-1">{a.areaOption.name}</Badge>) || "—"}
-                                </TableCell>
-                                <TableCell>{c.addedBy?.fullName ?? "—"}</TableCell>
-                                <TableCell>{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
-                                <TableCell>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon">
-                                                <Ellipsis />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem
-                                                onClick={() => {
-                                                    setSelected(c);
-                                                    setViewModalOpen(true);
-                                                }}
-                                            >
-                                                <Eye /> View Details
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() => {
-                                                    setSelected(c);
-                                                    setEditModalOpen(true);
-                                                }}
-                                            >
-                                                <PenBox /> Edit Collaboration
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem
-                                                className="text-red-600"
-                                                onClick={() => {
-                                                    setSelected(c);
-                                                    setDeleteDialogOpen(true);
-                                                }}
-                                            >
-                                                <Trash2 /> Delete
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {
+                            loading ? (
+                                Array.from({ length: 10 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell colSpan={10} className="py-4">
+                                            <div className="animate-pulse h-5 bg-accent rounded" />
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                canView ? (
+                                    collaborations.length > 0 ? (
+                                        collaborations.map((c: any, i: number) => (
+                                            <TableRow key={c.id}>
+                                                <TableCell>{i + 1}</TableCell>
+                                                <TableCell className="text-blue-500 hover:underline cursor-pointer"
+                                                    onClick={() => {
+                                                        setSelected(c);
+                                                        setViewModalOpen(true);
+                                                    }}
+                                                >{c.appName}</TableCell>
+                                                <TableCell>{c.companyName ?? "—"}</TableCell>
+                                                <TableCell>{c.status?.name ?? "—"}</TableCell>
+                                                <TableCell>{c.completedDate ? new Date(c.completedDate).toLocaleDateString() : 'N/A'}</TableCell>
+                                                <TableCell>{c.requestType ?? "—"}</TableCell>
+                                                <TableCell className="max-w-[200px] truncate">
+                                                    {c.collaborationAreas.map((a: any) => <Badge variant="outline" className="ml-1">{a.areaOption.name}</Badge>) || "—"}
+                                                </TableCell>
+                                                <TableCell>{c.addedBy?.fullName ?? "—"}</TableCell>
+                                                <TableCell>{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
+                                                <TableCell>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon">
+                                                                <Ellipsis />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem
+                                                                onClick={() => {
+                                                                    setSelected(c);
+                                                                    setViewModalOpen(true);
+                                                                }}
+                                                            >
+                                                                <Eye /> View Details
+                                                            </DropdownMenuItem>
+                                                            {
+                                                                canEdit && (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => {
+                                                                            setSelected(c);
+                                                                            setEditModalOpen(true);
+                                                                        }}
+                                                                    >
+                                                                        <PenBox /> Edit Collaboration
+                                                                    </DropdownMenuItem>
+                                                                )
+                                                            }
+                                                            {
+                                                                canDelete && (
+                                                                    <>
+                                                                        <DropdownMenuSeparator />
+                                                                        <DropdownMenuItem
+                                                                            className="text-red-600"
+                                                                            onClick={() => {
+                                                                                setSelected(c);
+                                                                                setDeleteDialogOpen(true);
+                                                                            }}
+                                                                        >
+                                                                            <Trash2 /> Delete
+                                                                        </DropdownMenuItem>
+                                                                    </>
+                                                                )
+                                                            }
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={9} className="text-center py-50 text-muted-foreground">
+                                                No collaborations found.
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={10}>
+                                            <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
+                                                <div className="flex items-center gap-2">
+                                                    <AlertTriangle className="w-5 h-5" />
+                                                    <span>You don’t have permission to view collaborations data.</span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            )
+                        }
                     </TableBody>
                 </Table>
                 <PaginationBar meta={meta} onPageChange={handlePageChange} onLimitChange={handleLimitChange} />

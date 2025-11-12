@@ -77,6 +77,7 @@ export default [
     route("api/features/:featureId", "./api/features/$featureId.ts"),
     
     // collaborations api routes
+    route("api/collaborations", "./api/collaborations/index.ts"),
     route("api/collaborations/:collaborationId", "./api/collaborations/$collaborationId.ts"),
     route("api/collaboration-areas", "./api/collaborations/areas.ts"),
     route("api/collaboration-statuses", "./api/collaborations/statues.ts"),
