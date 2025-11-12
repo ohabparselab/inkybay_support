@@ -153,7 +153,7 @@ export function DataTable({ users, meta, onPageChange, onSearch, handleLimitChan
                                             </TableCell>
                                             <TableCell>
                                                 <ButtonGroup>
-                                                    <Button variant="outline"><Link to={`/users/edit/${user.id}`}><SquarePen /></Link></Button>
+                                                    <Link to={`/users/edit/${user.id}`}><Button variant="outline"><SquarePen /></Button></Link>
                                                     <Button variant="outline"
                                                         onClick={() => {
                                                             setSelectedUser(user);

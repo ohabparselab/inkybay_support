@@ -1,12 +1,12 @@
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "~/components/ui/dropdown-menu"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "~/components/ui/table";
 import { Eye, PenBox, Trash2, Search, AlertTriangle, Plus, Ellipsis } from "lucide-react";
+import { useLoaderData, useNavigate, useRouteLoaderData } from "react-router";
 import { DynamicSelectFilter } from "~/components/dynamic-select-filter"
 import { DynamicDateFilter } from "~/components/dynamic-date-filter";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { PaginationBar } from "~/components/pagination-bar";
-import { useLoaderData, useNavigate } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
@@ -142,6 +142,13 @@ export default function ReviewListPage() {
     const [selectedReview, setSelectedReview] = useState<any | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+    const rootData = useRouteLoaderData("root") as any;
+    const permissions = rootData?.permissions ?? [];
+    const canView = permissions.includes("review.view");
+    const canEdit = permissions.includes("review.edit");
+    const canDelete = permissions.includes("review.delete");
+    const canCreate = permissions.includes("review.create");
+
     const navigateWithLoading = (url: string) => {
         setLoading(true);
         navigate(url, { replace: true })
@@ -199,13 +206,17 @@ export default function ReviewListPage() {
         <div className="px-6 space-y-3">
             <div className="flex items-center justify-between">
                 <h1 className="text-xl font-semibold">Reviews</h1>
-                <Button
-                    onClick={() => {
-                        setReviewModalOpen(true);
-                    }}
-                >
-                    <Plus /> Add Review
-                </Button>
+                {
+                    canCreate && (
+                        <Button
+                            onClick={() => {
+                                setReviewModalOpen(true);
+                            }}
+                        >
+                            <Plus /> Add Review
+                        </Button>
+                    )
+                }
             </div>
 
             <div className="flex items-center justify-between">
@@ -245,66 +256,100 @@ export default function ReviewListPage() {
                             <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
-
                     <TableBody>
-                        {reviews.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center py-50 text-muted-foreground">
-                                    No reviews found
-                                </TableCell>
-                            </TableRow>
-                        )}
+                        {
+                            loading ? (
+                                Array.from({ length: 10 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell colSpan={9} className="py-4">
+                                            <div className="animate-pulse h-5 bg-accent rounded" />
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                canView ? (
+                                    reviews.length > 0 ? (
+                                        reviews.map((rev: any, i: number) => (
+                                            <TableRow key={rev.id}>
+                                                <TableCell>{i + 1}</TableCell>
+                                                <TableCell className="text-blue-600">
+                                                    {rev.shopUrl ?? rev.chat?.client?.shopDomain ??
+                                                        rev.meeting?.storeUrl ??
+                                                        "—"}
+                                                </TableCell>
+                                                <TableCell className="capitalize">{rev.ratingMood ?? "—"}</TableCell>
+                                                <TableCell>{rev.agentRating ?? "—"}</TableCell>
+                                                <TableCell>{rev.reviewSubmittedAt ? new Date(rev.reviewSubmittedAt).toLocaleDateString() : "—"}</TableCell>
+                                                <TableCell>{rev.approachByUser?.fullName ?? "—"}</TableCell>
 
-                        {reviews.map((rev: any, i: number) => (
-                            <TableRow key={rev.id}>
-                                <TableCell>{i + 1}</TableCell>
-                                <TableCell className="text-blue-600">
-                                    {rev.shopUrl ?? rev.chat?.client?.shopDomain ??
-                                        rev.meeting?.storeUrl ??
-                                        "—"}
-                                </TableCell>
-                                <TableCell className="capitalize">{rev.ratingMood ?? "—"}</TableCell>
-                                <TableCell>{rev.agentRating ?? "—"}</TableCell>
-                                <TableCell>{rev.reviewSubmittedAt ? new Date(rev.reviewSubmittedAt).toLocaleDateString() : "—"}</TableCell>
-                                <TableCell>{rev.approachByUser?.fullName ?? "—"}</TableCell>
-
-                                <TableCell>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="cursor-pointer" size="icon">
-                                                <Ellipsis />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onClick={() => {
-                                                setSelectedReview(rev);
-                                                setViewReviewModalOpen(true);
-                                            }}>
-                                                <Eye /> View Details
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() => {
-                                                    setSelectedReview(rev);
-                                                    setEditReviewModalOpen(true);
-                                                }}
-                                            >
-                                                <PenBox /> Edit Review
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem
-                                                variant="destructive"
-                                                onClick={() => {
-                                                    setSelectedReview(rev);
-                                                    setDeleteDialogOpen(true);
-                                                }}
-                                            >
-                                                <Trash2 /> Delete
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                                                <TableCell>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" className="cursor-pointer" size="icon">
+                                                                <Ellipsis />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => {
+                                                                setSelectedReview(rev);
+                                                                setViewReviewModalOpen(true);
+                                                            }}>
+                                                                <Eye /> View Details
+                                                            </DropdownMenuItem>
+                                                            {
+                                                                canEdit && (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => {
+                                                                            setSelectedReview(rev);
+                                                                            setEditReviewModalOpen(true);
+                                                                        }}
+                                                                    >
+                                                                        <PenBox /> Edit Review
+                                                                    </DropdownMenuItem>
+                                                                )
+                                                            }
+                                                            {
+                                                                canDelete && (
+                                                                    <>
+                                                                        <DropdownMenuSeparator />
+                                                                        <DropdownMenuItem
+                                                                            variant="destructive"
+                                                                            onClick={() => {
+                                                                                setSelectedReview(rev);
+                                                                                setDeleteDialogOpen(true);
+                                                                            }}
+                                                                        >
+                                                                            <Trash2 /> Delete
+                                                                        </DropdownMenuItem>
+                                                                    </>
+                                                                )
+                                                            }
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="text-center py-50 text-muted-foreground">
+                                                No meetings found.
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={9}>
+                                            <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
+                                                <div className="flex items-center gap-2">
+                                                    <AlertTriangle className="w-5 h-5" />
+                                                    <span>You don’t have permission to view review data.</span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            )
+                        }
                     </TableBody>
                 </Table>
 
