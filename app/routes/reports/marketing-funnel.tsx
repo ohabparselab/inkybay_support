@@ -1,7 +1,7 @@
-import { prisma } from "~/lib/prisma.server";
-import { useLoaderData, useSearchParams } from "react-router";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { prisma } from "~/lib/prisma.server";
+import { useLoaderData } from "react-router";
 import { AlertTriangle } from "lucide-react";
 
 export async function loader({ request }: any) {
@@ -36,21 +36,61 @@ export async function loader({ request }: any) {
 }
 
 export default function MarketingFunnelReportPage() {
+
     const { funnels } = useLoaderData<typeof loader>();
     const canView = true;
-    // useEffect(() => {
-    //     const fetchReport = async () => {
-    //         const res = await fetch(`/api/reports/marketing-funnel?${searchParams.toString()}`);
-    //         const data = await res.json();
-    //         setFunnels(data);
-    //     };
-    //     fetchReport();
-    // }, [searchParams.toString()]);
+
+    const exportToCSV = (data: any[]) => {
+        if (!data || data.length === 0) return;
+
+        const headers = [
+            "ID",
+            "Shop URL",
+            "Install Phase",
+            "Follow-up Status",
+            "Follow-up Date",
+            "Client Success",
+            "Initial Feedback",
+            "Type Of Products",
+            "Other App Installed",
+            "Customization Type",
+            "Created At",
+        ];
+
+        const rows = data.map((funnel, idx) => [
+            idx + 1,
+            funnel.client?.shopDomain?.split(".")[0] || "",
+            funnel.installPhase || "",
+            funnel.followUpStep || "",
+            new Date(funnel.followUpDate).toLocaleDateString(),
+            funnel.clientSuccessStatus === "yes" ? "Yes" : "No",
+            funnel.initialFeedback || "",
+            funnel.typeOfProducts || "",
+            funnel.otherAppsInstalled || "",
+            funnel.customizationType || "",
+            new Date(funnel.createdAt).toLocaleDateString(),
+        ]);
+
+        const csvContent =
+            [headers, ...rows]
+                .map((e) => e.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+                .join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `marketing_funnels_${new Date().toISOString().slice(0, 10)}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+
 
     return (
-        <div className="px-6 space-y-2">
+        <div className="p-6 space-y-2">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold tracking-tight">Marketing Funnels Report</h1>
+                <Button onClick={() => exportToCSV(funnels)}>Export CSV</Button>
             </div>
             <div className="rounded-md border bg-card shadow-sm">
                 <Table>
@@ -63,46 +103,51 @@ export default function MarketingFunnelReportPage() {
                             <TableHead>Follow-up Date</TableHead>
                             <TableHead>Client Success</TableHead>
                             <TableHead>Initial Feedback</TableHead>
+                            <TableHead>Type Of Products</TableHead>
+                            <TableHead>Other App Installed</TableHead>
+                            <TableHead>Customization Type</TableHead>
                             <TableHead>Created At</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {
-                            
-                                canView ? (
-                                    funnels.length > 0 ? (
-                                        funnels.map((funnel: any, idx) => (
-                                            <TableRow key={funnel.id}>
-                                                <TableCell>{idx + 1}</TableCell>
-                                                <TableCell>{funnel.client.shopDomain.split('.')[0]}</TableCell>
-                                                <TableCell>{funnel.installPhase}</TableCell>
-                                                <TableCell><Badge variant="outline">{funnel.followUpStep}</Badge></TableCell>
-                                                <TableCell>{new Date(funnel.followUpDate).toLocaleDateString()}</TableCell>
-                                                <TableCell><Badge variant="outline">{funnel.clientSuccessStatus == 'yes' ? 'Yes' : 'No'}</Badge></TableCell>
 
-                                                <TableCell>{funnel.initialFeedback || 'N/A'}</TableCell>
-                                                <TableCell>{new Date(funnel.createdAt).toLocaleDateString()}</TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={9} className="text-center py-50 text-muted-foreground">
-                                                No marketing funnels found.
-                                            </TableCell>
+                            canView ? (
+                                funnels.length > 0 ? (
+                                    funnels.map((funnel: any, idx) => (
+                                        <TableRow key={funnel.id}>
+                                            <TableCell>{idx + 1}</TableCell>
+                                            <TableCell>{funnel.client.shopDomain.split('.')[0]}</TableCell>
+                                            <TableCell>{funnel.installPhase}</TableCell>
+                                            <TableCell>{funnel.followUpStep}</TableCell>
+                                            <TableCell>{new Date(funnel.followUpDate).toLocaleDateString()}</TableCell>
+                                            <TableCell>{funnel.clientSuccessStatus == 'yes' ? 'Yes' : 'No'}</TableCell>
+                                            <TableCell>{funnel.initialFeedback || 'N/A'}</TableCell>
+                                            <TableCell>{funnel.typeOfProducts || 'N/A'}</TableCell>
+                                            <TableCell>{funnel.otherAppsInstalled || 'N/A'}</TableCell>
+                                            <TableCell>{funnel.customizationType || 'N/A'}</TableCell>
+                                            <TableCell>{new Date(funnel.createdAt).toLocaleDateString()}</TableCell>
                                         </TableRow>
-                                    )
+                                    ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={9}>
-                                            <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
-                                                <div className="flex items-center gap-2">
-                                                    <AlertTriangle className="w-5 h-5" />
-                                                    <span>You don’t have permission to view marketing funnels data.</span>
-                                                </div>
-                                            </div>
+                                        <TableCell colSpan={9} className="text-center py-50 text-muted-foreground">
+                                            No marketing funnels found.
                                         </TableCell>
                                     </TableRow>
                                 )
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={9}>
+                                        <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
+                                            <div className="flex items-center gap-2">
+                                                <AlertTriangle className="w-5 h-5" />
+                                                <span>You don’t have permission to view marketing funnels data.</span>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            )
                         }
                     </TableBody>
                 </Table>
