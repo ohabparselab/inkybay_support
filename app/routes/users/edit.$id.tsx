@@ -167,38 +167,40 @@ export default function EditUser() {
 
                         <div className="flex flex-col gap-4">
                             <h2 className="text-lg font-semibold">Module Permissions</h2>
-                            {modules.map(mod => (
-                                <div key={mod.id} className="border rounded p-4">
-                                    <h3>{mod.name}</h3>
-                                    <div className="flex flex-wrap gap-4 mt-2">
-                                        {permissions.map(perm => (
-                                            <Controller
-                                                key={perm.id}
-                                                control={control}
-                                                name="permissions"
-                                                render={({ field }) => {
-                                                    const currentPermissions: Record<number, number[]> = field.value || {}
-                                                    const checked = currentPermissions[mod.id]?.includes(perm.id) || false
+                            <div className="grid grid-cols-2 gap-4">
+                                {modules.map(mod => (
+                                    <div key={mod.id} className="border rounded p-4">
+                                        <h3>{mod.name}</h3>
+                                        <div className="flex flex-wrap gap-4 mt-2">
+                                            {permissions.map(perm => (
+                                                <Controller
+                                                    key={perm.id}
+                                                    control={control}
+                                                    name="permissions"
+                                                    render={({ field }) => {
+                                                        const currentPermissions: Record<number, number[]> = field.value || {}
+                                                        const checked = currentPermissions[mod.id]?.includes(perm.id) || false
 
-                                                    const handleChange = () => {
-                                                        const updated = checked
-                                                            ? currentPermissions[mod.id].filter(id => id !== perm.id)
-                                                            : [...(currentPermissions[mod.id] || []), perm.id]
-                                                        field.onChange({ ...currentPermissions, [mod.id]: updated })
-                                                    }
+                                                        const handleChange = () => {
+                                                            const updated = checked
+                                                                ? currentPermissions[mod.id].filter(id => id !== perm.id)
+                                                                : [...(currentPermissions[mod.id] || []), perm.id]
+                                                            field.onChange({ ...currentPermissions, [mod.id]: updated })
+                                                        }
 
-                                                    return (
-                                                        <div className="flex items-center gap-2">
-                                                            <Checkbox checked={checked} onCheckedChange={handleChange} />
-                                                            <span>{perm.name}</span>
-                                                        </div>
-                                                    )
-                                                }}
-                                            />
-                                        ))}
+                                                        return (
+                                                            <div className="flex items-center gap-2">
+                                                                <Checkbox checked={checked} onCheckedChange={handleChange} />
+                                                                <span>{perm.name}</span>
+                                                            </div>
+                                                        )
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                         <Button type="submit">Update User</Button>
                     </form>
