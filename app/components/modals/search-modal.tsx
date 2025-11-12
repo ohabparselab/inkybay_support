@@ -20,7 +20,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
 
     const [searchQuery, setSearchQuery] = useState("");
     const [results, setResults] = useState<any[]>([]);
-    const [searchType, setSearchType] = useState('url');
+    const [searchType, setSearchType] = useState('all');
     const [selectedPlatform, setSelectedPlatform] = useState("");
     const [projects, setProjects] = useState<any>([]);
 

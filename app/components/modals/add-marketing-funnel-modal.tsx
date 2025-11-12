@@ -252,7 +252,7 @@ export function AddMarketingFunnelModal({
                                         installPhase: currentInstallPhase,
                                         followUpStep: getFollowUpStepLabel(nextStep),
                                         followUpDate: "",
-                                        clientSuccessStatus: "",
+                                        clientSuccessStatus: "no",
                                         initialFeedback: "",
                                         otherAppsInstalled: "",
                                         isNew: true,
