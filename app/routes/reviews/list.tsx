@@ -332,7 +332,7 @@ export default function ReviewListPage() {
                                     ) : (
                                         <TableRow>
                                             <TableCell colSpan={6} className="text-center py-50 text-muted-foreground">
-                                                No meetings found.
+                                                No reviews found.
                                             </TableCell>
                                         </TableRow>
                                     )

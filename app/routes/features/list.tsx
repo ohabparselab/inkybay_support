@@ -20,17 +20,18 @@ import {
     Search,
     Plus,
     Ellipsis,
+    AlertTriangle,
 } from "lucide-react";
 import { DynamicDateFilter } from "~/components/dynamic-date-filter";
+import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { PaginationBar } from "~/components/pagination-bar";
-import { useLoaderData, useNavigate } from "react-router";
+import { useLoaderData, useNavigate, useRouteLoaderData } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
-import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 
 const AddFeatureRequestModal = lazy(() =>
     import("~/components/modals/add-feature-modal").then((m) => ({
@@ -122,6 +123,7 @@ export async function loader({ request }: any) {
 // Page Component
 //
 export default function FeatureRequestListPage() {
+
     const navigate = useNavigate();
     const { features, meta } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
@@ -131,6 +133,13 @@ export default function FeatureRequestListPage() {
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [selectedFeature, setSelectedFeature] = useState<any | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+    const rootData = useRouteLoaderData("root") as any;
+    const permissions = rootData?.permissions ?? [];
+    const canView = permissions.includes("feature.view");
+    const canEdit = permissions.includes("feature.edit");
+    const canDelete = permissions.includes("feature.delete");
+    const canCreate = permissions.includes("feature.create");
 
     const navigateWithLoading = (url: string) => {
         setLoading(true);
@@ -188,9 +197,13 @@ export default function FeatureRequestListPage() {
         <div className="px-6 space-y-3">
             <div className="flex items-center justify-between">
                 <h1 className="text-xl font-semibold">Feature Requests</h1>
-                <Button onClick={() => setAddModalOpen(true)}>
-                    <Plus /> Add Feature Request
-                </Button>
+                {
+                    canCreate && (
+                        <Button onClick={() => setAddModalOpen(true)}>
+                            <Plus /> Add Feature Request
+                        </Button>
+                    )
+                }
             </div>
 
             <div className="flex items-center justify-between">
@@ -228,72 +241,102 @@ export default function FeatureRequestListPage() {
                             <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
-
                     <TableBody>
-                        {features.length === 0 && (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={6}
-                                    className="text-center py-50 text-muted-foreground"
-                                >
-                                    No feature requests found
-                                </TableCell>
-                            </TableRow>
-                        )}
-
-                        {features.map((fr: any, i: number) => (
-                            <TableRow key={fr.id}>
-                                <TableCell>{i + 1}</TableCell>
-                                <TableCell className="text-blue-600">{fr.shopUrl || fr.client?.shopDomain ||  "—"}</TableCell>
-                                <TableCell className="max-w-md truncate">
-                                    {fr.featureDetails ?? "—"}
-                                </TableCell>
-                                <TableCell>{fr.createdByUser?.fullName ?? "—"}</TableCell>
-                                <TableCell>
-                                    {new Date(fr.createdAt).toLocaleDateString()}
-                                </TableCell>
-                                <TableCell>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon">
-                                                <Ellipsis />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem
-                                                onClick={() => {
-                                                    setSelectedFeature(fr);
-                                                    setViewModalOpen(true);
-                                                }}
-                                            >
-                                                <Eye /> View Details
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() => {
-                                                    setSelectedFeature(fr);
-                                                    setEditModalOpen(true);
-                                                }}
-                                            >
-                                                <PenBox /> Edit Feature
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem
-                                                variant="destructive"
-                                                onClick={() => {
-                                                    setSelectedFeature(fr);
-                                                    setDeleteDialogOpen(true);
-                                                }}
-                                            >
-                                                <Trash2 /> Delete
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {
+                            loading ? (
+                                Array.from({ length: 10 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell colSpan={9} className="py-4">
+                                            <div className="animate-pulse h-5 bg-accent rounded" />
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                canView ? (
+                                    features.length > 0 ? (
+                                        features.map((fr: any, i: number) => (
+                                            <TableRow key={fr.id}>
+                                                <TableCell>{i + 1}</TableCell>
+                                                <TableCell className="text-blue-600">{fr.shopUrl || fr.client?.shopDomain || "—"}</TableCell>
+                                                <TableCell className="max-w-md truncate">
+                                                    {fr.featureDetails ?? "—"}
+                                                </TableCell>
+                                                <TableCell>{fr.createdByUser?.fullName ?? "—"}</TableCell>
+                                                <TableCell>
+                                                    {new Date(fr.createdAt).toLocaleDateString()}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon">
+                                                                <Ellipsis />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem
+                                                                onClick={() => {
+                                                                    setSelectedFeature(fr);
+                                                                    setViewModalOpen(true);
+                                                                }}
+                                                            >
+                                                                <Eye /> View Details
+                                                            </DropdownMenuItem>
+                                                            {
+                                                                canEdit && (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => {
+                                                                            setSelectedFeature(fr);
+                                                                            setEditModalOpen(true);
+                                                                        }}
+                                                                    >
+                                                                        <PenBox /> Edit Feature
+                                                                    </DropdownMenuItem>
+                                                                )
+                                                            }
+                                                            {
+                                                                canDelete && (
+                                                                    <>
+                                                                        <DropdownMenuSeparator />
+                                                                        <DropdownMenuItem
+                                                                            variant="destructive"
+                                                                            onClick={() => {
+                                                                                setSelectedFeature(fr);
+                                                                                setDeleteDialogOpen(true);
+                                                                            }}
+                                                                        >
+                                                                            <Trash2 /> Delete
+                                                                        </DropdownMenuItem>
+                                                                    </>
+                                                                )
+                                                            }
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={9} className="text-center py-50 text-muted-foreground">
+                                                No feature requests found.
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={9}>
+                                            <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
+                                                <div className="flex items-center gap-2">
+                                                    <AlertTriangle className="w-5 h-5" />
+                                                    <span>You don’t have permission to view feature request data.</span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            )
+                        }
                     </TableBody>
                 </Table>
-
                 <PaginationBar
                     meta={meta}
                     onPageChange={handlePageChange}
