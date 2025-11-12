@@ -35,13 +35,16 @@ export function ReviewDetailsModal({ open, onOpenChange, review }: ReviewDetails
                         <div>
                             <p className="text-muted-foreground">Shop Name</p>
                             <p className="font-medium">
-                                {review.shopName ?? review.chat?.client?.shopName ?? "N/A"}
+                                {review.shopName || review.chat?.shopName || review.chat?.client?.shopName || "N/A"}
                             </p>
                         </div>
                         <div>
                             <p className="text-muted-foreground">Shop URL</p>
                             <p className="font-medium break-words">
-                                {review.shopUrl ?? review.client?.shopDomain ?? review.meeting?.storeUrl ?? "N/A"}
+                                {
+                                    review.shopUrl || review.chat?.shopUrl || review.chat?.client?.shopDomain ||
+                                    review.meeting?.storeUrl || "—"
+                                }
                             </p>
                         </div>
                         <div>

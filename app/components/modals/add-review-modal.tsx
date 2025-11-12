@@ -53,9 +53,6 @@ export function AddReviewModal({ open, onOpenChange, refreshPage }: AddReviewMod
     const onSubmit = async (data: AddReviewInput) => {
         try {
             setFormSubmitLoading(true);
-
-            console.log("======data===>>", data);
-            // return;
             const res = await fetch("/api/reviews", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

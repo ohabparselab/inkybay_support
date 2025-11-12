@@ -104,8 +104,22 @@ export async function loader({ request }: any) {
             take: limit,
             orderBy: { id: "desc" },
             include: {
-                chat: { select: { client: { select: { shopDomain: true } } } },
-                meeting: { select: { storeUrl: true } },
+                chat: {
+                    select:
+                    {
+                        shopName: true,
+                        shopUrl: true,
+                        client: {
+                            select: {
+                                shopName: true,
+                                shopDomain: true
+                            }
+                        }
+                    }
+                },
+                meeting: { select: { 
+                    storeUrl: true 
+                } },
                 approachByUser: true,
                 createdByUser: true
 
@@ -272,10 +286,16 @@ export default function ReviewListPage() {
                                         reviews.map((rev: any, i: number) => (
                                             <TableRow key={rev.id}>
                                                 <TableCell>{i + 1}</TableCell>
-                                                <TableCell className="text-blue-600">
-                                                    {rev.shopUrl ?? rev.chat?.client?.shopDomain ??
-                                                        rev.meeting?.storeUrl ??
-                                                        "—"}
+                                                <TableCell className="text-blue-600 hover:underline cursor-pointer"
+                                                    onClick={() => {
+                                                        setSelectedReview(rev);
+                                                        setViewReviewModalOpen(true);
+                                                    }}
+                                                >
+                                                    {
+                                                        rev.shopUrl || rev.chat?.shopUrl || rev.chat?.client?.shopDomain ||
+                                                        rev.meeting?.storeUrl || "—"
+                                                    }
                                                 </TableCell>
                                                 <TableCell className="capitalize">{rev.ratingMood ?? "—"}</TableCell>
                                                 <TableCell>{rev.agentRating ?? "—"}</TableCell>

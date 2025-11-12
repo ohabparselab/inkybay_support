@@ -36,25 +36,15 @@ export function EditReviewModal({ open, onOpenChange, review, refreshPage }: Edi
         reset,
         formState: { errors },
     } = useForm<AddReviewInput>({
-        resolver: zodResolver(addReviewSchema),
-        defaultValues: {
-            shopUrl: review?.shopUrl || "",
-            shopName: review?.shopName || "",
-            agentRating: review?.agentRating || 0,
-            ratingMood: review?.ratingMood || "",
-            reviewText: review?.reviewText || "",
-            reviewApproachBy: review?.approachByUser?.id ? String(review.approachByUser.id) : "",
-            lastReviewApproach: review?.lastReviewApproach ? new Date(review.lastReviewApproach) : undefined,
-            reviewSubmittedAt: review?.reviewSubmittedAt ? new Date(review.reviewSubmittedAt) : undefined,
-        },
+        resolver: zodResolver(addReviewSchema)
     });
 
     // Refill when modal opens
     useEffect(() => {
         if (review) {
             reset({
-                shopUrl: review.shopUrl || "",
-                shopName: review.shopName || "",
+                shopUrl: review.shopUrl || review.chat?.shopUrl || review.chat?.client?.shopDomain || review.meeting?.storeUrl || "",
+                shopName: review.shopName || review.chat?.shopName || review.chat?.client?.shopName || "",
                 agentRating: review.agentRating || 0,
                 ratingMood: review.ratingMood || "",
                 reviewText: review.reviewText || "",

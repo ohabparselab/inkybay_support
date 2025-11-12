@@ -60,12 +60,15 @@ const createMeeting = async (request: Request) => {
             recordedVideo: formData.get("recordedVideo")?.toString() ?? null,
         };
 
+        if (projectId) {
+            meetingData.project = {
+                connect: { id: projectId }
+            }
+        }
+
         const meeting = await prisma.meeting.create({
             data: {
                 ...meetingData,
-                project: {
-                    connect: { id: projectId },
-                },
                 user: {
                     connect: { id: agentId },
                 },

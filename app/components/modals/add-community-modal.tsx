@@ -84,8 +84,6 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
 
     const onSubmit = async (data: AddCommunityInput) => {
         try {
-            console.log("====form data=====>>", data);
-
             const res = await fetch("/api/communities", {
                 method: "POST",
                 body: JSON.stringify(data),
@@ -99,8 +97,6 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
             toast.error(err.message || "Something went wrong.");
         }
     };
-
-    console.log("=========>>error", errors)
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
