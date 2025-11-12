@@ -1,13 +1,13 @@
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "~/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { Eye, PenBox, Trash2, Plus, Search, Ellipsis, ExternalLink } from "lucide-react";
+import { Eye, PenBox, Trash2, Plus, Search, Ellipsis, ExternalLink, AlertTriangle } from "lucide-react";
+import { useLoaderData, useNavigate, useRouteLoaderData } from "react-router";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { DynamicDateFilter } from "~/components/dynamic-date-filter";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { PaginationBar } from "~/components/pagination-bar";
 import { useState, useEffect, Suspense, lazy } from "react";
 import { StatusFilter } from "~/components/ui/status-filter";
-import { useLoaderData, useNavigate } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Badge } from "~/components/ui/badge";
@@ -113,6 +113,13 @@ export default function CommunityListPage() {
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [addModalOpen, setAddModalOpen] = useState(false);
 
+    const rootData = useRouteLoaderData("root") as any;
+    const permissions = rootData?.permissions ?? [];
+    const canView = permissions.includes("community.view");
+    const canEdit = permissions.includes("community.edit");
+    const canDelete = permissions.includes("community.delete");
+    const canCreate = permissions.includes("community.create");
+
     const navigateWithLoading = (url: string) => {
         setLoading(true);
         navigate(url, { replace: true });
@@ -167,11 +174,14 @@ export default function CommunityListPage() {
         <div className="px-6 space-y-3">
             <div className="flex items-center justify-between">
                 <h1 className="text-xl font-semibold">Community Questions</h1>
-                <Button onClick={() => setAddModalOpen(true)}>
-                    <Plus /> Add Question
-                </Button>
+                {
+                    canCreate && (
+                        <Button onClick={() => setAddModalOpen(true)}>
+                            <Plus /> Add Question
+                        </Button>
+                    )
+                }
             </div>
-
             <div className="flex items-center justify-between">
                 <div className="relative w-full sm:w-64">
                     <Input
@@ -184,14 +194,12 @@ export default function CommunityListPage() {
                 </div>
                 <div className="text-sm">Total: {meta.total}</div>
             </div>
-
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow>
                             <TableHead>#</TableHead>
                             <TableHead>Question</TableHead>
-                            {/* <TableHead>URL</TableHead> */}
                             <TableHead>Project</TableHead>
                             <TableHead>Added By</TableHead>
                             <TableHead>
@@ -210,53 +218,84 @@ export default function CommunityListPage() {
                             <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
-
                     <TableBody>
-                        {communities.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={9} className="text-center py-50 text-muted-foreground">
-                                    No questions found
-                                </TableCell>
-                            </TableRow>
-                        )}
-
-                        {communities.map((c: any, i: number) => (
-                            <TableRow key={c.id}>
-                                <TableCell>{i + 1}</TableCell>
-                                <TableCell>{c.question}</TableCell>
-                                {/* <TableCell>
-                                    <a href={c.questionUrl} target="_blank" className="text-blue-600 inline-flex items-center gap-1 underline">
-                                        {c.questionUrl} <ExternalLink className="w-4 h-4" />
-                                    </a>
-                                </TableCell> */}
-                                <TableCell>{c.project?.name ?? "—"}</TableCell>
-                                <TableCell>{c.addedBy?.fullName ?? "—"}</TableCell>
-                                <TableCell>{c.status?.name ?? "—"}</TableCell>
-                                <TableCell>{c.listedDate ? new Date(c.listedDate).toLocaleDateString() : 'N/A'}</TableCell>
-                                <TableCell>{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
-                                <TableCell>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon">
-                                                <Ellipsis />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onClick={() => { setSelected(c); setViewModalOpen(true); }}>
-                                                <Eye /> View Details
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => { setSelected(c); setEditModalOpen(true); }}>
-                                                <PenBox /> Edit Question
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem className="text-red-600" onClick={() => { setSelected(c); setDeleteDialogOpen(true); }}>
-                                                <Trash2 /> Delete
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {
+                            loading ? (
+                                Array.from({ length: 10 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell colSpan={8} className="py-4">
+                                            <div className="animate-pulse h-5 bg-accent rounded" />
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                canView ? (
+                                    communities.length > 0 ? (
+                                        communities.map((c: any, i: number) => (
+                                            <TableRow key={c.id}>
+                                                <TableCell>{i + 1}</TableCell>
+                                                <TableCell className="text-blue-600 hover:underline cursor-pointer"
+                                                    onClick={() => { setSelected(c); setViewModalOpen(true); }}
+                                                >{c.question}</TableCell>
+                                                <TableCell>{c.project?.name ?? "—"}</TableCell>
+                                                <TableCell>{c.addedBy?.fullName ?? "—"}</TableCell>
+                                                <TableCell>{c.status?.name ?? "—"}</TableCell>
+                                                <TableCell>{c.listedDate ? new Date(c.listedDate).toLocaleDateString() : 'N/A'}</TableCell>
+                                                <TableCell>{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
+                                                <TableCell>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon">
+                                                                <Ellipsis />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => { setSelected(c); setViewModalOpen(true); }}>
+                                                                <Eye /> View Details
+                                                            </DropdownMenuItem>
+                                                            {
+                                                                canEdit && (
+                                                                    <DropdownMenuItem onClick={() => { setSelected(c); setEditModalOpen(true); }}>
+                                                                        <PenBox /> Edit Question
+                                                                    </DropdownMenuItem>
+                                                                )
+                                                            }
+                                                            {
+                                                                canDelete && (
+                                                                    <>
+                                                                        <DropdownMenuSeparator />
+                                                                        <DropdownMenuItem className="text-red-600" onClick={() => { setSelected(c); setDeleteDialogOpen(true); }}>
+                                                                            <Trash2 /> Delete
+                                                                        </DropdownMenuItem>
+                                                                    </>
+                                                                )
+                                                            }
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={9} className="text-center py-50 text-muted-foreground">
+                                                No communities questions found.
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={8}>
+                                            <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
+                                                <div className="flex items-center gap-2">
+                                                    <AlertTriangle className="w-5 h-5" />
+                                                    <span>You don’t have permission to view communities questions data.</span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            )
+                        }
                     </TableBody>
                 </Table>
                 <PaginationBar meta={meta} onPageChange={handlePageChange} onLimitChange={handleLimitChange} />
