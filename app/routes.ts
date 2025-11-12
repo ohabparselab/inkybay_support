@@ -30,6 +30,7 @@ export default [
         route("features", "./routes/features/list.tsx"),
         route("collaborations", "./routes/collaborations/list.tsx"),
         route("communities", "./routes/communities/list.tsx"),
+        // reports routes
         // settings routes
         route("settings/permissions", "./routes/settings/permission.list.tsx"),
         route("settings/modules", "./routes/settings/modules.list.tsx"),
@@ -39,6 +40,7 @@ export default [
         route("activity-logs", "./routes/activity-logs/list.tsx"),
     ]),
     
+    route("reports/marketing-funnel", "./routes/reports/marketing-funnel.tsx"),
     // api routes
     route("api/auth/login", "./api/auth/login.ts"),
     route("api/users", "./api/users/index.ts"),
