@@ -175,7 +175,7 @@ export default function ActivityLogsPage() {
                     <TableBody>
                         {logs.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                                <TableCell colSpan={6} className="text-center py-50 text-muted-foreground">
                                     No activity logs found
                                 </TableCell>
                             </TableRow>
