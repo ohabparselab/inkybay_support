@@ -19,10 +19,10 @@ export async function loader({ request }: { request: Request }) {
 
         const [unreadCount, notifications, totalCount] = await Promise.all([
             prisma.notification.count({
-                where: { userId, isRead: false },
+                where: { userId: userId, isRead: false },
             }),
             prisma.notification.findMany({
-                where: { userId },
+                where: { userId: userId },
                 skip,
                 take: limit,
                 orderBy: { createdAt: "desc" },
@@ -30,7 +30,7 @@ export async function loader({ request }: { request: Request }) {
                     user: { select: { id: true, fullName: true, avatar: true } },
                 },
             }),
-            prisma.notification.count({ where: { userId } }),
+            prisma.notification.count({ where: { userId: userId } }),
         ]);
 
         return Response.json({

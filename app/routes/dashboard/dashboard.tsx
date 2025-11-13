@@ -213,7 +213,6 @@ export default function DashboardPage() {
                     </section>
                 </div>
             </div>
-            {/* <DataTable data={data} /> */}
         </>
     );
 };
