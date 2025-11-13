@@ -97,6 +97,13 @@ export async function loader({ request }: any) {
             take: limit,
             orderBy: { id: "desc" },
             include: {
+                chat: {
+                    select:
+                    {
+                        shopName: true,
+                        shopUrl: true
+                    }
+                },
                 client: true,
                 createdByUser: true,
             },
@@ -257,7 +264,15 @@ export default function FeatureRequestListPage() {
                                         features.map((fr: any, i: number) => (
                                             <TableRow key={fr.id}>
                                                 <TableCell>{i + 1}</TableCell>
-                                                <TableCell className="text-blue-600">{fr.shopUrl || fr.client?.shopDomain || "—"}</TableCell>
+                                                <TableCell
+                                                    className="text-blue-600 hover:underline cursor-pointer"
+                                                    onClick={() => {
+                                                        setSelectedFeature(fr);
+                                                        setViewModalOpen(true);
+                                                    }}
+                                                >
+                                                    {fr.shopUrl || fr.client?.shopDomain || fr.chat?.shopUrl || "—"}
+                                                </TableCell>
                                                 <TableCell className="max-w-md truncate">
                                                     {fr.featureDetails ?? "—"}
                                                 </TableCell>

@@ -46,8 +46,8 @@ export function EditFeatureRequestModal({
     useEffect(() => {
         if (featureRequest && open) {
             reset({
-                shopUrl: featureRequest.shopUrl || featureRequest.client?.shopDomain || "",
-                shopName: featureRequest.shopName || featureRequest.client?.shopName || "",
+                shopUrl: featureRequest.shopUrl || featureRequest.client?.shopDomain || featureRequest.chat?.shopUrl || "",
+                shopName: featureRequest.shopName || featureRequest.client?.shopName || featureRequest.chat?.shopName || "",
                 email: featureRequest.email || featureRequest.client?.email || "",
                 featureDetails: featureRequest.featureDetails || "",
             });

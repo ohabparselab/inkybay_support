@@ -41,12 +41,12 @@ export function FeatureRequestDetailsModal({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <p className="text-muted-foreground">Shop Name</p>
-                            <p className="font-medium">{featureRequest.shopName || featureRequest.client?.shopName || "—"}</p>
+                            <p className="font-medium">{featureRequest.shopName || featureRequest.chat?.shopName || "—"}</p>
                         </div>
                         <div>
                             <p className="text-muted-foreground">Shop URL</p>
                             <p className="font-medium break-words">
-                                {featureRequest.shopUrl || featureRequest.client?.shopDomain ||  "—"}
+                                {featureRequest.shopUrl || featureRequest.client?.shopDomain || featureRequest.chat?.shopUrl || "—"}
                             </p>
                         </div>
                         <div>
@@ -91,9 +91,9 @@ export function FeatureRequestDetailsModal({
 
                     {/* Optional sections (ShopDetails / ShopHistory if needed) */}
 
-                    <ShopDetails shopUrl={featureRequest.shopUrl || featureRequest.client?.shopDomain} />
+                    <ShopDetails shopUrl={featureRequest.shopUrl || featureRequest.client?.shopDomain || featureRequest.chat?.shopUrl} />
                     <Separator />
-                    <ShopHistory shopUrl={featureRequest.shopUrl || featureRequest.client?.shopDomain} />
+                    <ShopHistory shopUrl={featureRequest.shopUrl || featureRequest.client?.shopDomain || featureRequest.chat?.shopUrl} />
 
                 </div>
 
