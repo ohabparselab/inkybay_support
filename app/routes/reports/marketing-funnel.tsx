@@ -90,7 +90,11 @@ export default function MarketingFunnelReportPage() {
         <div className="p-6 space-y-2">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold tracking-tight">Marketing Funnels Report</h1>
-                <Button onClick={() => exportToCSV(funnels)}>Export CSV</Button>
+                {
+                    funnels.length > 0 && (
+                        <Button onClick={() => exportToCSV(funnels)}>Export CSV</Button>
+                    )
+                }
             </div>
             <div className="rounded-md border bg-card shadow-sm">
                 <Table>
@@ -131,14 +135,14 @@ export default function MarketingFunnelReportPage() {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={9} className="text-center py-50 text-muted-foreground">
+                                        <TableCell colSpan={11} className="text-center py-50 text-muted-foreground">
                                             No marketing funnels found.
                                         </TableCell>
                                     </TableRow>
                                 )
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={9}>
+                                    <TableCell colSpan={11}>
                                         <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
                                             <div className="flex items-center gap-2">
                                                 <AlertTriangle className="w-5 h-5" />
