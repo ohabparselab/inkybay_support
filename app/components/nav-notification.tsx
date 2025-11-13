@@ -1,3 +1,4 @@
+'use client'
 
 import {
     Bell,
@@ -23,7 +24,6 @@ import { lazy, Suspense, useEffect, useState } from "react"
 import { CenterSpinner } from "./ui/center-spinner"
 import { charIconGen } from "~/lib/helper.sever"
 import { formatDistanceToNow } from "date-fns"
-import { socket } from "../client-socket";
 import { Button } from "./ui/button";
 
 const ViewTaskDetailsModal = lazy(() =>
@@ -64,37 +64,7 @@ export function NavNotification() {
         fetchNotifications();
     }, []);
 
-    const userId = 1;
-    const eventName = `user_${userId}_notification`;
-
-    socket.on(eventName, (notification) => {
-        console.log("📩 New notification received:", notification);
-        setNotifyInfo((prev: any) => ({
-            ...prev,
-            notifications: [notification, ...(prev.notifications || [])],
-            unreadCount: (prev.unreadCount || 0) + 1,
-        }));
-    });
-
-
-    useEffect(() => {
-        const userId = 1;
-        const eventName = `user_${userId}_notification`;
-
-        socket.on(eventName, (notification) => {
-            console.log("📩 New notification received:", notification);
-            setNotifyInfo((prev: any) => ({
-                ...prev,
-                notifications: [notification, ...(prev.notifications || [])],
-                unreadCount: (prev.unreadCount || 0) + 1,
-            }));
-        });
-
-        return () => {
-            socket.off(eventName)
-        };
-    }, []);
-
+   
     const handleReadNotification = async (notification: any) => {
         try {
             const notificationId = notification.id;
