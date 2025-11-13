@@ -12,8 +12,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const userId = await getUserId(request);
     const users = await prisma.user.findMany({
-        // where: {role: { slug: 'user' }},
-        // where: {role: { slug: 'user' }},
+        where: {role: { slug: 'user' }},
       select: { id: true, fullName: true, email: true },
     });
     return Response.json({ currentUserId: userId, users });
