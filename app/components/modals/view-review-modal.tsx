@@ -106,9 +106,9 @@ export function ReviewDetailsModal({ open, onOpenChange, review }: ReviewDetails
                         <p className="whitespace-pre-line text-sm">{review.reviewText}</p>
                     </div>
                     <Separator />
-                    <ShopDetails shopUrl={review?.shopUrl ?? review?.chat?.client?.shopDomain} />
+                    <ShopDetails shopUrl={review.shopUrl || review.chat?.shopUrl || review.chat?.client?.shopDomain || review.meeting?.storeUrl} />
                     <Separator />
-                    <ShopHistory shopUrl={review?.shopUrl ?? review?.chat?.client?.shopDomain} />
+                    <ShopHistory shopUrl={review.shopUrl || review.chat?.shopUrl || review.chat?.client?.shopDomain || review.meeting?.storeUrl} />
                 </div>
 
                 <DialogFooter>
