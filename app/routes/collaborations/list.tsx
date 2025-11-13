@@ -182,7 +182,7 @@ export default function CollaborationsListPage() {
 
     const rootData = useRouteLoaderData("root") as any;
     const permissions = rootData?.permissions ?? [];
-    const canView = permissions.includes("collaborations.view");
+    const canView = permissions.includes("collaboration.view");
     const canEdit = permissions.includes("collaboration.edit");
     const canDelete = permissions.includes("collaboration.delete");
     const canCreate = permissions.includes("collaboration.create");
