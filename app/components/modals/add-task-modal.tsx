@@ -6,6 +6,7 @@ import { addTaskSchema, type AddTaskFormInput } from "~/lib/validations";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { CommentInput } from "../comments/CommentInput";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CenterSpinner } from "../ui/center-spinner";
 import { Calendar } from "@/components/ui/calendar";
@@ -15,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { CommentInput } from "../comments/CommentInput";
 
 const AddStatusModal = lazy(() =>
     import('~/components/modals/add-status-modal').then(module => ({ default: module.AddStatusModal }))
