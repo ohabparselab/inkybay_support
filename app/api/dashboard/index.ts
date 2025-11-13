@@ -82,9 +82,9 @@ export async function action({ request }: ActionFunctionArgs) {
                     },
                 }
             }),
-            prisma.featureRequest.count({}),
-            prisma.collaborationApp.count({}),
-            prisma.community.count({}),
+            prisma.featureRequest.count(),
+            prisma.collaborationApp.count(),
+            prisma.community.count(),
         ]);
 
         const pendingTaskCount = await prisma.task.count({

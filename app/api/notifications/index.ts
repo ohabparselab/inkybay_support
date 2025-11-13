@@ -15,13 +15,13 @@ export async function loader({ request }: { request: Request }) {
             notifications,
             totalCount,
         ] = await Promise.all([
-            await prisma.notification.count({
+            prisma.notification.count({
                 where: {
                     userId: userId,
                     isRead: false,
                 },
             }),
-            await prisma.notification.findMany({
+            prisma.notification.findMany({
                 where: {
                     userId: userId
                 },
@@ -32,7 +32,7 @@ export async function loader({ request }: { request: Request }) {
                     user: { select: { id: true, fullName: true, avatar: true } },
                 },
             }),
-            await prisma.notification.count({
+            prisma.notification.count({
                 where: {
                     userId: userId
                 }
