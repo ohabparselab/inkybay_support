@@ -351,14 +351,14 @@ export default function ReviewListPage() {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={6} className="text-center py-50 text-muted-foreground">
+                                            <TableCell colSpan={7} className="text-center py-50 text-muted-foreground">
                                                 No reviews found.
                                             </TableCell>
                                         </TableRow>
                                     )
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={9}>
+                                        <TableCell colSpan={7}>
                                             <div className="flex flex-col items-center justify-center py-50 text-yellow-600">
                                                 <div className="flex items-center gap-2">
                                                     <AlertTriangle className="w-5 h-5" />

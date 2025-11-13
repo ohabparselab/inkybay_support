@@ -406,7 +406,7 @@ export default function CollaborationsListPage() {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={9} className="text-center py-50 text-muted-foreground">
+                                            <TableCell colSpan={10} className="text-center py-50 text-muted-foreground">
                                                 No collaborations found.
                                             </TableCell>
                                         </TableRow>
