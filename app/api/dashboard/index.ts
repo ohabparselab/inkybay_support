@@ -114,7 +114,7 @@ export async function action({ request }: ActionFunctionArgs) {
             upcomingMeetings,
         });
     } catch (error: any) {
-        console.error("Update meeting failed:", error);
+        console.error("Failed to fetch dashboard data:", error);
         return Response.json({ success: false, message: error.message }, { status: 500 });
     }
 }
