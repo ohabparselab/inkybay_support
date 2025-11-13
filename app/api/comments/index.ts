@@ -6,9 +6,14 @@ import { addCommentSchema } from "~/lib/validations";
 import { getUserInfoById } from "~/lib/user.server";
 import { getTaskInfoById } from "~/lib/task.server";
 import { getChatInfoById } from "~/lib/chat.server";
-import { NotificationType } from "@prisma/client";
 import { prisma } from "~/lib/prisma.server";
 import { getUserId } from "~/session.server";
+
+enum NotificationType {
+    CHAT,
+    TASK,
+    COMMUNITY
+}
 
 export async function loader({ request }: { request: Request }) {
     try {

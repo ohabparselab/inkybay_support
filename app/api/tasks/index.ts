@@ -1,10 +1,15 @@
 import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server";
+import { createNotification } from "~/lib/notification.server";
+import { getUserInfoById } from "~/lib/user.server";
 import { addTaskSchema } from "~/lib/validations";
 import { prisma } from "~/lib/prisma.server";
 import { getUserId } from "~/session.server";
-import { NotificationType } from "@prisma/client";
-import { createNotification } from "~/lib/notification.server";
-import { getUserInfoById } from "~/lib/user.server";
+
+enum NotificationType {
+    CHAT,
+    TASK,
+    COMMUNITY
+}
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 });
 
