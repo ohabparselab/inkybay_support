@@ -165,8 +165,7 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
                                         </SelectTrigger>
                                         <SelectContent>
                                             {
-
-                                                projects.length === 0 ? (
+                                                users.length === 0 ? (
                                                     <div className="p-2 text-center text-sm text-muted-foreground">No users found</div>
                                                 ) : (
                                                     users.map((user: any) => (

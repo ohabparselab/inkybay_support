@@ -162,11 +162,17 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                                             <SelectValue placeholder="Select Provider" />
                                         </SelectTrigger>
                                         <SelectContent className="w-full">
-                                            {users.map((user: any) => (
-                                                <SelectItem key={user.id} value={String(user.id)}>
-                                                    {user.fullName}
-                                                </SelectItem>
-                                            ))}
+                                            {
+                                                users.length === 0 ? (
+                                                    <div className="p-2 text-center text-sm text-muted-foreground">No users found</div>
+                                                ) : (
+                                                    users.map((user: any) => (
+                                                        <SelectItem key={user.id} value={String(user.id)}>
+                                                            {user.fullName}
+                                                        </SelectItem>
+                                                    ))
+                                                )
+                                            }
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -334,11 +340,17 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                                             <SelectValue placeholder="Select User" />
                                         </SelectTrigger>
                                         <SelectContent className="w-full">
-                                            {users.map((user: any) => (
-                                                <SelectItem key={user.id} value={String(user.id)}>
-                                                    {user.fullName}
-                                                </SelectItem>
-                                            ))}
+                                            {
+                                                users.length === 0 ? (
+                                                    <div className="p-2 text-center text-sm text-muted-foreground">No users found</div>
+                                                ) : (
+                                                    users.map((user: any) => (
+                                                        <SelectItem key={user.id} value={String(user.id)}>
+                                                            {user.fullName}
+                                                        </SelectItem>
+                                                    ))
+                                                )
+                                            }
                                         </SelectContent>
                                     </Select>
                                 )}

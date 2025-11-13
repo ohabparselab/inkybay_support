@@ -82,7 +82,7 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
         }
     };
 
-     const fetchProjects = async () => {
+    const fetchProjects = async () => {
         try {
             setLoadingProjects(true);
             const res = await fetch("/api/settings/projects");
@@ -207,7 +207,9 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                                         </SelectTrigger>
                                         <SelectContent className="w-full">
                                             {loadingUsers ? (
-                                                <div className="p-2 text-center text-muted-foreground">Loading...</div>
+                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
+                                            ) : users.length === 0 ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
                                             ) : (
                                                 users.map((user: any) => (
                                                     <SelectItem key={user.id} value={String(user.id)}>

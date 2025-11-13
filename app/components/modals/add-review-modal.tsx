@@ -156,11 +156,17 @@ export function AddReviewModal({ open, onOpenChange, refreshPage }: AddReviewMod
                                             <SelectValue placeholder="Select approacher" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {users.map((u) => (
-                                                <SelectItem key={u.id} value={String(u.id)}>
-                                                    {u.fullName}
-                                                </SelectItem>
-                                            ))}
+                                            {
+                                                users.length == 0 ? (
+                                                    <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
+                                                ) : (
+                                                    users.map((u) => (
+                                                        <SelectItem key={u.id} value={String(u.id)}>
+                                                            {u.fullName}
+                                                        </SelectItem>
+                                                    ))
+                                                )
+                                            }
                                         </SelectContent>
                                     </Select>
                                 )}
