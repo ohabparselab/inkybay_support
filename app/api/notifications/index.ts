@@ -10,21 +10,19 @@ export async function loader({ request }: { request: Request }) {
 
         const userId = await getUserId(request);
 
-        const [
-            unreadCount,
-            notifications,
-            totalCount,
-        ] = await Promise.all([
+        if (!userId) {
+            return Response.json(
+                { success: false, message: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
+        const [unreadCount, notifications, totalCount] = await Promise.all([
             prisma.notification.count({
-                where: {
-                    userId: userId,
-                    isRead: false,
-                },
+                where: { userId, isRead: false },
             }),
             prisma.notification.findMany({
-                where: {
-                    userId: userId
-                },
+                where: { userId },
                 skip,
                 take: limit,
                 orderBy: { createdAt: "desc" },
@@ -32,21 +30,20 @@ export async function loader({ request }: { request: Request }) {
                     user: { select: { id: true, fullName: true, avatar: true } },
                 },
             }),
-            prisma.notification.count({
-                where: {
-                    userId: userId
-                }
-            })
-        ])
+            prisma.notification.count({ where: { userId } }),
+        ]);
 
         return Response.json({
-            success: true, 
+            success: true,
             unreadCount,
             notifications,
             totalCount,
         });
     } catch (error: any) {
-        console.error("Error fetching comments:", error);
-        return Response.json({ success: false, message: error.message }, { status: 500 });
+        console.error("Error fetching notifications:", error);
+        return Response.json(
+            { success: false, message: error.message },
+            { status: 500 }
+        );
     }
 }
