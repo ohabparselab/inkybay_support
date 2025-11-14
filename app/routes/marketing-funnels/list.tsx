@@ -150,7 +150,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
                             select: { id: true, email: true },
                         },
                     },
-                }
+                },
+                project: true
             },
         }),
         prisma.marketingFunnel.count({ where }),

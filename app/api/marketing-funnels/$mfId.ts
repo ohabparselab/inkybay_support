@@ -40,6 +40,7 @@ const updateMarketingFunnel = async (mfId: number, request: Request) => {
             for (const followUp of value.followUps) {
                 const funnelParams = {
                     clientId: value.clientId,
+                    projectId: Number(value.projectId),
                     typeOfProducts: value.typeOfProducts,
                     customizationType: value.customizationType,
                     followUpStep: followUp.followUpStep,
