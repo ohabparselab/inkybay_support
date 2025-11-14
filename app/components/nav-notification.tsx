@@ -24,6 +24,7 @@ import { CenterSpinner } from "./ui/center-spinner"
 import { charIconGen } from "~/lib/helper.sever"
 import { formatDistanceToNow } from "date-fns"
 import { Button } from "./ui/button";
+import { useSocket } from "~/context";
 
 const ViewTaskDetailsModal = lazy(() =>
     import("~/components/modals/view-task-modal").then((m) => ({ default: m.ViewTaskDetailsModal }))
@@ -38,6 +39,7 @@ const ViewChatDetailsModal = lazy(() =>
 const ViewCommunityModal = lazy(() =>
     import("~/components/modals/view-community-modal").then((m) => ({ default: m.ViewCommunityModal }))
 );
+
 
 export function NavNotification() {
 
@@ -63,7 +65,17 @@ export function NavNotification() {
         fetchNotifications();
     }, []);
 
-   
+    const socket = useSocket();
+
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on("event", (data: any) => {
+            console.log(data);
+        });
+
+    }, [socket]);
+
     const handleReadNotification = async (notification: any) => {
         try {
             const notificationId = notification.id;
@@ -220,6 +232,11 @@ export function NavNotification() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </SidebarMenuItem>
+                <div>
+                    <button type="button" onClick={() => socket?.emit("event", "ping")}>
+                        Send ping
+                    </button>
+                </div>
             </SidebarMenu>
 
             {viewTaskModalOpen && selectedTaskId && (

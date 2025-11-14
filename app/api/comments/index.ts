@@ -8,12 +8,8 @@ import { getTaskInfoById } from "~/lib/task.server";
 import { getChatInfoById } from "~/lib/chat.server";
 import { prisma } from "~/lib/prisma.server";
 import { getUserId } from "~/session.server";
+import { NotificationType} from "@prisma/client";
 
-enum NotificationType {
-    CHAT,
-    TASK,
-    COMMUNITY
-}
 
 export async function loader({ request }: { request: Request }) {
     try {
