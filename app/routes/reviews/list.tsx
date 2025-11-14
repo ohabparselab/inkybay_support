@@ -114,15 +114,17 @@ export async function loader({ request }: any) {
                                 shopName: true,
                                 shopDomain: true
                             }
-                        }
+                        },
+                        projectId: true
                     }
                 },
-                meeting: { select: { 
+                meeting: { select: {
+                    projectId: true, 
                     storeUrl: true 
                 } },
                 approachByUser: true,
-                createdByUser: true
-
+                createdByUser: true,
+                project: true
             }
         }),
         prisma.review.count({ where })

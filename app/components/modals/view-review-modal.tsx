@@ -32,6 +32,12 @@ export function ReviewDetailsModal({ open, onOpenChange, review }: ReviewDetails
 
                 <div className="space-y-4 mt-2">
                     <div className="grid grid-cols-2 gap-4 text-sm">
+                         <div>
+                            <p className="text-muted-foreground">Project</p>
+                            <p className="font-medium">
+                                {review.project?.name || "N/A"}
+                            </p>
+                        </div>
                         <div>
                             <p className="text-muted-foreground">Shop Name</p>
                             <p className="font-medium">

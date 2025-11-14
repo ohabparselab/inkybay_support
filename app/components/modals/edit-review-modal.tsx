@@ -45,6 +45,8 @@ export function EditReviewModal({ open, onOpenChange, review, refreshPage }: Edi
     // Refill when modal opens
     useEffect(() => {
         if (review) {
+            const projectId = review.projectId || review.chat?.projectId || review.meeting?.projectId;
+
             reset({
                 shopUrl: review.shopUrl || review.chat?.shopUrl || review.chat?.client?.shopDomain || review.meeting?.storeUrl || "",
                 shopName: review.shopName || review.chat?.shopName || review.chat?.client?.shopName || "",
@@ -52,7 +54,7 @@ export function EditReviewModal({ open, onOpenChange, review, refreshPage }: Edi
                 ratingMood: review.ratingMood || "",
                 reviewText: review.reviewText || "",
                 reviewApproachBy: review.approachByUser?.id ? String(review.approachByUser.id) : "",
-                projectId: String(review.projectId) || String(review.projectId),
+                projectId:  String(projectId),
                 lastReviewApproach: review.lastReviewApproach ? new Date(review.lastReviewApproach) : undefined,
                 reviewSubmittedAt: review.reviewSubmittedAt ? new Date(review.reviewSubmittedAt) : undefined,
             });
