@@ -101,7 +101,8 @@ export async function loader({ request }: any) {
                     select:
                     {
                         shopName: true,
-                        shopUrl: true
+                        shopUrl: true,
+                        projectId: true
                     }
                 },
                 project: true,

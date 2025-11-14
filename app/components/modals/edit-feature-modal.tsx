@@ -67,10 +67,11 @@ export function EditFeatureRequestModal({
     // Prefill when modal opens
     useEffect(() => {
         if (featureRequest && open) {
+            const projectId = featureRequest.projectId || featureRequest.chat?.projectId || "";
             reset({
                 shopUrl: featureRequest.shopUrl || featureRequest.client?.shopDomain || featureRequest.chat?.shopUrl || "",
                 shopName: featureRequest.shopName || featureRequest.client?.shopName || featureRequest.chat?.shopName || "",
-                projectId: String(featureRequest.projectId) || String(featureRequest.chat?.projectId) ||  "",
+                projectId: String(projectId),
                 email: featureRequest.email || featureRequest.client?.email || "",
                 featureDetails: featureRequest.featureDetails || "",
             });
