@@ -47,7 +47,7 @@ const updateFeatureRequest = async (featureRequestId: number, request: Request) 
         }
 
         // Build update data
-        const updateData = {
+        const updateData:any = {
             shopUrl: value.shopUrl,
             shopName: value.shopName || null,
             email: value.email || null,
@@ -55,6 +55,10 @@ const updateFeatureRequest = async (featureRequestId: number, request: Request) 
             updatedByUser: { connect: { id: userId } },
             updatedAt: new Date(),
         };
+
+        if(value.projectId){
+            updateData.project = {connect: {id: Number(value.projectId)}}
+        }
 
         const updatedFeature = await prisma.featureRequest.update({
             where: { id: featureRequestId },
