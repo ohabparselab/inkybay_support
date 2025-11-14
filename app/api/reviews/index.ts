@@ -53,6 +53,10 @@ const createReview = async (request: Request) => {
             }
         }
 
+        if (value.projectId) {
+            reviewData.project = { connect: { id: Number(value.projectId) } };
+        }
+
         // Create review record
         const review = await prisma.review.create({
             data: reviewData,

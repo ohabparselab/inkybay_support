@@ -258,6 +258,7 @@ export const addPlatformSchema = z.object({
 export const addReviewSchema = z.object({
     shopUrl: z.string().optional(),
     shopName: z.string().optional(),
+    projectId: z.string().optional(),
     agentRating: z.number().optional(),
     ratingMood: z.string().optional(),
     reviewText: z.string().min(3, "Review text required"),

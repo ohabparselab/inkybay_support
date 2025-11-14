@@ -24,8 +24,11 @@ interface EditReviewModalProps {
 }
 
 export function EditReviewModal({ open, onOpenChange, review, refreshPage }: EditReviewModalProps) {
+
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [projects, setProjects] = useState<any>([]);
+    const [loadingProjects, setLoadingProjects] = useState(false);
 
     const {
         register,
@@ -49,17 +52,32 @@ export function EditReviewModal({ open, onOpenChange, review, refreshPage }: Edi
                 ratingMood: review.ratingMood || "",
                 reviewText: review.reviewText || "",
                 reviewApproachBy: review.approachByUser?.id ? String(review.approachByUser.id) : "",
+                projectId: String(review.projectId) || String(review.projectId),
                 lastReviewApproach: review.lastReviewApproach ? new Date(review.lastReviewApproach) : undefined,
                 reviewSubmittedAt: review.reviewSubmittedAt ? new Date(review.reviewSubmittedAt) : undefined,
             });
         }
     }, [review, reset]);
 
+    const fetchProjects = async () => {
+        try {
+            setLoadingProjects(true);
+            const res = await fetch("/api/settings/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        } finally {
+            setLoadingProjects(false);
+        }
+    }
+
     useEffect(() => {
         fetch("/api/users")
             .then((res) => res.json())
             .then((data) => setUsers(data.users || []))
             .catch(() => setUsers([]));
+        fetchProjects();
     }, []);
 
     const onSubmit = async (data: AddReviewInput) => {
@@ -155,8 +173,7 @@ export function EditReviewModal({ open, onOpenChange, review, refreshPage }: Edi
                         {errors.reviewText && <p className="text-sm text-red-500">{errors.reviewText.message}</p>}
                     </div>
 
-                    {/* Approach + Dates */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
                             <Label className="mb-2">Approached By</Label>
                             <Controller
@@ -168,17 +185,60 @@ export function EditReviewModal({ open, onOpenChange, review, refreshPage }: Edi
                                             <SelectValue placeholder="Select approacher" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {users.map((u) => (
-                                                <SelectItem key={u.id} value={String(u.id)}>
-                                                    {u.fullName}
-                                                </SelectItem>
-                                            ))}
+                                            {
+                                                users.length == 0 ? (
+                                                    <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
+                                                ) : (
+                                                    users.map((u) => (
+                                                        <SelectItem key={u.id} value={String(u.id)}>
+                                                            {u.fullName}
+                                                        </SelectItem>
+                                                    ))
+                                                )
+                                            }
                                         </SelectContent>
                                     </Select>
                                 )}
                             />
                         </div>
+                        <div>
+                            <Label className="mb-2">Project</Label>
+                            <Controller
+                                control={control}
+                                name="projectId"
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        disabled={loadingProjects}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={loadingProjects ? "Loading..." : "Select Project"} />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            {loadingProjects ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
+                                            ) : projects.length === 0 ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
+                                            ) : (
+                                                projects.map((project: any) => (
+                                                    <SelectItem key={project.id} value={String(project.id)}>
+                                                        {project.projectName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.projectId && (
+                                <p className="text-sm text-red-500">{errors.projectId.message}</p>
+                            )}
+                        </div>
+                    </div>
 
+                    {/* Approach + Dates */}
+                    <div className="grid grid-cols-2 gap-4 ">
                         <div>
                             <Label className="mb-2">Approached Date</Label>
                             <Controller

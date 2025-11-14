@@ -104,6 +104,7 @@ export async function loader({ request }: any) {
                         shopUrl: true
                     }
                 },
+                project: true,
                 client: true,
                 createdByUser: true,
             },

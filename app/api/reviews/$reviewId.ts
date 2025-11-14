@@ -63,6 +63,10 @@ const updateReview = async (reviewId: number, request: Request) => {
             reviewData.approachByUser = { disconnect: true };
         }
 
+        if (value.projectId) {
+            reviewData.project = { connect: { id: Number(value.projectId) } };
+        }
+
         const updatedReview = await prisma.review.update({
             where: { id: reviewId },
             data: reviewData,

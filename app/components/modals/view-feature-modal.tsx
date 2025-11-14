@@ -40,6 +40,10 @@ export function FeatureRequestDetailsModal({
                     {/* Basic Info */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
+                            <p className="text-muted-foreground">Project</p>
+                            <p className="font-medium">{featureRequest?.project?.name || featureRequest.chat?.project?.name || "—"}</p>
+                        </div>
+                        <div>
                             <p className="text-muted-foreground">Shop Name</p>
                             <p className="font-medium">{featureRequest.shopName || featureRequest.chat?.shopName || "—"}</p>
                         </div>
