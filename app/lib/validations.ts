@@ -223,6 +223,7 @@ export const addMarketingFunnelSchema = z.object({
   emails: z.array(z.string().email("Invalid email")).optional(),
   typeOfProducts: z.string().min(1, "Type of products field is required."),
   customizationType: z.string().optional(),
+  projectId: z.string().optional(),
   followUps: z
     .array(
       z.object({

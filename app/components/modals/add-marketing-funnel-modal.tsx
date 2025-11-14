@@ -42,6 +42,8 @@ export function AddMarketingFunnelModal({
     const funnelsFetcher = useFetcher<{ status: number; data: any }>();
     const [funnel, setFunnel] = useState<any | null>(null);
     const [funnels, setFunnels] = useState<any | null>([]);
+    const [projects, setProjects] = useState<any>([]);
+    const [loadingProjects, setLoadingProjects] = useState(false);
 
     const currentInstallPhase = isAppInstall ? "install" : "uninstall";
     const {
@@ -68,6 +70,23 @@ export function AddMarketingFunnelModal({
             control,
             name: "followUps",
         });
+
+    const fetchProjects = async () => {
+        try {
+            setLoadingProjects(true);
+            const res = await fetch("/api/settings/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        } finally {
+            setLoadingProjects(false);
+        }
+    }
+
+    useEffect(() => {
+        fetchProjects();
+    }, []);
 
     // 🔹 Fetch funnels by clientId
     useEffect(() => {
@@ -145,8 +164,8 @@ export function AddMarketingFunnelModal({
             const result = await res.json();
             if (res.ok) {
                 toast.success("Marketing Funnel added successfully.");
-                onOpenChange(false);
                 reset();
+                onOpenChange(false);
                 if (refreshPage) refreshPage();
             } else {
                 toast.error(result.message || "Failed to add marketing funnel.");
@@ -184,7 +203,7 @@ export function AddMarketingFunnelModal({
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-3">
                     {/* Install Phase & Emails */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                         <div>
                             <Label className="mb-2">Current Install Phase</Label>
                             <Input value={currentInstallPhase} readOnly className="bg-muted dark:bg-muted" />
@@ -214,6 +233,40 @@ export function AddMarketingFunnelModal({
                             >
                                 <Plus /> Add Email
                             </Button>
+                        </div>
+                        <div>
+                            <Label className="mb-2">Project</Label>
+                            <Controller
+                                control={control}
+                                name="projectId"
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        disabled={loadingProjects}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={loadingProjects ? "Loading..." : "Select Project"} />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            {loadingProjects ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
+                                            ) : projects.length === 0 ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
+                                            ) : (
+                                                projects.map((project: any) => (
+                                                    <SelectItem key={project.id} value={String(project.id)}>
+                                                        {project.projectName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.projectId && (
+                                <p className="text-sm text-red-500">{errors.projectId.message}</p>
+                            )}
                         </div>
                     </div>
 

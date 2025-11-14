@@ -1,3 +1,4 @@
+import { connect } from "http2"
 import { prisma } from "~/lib/prisma.server"
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
@@ -55,8 +56,9 @@ const createMarketingFunnel = async (request: Request) => {
             for (const [index, followUp] of sortedFollowUps.entries()) {
                 const funnelId = Number(followUp.funnelId) || 0;
 
-                const funnelParams = {
+                const funnelParams:any = {
                     clientId: value.clientId,
+                    projectId: Number(value.projectId),
                     typeOfProducts: value.typeOfProducts,
                     customizationType: value.customizationType,
                     followUpStep: followUp.followUpStep,
@@ -94,18 +96,6 @@ const createMarketingFunnel = async (request: Request) => {
                 }
             }
         }
-
-        // // Save follow-up dates
-        // if (Array.isArray(value.followUps) && value.followUps.length > 0) {
-        //     const followUpData = value.followUps.map((date: string) => ({
-        //         marketingFunnelId: funnel.id,
-        //         followUpDate: new Date(date),
-        //     }));
-
-        //     await prisma.followUp.createMany({
-        //         data: followUpData,
-        //     });
-        // }
 
         return Response.json({ success: true, message: "Marketing Funnel save successfully." });
     } catch (error: any) {

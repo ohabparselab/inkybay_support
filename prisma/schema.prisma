@@ -165,12 +165,13 @@ model Project {
     deletedAt DateTime?
 
     // Relations
-    platforms        Platform[]
-    chats            Chat[]
-    tasks            Task[]
-    meetings         Meeting[]
-    collaborationApp CollaborationApp[]
-    communities      Community[]
+    platforms         Platform[]
+    chats             Chat[]
+    tasks             Task[]
+    meetings          Meeting[]
+    collaborationApps CollaborationApp[]
+    communities       Community[]
+    marketingFunnels  MarketingFunnel[]
 
     @@map("projects")
 }
@@ -396,6 +397,7 @@ model MeetingEmail {
 model MarketingFunnel {
     id                  Int       @id @default(autoincrement())
     clientId            Int
+    projectId           Int?
     followUpStep        String?
     followUpDate        DateTime?
     installPhase        String?
@@ -410,7 +412,8 @@ model MarketingFunnel {
     isDeleted           Boolean   @default(false)
     deletedAt           DateTime?
 
-    client Client @relation(fields: [clientId], references: [id])
+    client  Client   @relation(fields: [clientId], references: [id])
+    project Project? @relation(fields: [projectId], references: [id])
 
     @@map("marketing_funnels")
 }
