@@ -69,6 +69,9 @@ export function ViewMarketingFunnelDetailsModal({
 
                     <div className="grid grid-cols-2 gap-x-6 space-y-2 text-sm">
                         <p>
+                            <strong>Project:</strong> {funnel.project?.name || "N/A"}
+                        </p>
+                        <p>
                             <strong>Type of Products:</strong> {funnel.typeOfProducts || "N/A"}
                         </p>
                         <p>
