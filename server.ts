@@ -66,13 +66,13 @@ if (!isProd) {
     );
     app.use(express.static("build/client", { maxAge: "1h" }));
 
-    remixHandler = createRequestHandler({
-        // @ts-ignore
-        build: await import("./build/server/index.js"),
-    });
+    // remixHandler = createRequestHandler({
+    //     // @ts-ignore
+    //     build: await import("./build/server/index.js"),
+    // });
 }
 
-app.all("*", remixHandler);
+// app.all("*", remixHandler);
 
 const port = process.env.PORT || 3000;
 
