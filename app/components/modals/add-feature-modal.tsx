@@ -1,9 +1,10 @@
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "~/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { addFeatureRequestSchema, type AddFeatureRequestInput } from "~/lib/validations";
 import { Textarea } from "~/components/ui/textarea";
 import { ListRestart, Plus, X } from "lucide-react";
@@ -22,8 +23,11 @@ interface AddFeatureRequestModalProps {
 export function AddFeatureRequestModal({ open, onOpenChange, refreshPage }: AddFeatureRequestModalProps) {
 
     const [loading, setLoading] = useState(false);
+    const [projects, setProjects] = useState<any>([]);
+    const [loadingProjects, setLoadingProjects] = useState(false);
 
     const {
+        control,
         register,
         handleSubmit,
         reset,
@@ -37,6 +41,23 @@ export function AddFeatureRequestModal({ open, onOpenChange, refreshPage }: AddF
             featureDetails: "",
         },
     });
+
+    const fetchProjects = async () => {
+        try {
+            setLoadingProjects(true);
+            const res = await fetch("/api/settings/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        } finally {
+            setLoadingProjects(false);
+        }
+    }
+
+    useEffect(() => {
+        fetchProjects();
+    }, []);
 
     const onSubmit = async (data: AddFeatureRequestInput) => {
         try {
@@ -85,10 +106,46 @@ export function AddFeatureRequestModal({ open, onOpenChange, refreshPage }: AddF
                     </div>
 
                     {/* Email */}
-                    <div>
-                        <Label className="mb-2">Email</Label>
-                        <Input {...register("email")} placeholder="example@email.com" />
-                        {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label className="mb-2">Email</Label>
+                            <Input {...register("email")} placeholder="example@email.com" />
+                            {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+                        </div>
+                        <div>
+                            <Label className="mb-2">Project</Label>
+                            <Controller
+                                control={control}
+                                name="projectId"
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        disabled={loadingProjects}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={loadingProjects ? "Loading..." : "Select Project"} />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            {loadingProjects ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
+                                            ) : projects.length === 0 ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
+                                            ) : (
+                                                projects.map((project: any) => (
+                                                    <SelectItem key={project.id} value={String(project.id)}>
+                                                        {project.projectName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.projectId && (
+                                <p className="text-sm text-red-500">{errors.projectId.message}</p>
+                            )}
+                        </div>
                     </div>
 
                     {/* Feature Details */}
@@ -99,7 +156,7 @@ export function AddFeatureRequestModal({ open, onOpenChange, refreshPage }: AddF
                     </div>
 
                     {/* Footer Buttons */}
-                   <DialogFooter className="flex !justify-center gap-3 mt-6">
+                    <DialogFooter className="flex !justify-center gap-3 mt-6">
                         <Button variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
                             <X /> Cancel
                         </Button>

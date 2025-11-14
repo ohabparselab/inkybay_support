@@ -30,14 +30,16 @@ const createFeatureRequest = async (request: Request) => {
         // Validate request body
         const value = addFeatureRequestSchema.parse(data);
 
-        const featureRequestData = {
+        const featureRequestData:any = {
                 shopUrl: value.shopUrl || null,
                 shopName: value.shopName || null,
                 email: value.email || null,
                 featureDetails: value.featureDetails,
                 createdByUser: { connect: { id: userId } },
             }
-
+        if(value.projectId){
+            featureRequestData.project = {connect: {id: Number(value.projectId)}}
+        }
         // Create new Feature Request record
         const featureRequest = await prisma.featureRequest.create({
             data: featureRequestData,

@@ -26,10 +26,10 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { CommentInput } from "../comments/CommentInput";
 import { Spinner } from "@/components/ui/spinner";
 import { TagsInput } from "@/components/ui/tags";
 import { toast } from "sonner";
-import { CommentInput } from "../comments/CommentInput";
 
 interface AddChatModalProps {
     clientId?: number | null;

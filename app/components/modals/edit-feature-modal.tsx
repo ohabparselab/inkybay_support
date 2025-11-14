@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Spinner } from "../ui/spinner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 interface EditFeatureRequestModalProps {
     open: boolean;
@@ -25,9 +26,13 @@ export function EditFeatureRequestModal({
     featureRequest,
     refreshPage,
 }: EditFeatureRequestModalProps) {
+
     const [loading, setLoading] = useState(false);
+    const [projects, setProjects] = useState<any>([]);
+    const [loadingProjects, setLoadingProjects] = useState(false);
 
     const {
+        control,
         register,
         handleSubmit,
         reset,
@@ -42,12 +47,30 @@ export function EditFeatureRequestModal({
         },
     });
 
+     const fetchProjects = async () => {
+        try {
+            setLoadingProjects(true);
+            const res = await fetch("/api/settings/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        } finally {
+            setLoadingProjects(false);
+        }
+    }
+
+    useEffect(() => {
+        fetchProjects();
+    }, []);
+
     // Prefill when modal opens
     useEffect(() => {
         if (featureRequest && open) {
             reset({
                 shopUrl: featureRequest.shopUrl || featureRequest.client?.shopDomain || featureRequest.chat?.shopUrl || "",
                 shopName: featureRequest.shopName || featureRequest.client?.shopName || featureRequest.chat?.shopName || "",
+                projectId: String(featureRequest.projectId) || String(featureRequest.chat?.projectId) ||  "",
                 email: featureRequest.email || featureRequest.client?.email || "",
                 featureDetails: featureRequest.featureDetails || "",
             });
@@ -103,10 +126,46 @@ export function EditFeatureRequestModal({
                     </div>
 
                     {/* Email */}
-                    <div>
-                        <Label className="mb-2">Email</Label>
-                        <Input {...register("email")} placeholder="example@email.com" />
-                        {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label className="mb-2">Email</Label>
+                            <Input {...register("email")} placeholder="example@email.com" />
+                            {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+                        </div>
+                        <div>
+                            <Label className="mb-2">Project</Label>
+                            <Controller
+                                control={control}
+                                name="projectId"
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        disabled={loadingProjects}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={loadingProjects ? "Loading..." : "Select Project"} />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            {loadingProjects ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
+                                            ) : projects.length === 0 ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
+                                            ) : (
+                                                projects.map((project: any) => (
+                                                    <SelectItem key={project.id} value={String(project.id)}>
+                                                        {project.projectName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.projectId && (
+                                <p className="text-sm text-red-500">{errors.projectId.message}</p>
+                            )}
+                        </div>
                     </div>
 
                     {/* Feature Details */}

@@ -268,6 +268,7 @@ export const addReviewSchema = z.object({
 
 export const addFeatureRequestSchema = z.object({
     shopUrl: z.string().optional(),
+    projectId: z.string().optional(),
     shopName: z.string().optional(),
     email:  z.string().or(z.string().email().optional()).optional(),
     featureDetails: z.string().min(1, "Feature Details are required"),

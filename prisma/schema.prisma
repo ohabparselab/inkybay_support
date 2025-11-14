@@ -172,6 +172,8 @@ model Project {
     collaborationApps CollaborationApp[]
     communities       Community[]
     marketingFunnels  MarketingFunnel[]
+    featureRequests    FeatureRequest[]
+    reviews            Review[]
 
     @@map("projects")
 }
@@ -224,6 +226,7 @@ model Review {
     id                 Int       @id @default(autoincrement())
     chatId             Int?      @unique
     meetingId          Int?      @unique
+    projectId          Int?
     reviewAsked        Boolean?  @default(false)
     reviewStatus       Boolean?  @default(false)
     shopUrl            String?
@@ -247,6 +250,7 @@ model Review {
     approachByUser User?    @relation("ReviewApproachedBy", fields: [reviewApproachBy], references: [id])
     createdByUser  User?    @relation("ReviewCreatedBy", fields: [createdBy], references: [id])
     updatedByUser  User?    @relation("ReviewUpdatedBy", fields: [updatedBy], references: [id])
+    project        Project? @relation(fields: [projectId], references: [id])
 
     @@map("reviews")
 }
@@ -258,6 +262,7 @@ model FeatureRequest {
     id             Int      @id @default(autoincrement())
     clientId       Int?
     chatId         Int?     @unique
+    projectId      Int?
     featureDetails String?  @db.Text
     shopUrl        String?
     shopName       String?
@@ -268,10 +273,11 @@ model FeatureRequest {
     updatedAt      DateTime @updatedAt
 
     // Relations
-    client        Client? @relation(fields: [clientId], references: [id])
-    chat          Chat?   @relation(fields: [chatId], references: [id])
-    createdByUser User?   @relation("FeatureCreatedBy", fields: [createdBy], references: [id])
-    updatedByUser User?   @relation("FeatureUpdatedBy", fields: [updatedBy], references: [id])
+    client        Client?  @relation(fields: [clientId], references: [id])
+    chat          Chat?    @relation(fields: [chatId], references: [id])
+    createdByUser User?    @relation("FeatureCreatedBy", fields: [createdBy], references: [id])
+    updatedByUser User?    @relation("FeatureUpdatedBy", fields: [updatedBy], references: [id])
+    project       Project? @relation(fields: [projectId], references: [id])
 
     @@map("feature_requests")
 }
