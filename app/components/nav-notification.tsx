@@ -1,4 +1,4 @@
-
+'use client'
 import {
     Bell,
     Clock,
@@ -73,6 +73,30 @@ export function NavNotification() {
         socket.on("event", (data: any) => {
             console.log(data);
         });
+
+    }, [socket]);
+
+
+    useEffect(() => {
+        if (!socket) return;
+        console.log("socket-effect=======>>")
+        socket.emit("identify", 1); // must come before join
+
+        const handler = (notification: any) => {
+            console.log("🔔 NOTIFICATION RECEIVED", notification);
+
+            setNotifyInfo((prev: any) => ({
+                ...prev,
+                notifications: [notification, ...prev.notifications],
+                unreadCount: prev.unreadCount + 1,
+            }));
+        };
+
+        socket.on("new_notification", handler);
+
+        return () => {
+            socket.off("new_notification", handler);
+        };
 
     }, [socket]);
 
@@ -232,6 +256,9 @@ export function NavNotification() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </SidebarMenuItem>
+                <button type="button" onClick={() => socket?.emit("event", "hello")}>
+                    Send ping
+                </button>
             </SidebarMenu>
 
             {viewTaskModalOpen && selectedTaskId && (

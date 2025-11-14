@@ -77,7 +77,7 @@ export default function App() {
     const { currentUser, theme } = useLoaderData<typeof loader>();
     const userId = currentUser?.id;
 
-    const [socket, setSocket] = useState<typeof Socket>();
+    const [socket, setSocket] = useState<Socket>();
 
     useEffect(() => {
         const socket = io();
@@ -89,19 +89,10 @@ export default function App() {
 
     useEffect(() => {
         if (!socket) return;
-        socket.on("confirmation", (data: any) => {
+        socket.on("confirmation", (data) => {
             console.log(data);
         });
     }, [socket]);
-
-    useEffect(() => {
-        if (!socket) return;
-        if (!userId) return;
-
-        console.log("Joining room:", `user_${userId}`);
-
-        socket.emit("join_room", `user_${userId}`);
-    }, [userId]);
 
     return (
         <ThemeProvider
@@ -109,7 +100,7 @@ export default function App() {
             themeAction="/action/set-theme"
         >
             <Html>
-                <SocketProvider socket={socket}>
+                <SocketProvider socket={socket as any}>
                     <Outlet context={{ currentUser }} />
                 </SocketProvider>
             </Html>

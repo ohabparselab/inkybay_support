@@ -7,12 +7,12 @@ type ProviderProps = {
     children: ReactNode;
 };
 
-const context = createContext<typeof Socket | undefined>(undefined);
+const context = createContext<Socket | undefined>(undefined);
 
 export function useSocket() {
     return useContext(context);
 }
 
 export function SocketProvider({ socket, children }: ProviderProps) {
-    return <context.Provider value={socket}>{children}</context.Provider>;
+    return <context.Provider value={socket as any}>{children}</context.Provider>;
 }

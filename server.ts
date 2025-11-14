@@ -26,17 +26,24 @@ io.on("connection", (socket:any) => {
     // from this point you are on the WS connection with a specific client
     console.log(socket.id, "connected");
 
-    // socket.emit("confirmation", "connected!");
+    socket.emit("confirmation", "connected!");
 
-    // socket.on("event", (data) => {
-    //     console.log(socket.id, data);
-    //     socket.emit("event", "pong");
-    // });
-    socket.on("join_room", (room:any) => {
-        socket.join(room);
-        console.log(`Socket ${socket.id} joined ${room}`);
+    socket.on("event", (data:any) => {
+        console.log(socket.id, data);
+        socket.emit("event", "pong");
+    });
+    console.log("Socket connected:", socket.id);
+
+    socket.on("identify", (userId:any) => {
+        console.log("User identified:", userId);
+        socket.join(`user_${userId}`);
     });
 });
+
+// Function to send a notification
+export function sendNotificationToUser(userId:any, notificationData:any) {
+  io.to(`user_${userId}`).emit('new_notification', notificationData);
+}
 
 // --- MIDDLEWARE ---
 app.use(compression());
@@ -66,13 +73,13 @@ if (!isProd) {
     );
     app.use(express.static("build/client", { maxAge: "1h" }));
 
-    // remixHandler = createRequestHandler({
-    //     // @ts-ignore
-    //     build: await import("./build/server/index.js"),
-    // });
+    remixHandler = createRequestHandler({
+        // @ts-ignore
+        build: await import("./build/server/index.js"),
+    });
 }
 
-// app.all("*", remixHandler);
+app.all("*", remixHandler);
 
 const port = process.env.PORT || 3000;
 
@@ -88,7 +95,7 @@ const shutdown = () => {
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
-// if (!(globalThis as any).__serverStarted) {
-//     httpServer.listen(port, () => console.log(`🚀 Server running at http://localhost:${port}`));
-//     (globalThis as any).__serverStarted = true;
-// }
+if (!(globalThis as any).__serverStarted) {
+    httpServer.listen(port, () => console.log(`🚀 Server running at http://localhost:${port}`));
+    (globalThis as any).__serverStarted = true;
+}
