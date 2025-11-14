@@ -88,7 +88,7 @@ const shutdown = () => {
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
-if (!(globalThis as any).__serverStarted) {
-    httpServer.listen(port, () => console.log(`🚀 Server running at http://localhost:${port}`));
-    (globalThis as any).__serverStarted = true;
-}
+// if (!(globalThis as any).__serverStarted) {
+//     httpServer.listen(port, () => console.log(`🚀 Server running at http://localhost:${port}`));
+//     (globalThis as any).__serverStarted = true;
+// }
