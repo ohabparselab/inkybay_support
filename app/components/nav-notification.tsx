@@ -256,9 +256,9 @@ export function NavNotification() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </SidebarMenuItem>
-                <button type="button" onClick={() => socket?.emit("identify", 1)}>
+                {/* <button type="button" onClick={() => socket?.emit("identify", 1)}>
                     Send ping
-                </button>
+                </button> */}
             </SidebarMenu>
 
             {viewTaskModalOpen && selectedTaskId && (
