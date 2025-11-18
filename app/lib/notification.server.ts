@@ -1,7 +1,7 @@
-import { type NotificationType } from "@prisma/client";
 import { prisma } from "./prisma.server";
-import { getIO } from "./socket.server";
-import { sendNotificationToUser } from "server";
+// @ts-ignore
+import { getUserSocket } from "../ws/userSockets.js";
+import type { NotificationType } from "@prisma/client";
 
 export interface CreateNotification {
     userId: number;
@@ -12,17 +12,27 @@ export interface CreateNotification {
     entityId: number;
 }
 
-export async function createNotification(createParams: CreateNotification) {
+export async function createNotification(params: CreateNotification) {
     try {
-        const notification = await prisma.notification.create({ data: createParams });
-        console.log(`📡 Sent user_${createParams.userId}`, notification);
-        try {
-           sendNotificationToUser(createParams.userId, createParams)
-        } catch (err) {
-            console.error("❌ Socket emit failed:", err);
+        // 1️⃣ Save in DB
+        const notification = await prisma.notification.create({
+            data: params,
+        });
+
+        console.log("📝 Notification saved:", notification);
+
+        // 2️⃣ Emit via WebSocket
+        const socket = getUserSocket(params.userId);
+
+        if (socket) {
+            socket.emit("new_notification", notification);
+            console.log(`📡 Notification pushed to user_${params.userId}`);
+        } else {
+            console.log(`⚠️ User ${params.userId} is offline, cannot send socket event.`);
         }
 
+        return notification;
     } catch (error) {
-        console.error("Create notification failed:", error);
+        console.error("❌ Create notification failed:", error);
     }
 }

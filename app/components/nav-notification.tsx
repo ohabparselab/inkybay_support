@@ -256,7 +256,7 @@ export function NavNotification() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </SidebarMenuItem>
-                <button type="button" onClick={() => socket?.emit("event", "hello")}>
+                <button type="button" onClick={() => socket?.emit("identify", 1)}>
                     Send ping
                 </button>
             </SidebarMenu>
