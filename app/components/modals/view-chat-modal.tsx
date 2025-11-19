@@ -161,6 +161,38 @@ export function ViewChatDetailsModal({ open, onOpenChange, chatId }: ViewChatDet
                                     <p><strong>Created At:</strong> {formatDate(chat.createdAt)}</p>
                                     <p><strong>Updated At:</strong> {formatDate(chat.updatedAt)}</p>
                                     <p><strong>Rating Mood/Client nature:</strong> {chat?.review?.ratingMood || "N/A"}</p>
+                                    <p className="font-medium flex">
+                                        <strong>Review Rating:</strong>
+                                        <div className="flex">
+                                            {chat?.review?.rating ? (
+                                                [...Array(5)].map((_, i) => (
+                                                    <Star
+                                                        key={i}
+                                                        className={`h-6 w-6 ${i < (chat?.review?.rating || 0)
+                                                            ? "text-yellow-500 fill-yellow-500"
+                                                            : "text-gray-300"
+                                                            }`}
+                                                    />
+                                                ))
+                                            ) : ' N/A'}
+                                        </div>
+                                    </p>
+                                     <p className="font-medium flex">
+                                        <strong>Agent Rating:</strong>
+                                        <div className="flex">
+                                            {chat?.agentRating ? (
+                                                [...Array(10)].map((_, i) => (
+                                                    <Star
+                                                        key={i}
+                                                        className={`h-6 w-6 ${i < (chat?.agentRating || 0)
+                                                            ? "text-yellow-500 fill-yellow-500"
+                                                            : "text-gray-300"
+                                                            }`}
+                                                    />
+                                                ))
+                                            ) : ' N/A'}
+                                        </div>
+                                    </p>
                                     <p><strong>Project:</strong> {chat?.project?.name || "N/A"}</p>
                                 </div>
                             </div>

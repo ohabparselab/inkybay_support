@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { CommentList } from "@/components/comments/CommentList";
 import { Spinner } from "@/components/ui/spinner";
 import { TagsInput } from "@/components/ui/tags";
+import { DatePickerWithClear } from "../ui/date-picker";
 
 interface EditChatModalProps {
     open: boolean;
@@ -125,7 +126,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                 reviewAsked: chat.review?.reviewAsked || false,
                 reviewStatus: chat.review?.reviewStatus || false,
                 handleBy: chat.handleBy?.toString() || "",
-                agentRating: chat.review?.agentRating || 0,
+                agentRating: chat?.agentRating || 0,
                 reviewText: chat.review?.reviewText || "",
                 clientFeedback: chat.clientFeedback || "",
                 storeDetails: chat.storeDetails || "",
@@ -147,7 +148,8 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                     : undefined,
                 reviewApproachBy: chat.review?.reviewApproachBy?.toString() || "",
                 ratingMood: chat.review?.ratingMood?.toString() || "",
-                externalChat: chat.externalChat,                
+                rating: chat.review?.rating || 0,
+                externalChat: chat.externalChat,
             });
         }
     }, [chat, reset]);
@@ -394,6 +396,21 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                                     )}
                                 />
                             </div>
+                            <div>
+                                <Label className="mb-2">Review Rating</Label>
+                                <div className="flex gap-1 mt-2">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star
+                                            key={i}
+                                            className={`h-6 w-6 cursor-pointer ${i < (watch("rating") ?? 0)
+                                                ? "text-yellow-500 fill-yellow-500"
+                                                : "text-gray-300"
+                                                }`}
+                                            onClick={() => setValue("rating", i + 1)}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
@@ -402,25 +419,11 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                                     control={control}
                                     name="lastReviewApproach"
                                     render={({ field }) => (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    className="justify-start text-left font-normal"
-                                                >
-                                                    {field.value ? format(field.value, "PPP") : "Pick a approach date"}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent align="start" className="p-0">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={field.value}
-                                                    onSelect={field.onChange}
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
+                                        <DatePickerWithClear
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            placeholder="Pick a date"
+                                        />
                                     )}
                                 />
                             </div>
@@ -461,7 +464,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                     {/* Last Review Approach Date + Client Feedback */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <Label className="mb-2">Reason behind not asking for review</Label>
+                            <Label className="mb-2">Reason Behind not Asking for Review</Label>
                             <Textarea {...register("reviewNotAskReason")} placeholder="Enter reason details..." />
                         </div>
                         <div>
@@ -470,25 +473,11 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                                 control={control}
                                 name="reviewSubmittedAt"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-start text-left font-normal"
-                                            >
-                                                {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>

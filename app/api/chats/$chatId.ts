@@ -74,6 +74,7 @@ const updateChat = async (chatId: number, request: Request) => {
             storeDetails: formData.get("storeDetails")?.toString() || null,
             otherStoresUrl: formData.get("otherStoresUrl")?.toString() || null,
             changesMadeByAgent: formData.get("changesMadeByAgent")?.toString() || null,
+            agentRating: formData.get("agentRating") ? Number(formData.get("agentRating")) : null,
             updatedBy: Number(userId),
             updatedAt: new Date(),
         };
@@ -113,7 +114,7 @@ const updateChat = async (chatId: number, request: Request) => {
             reviewStatus: formData.get("reviewStatus") === "true",
             reviewText: formData.get("reviewText")?.toString() || null,
             reviewNotAskReason: formData.get("reviewNotAskReason")?.toString() || null,
-            agentRating: formData.get("agentRating") ? Number(formData.get("agentRating")) : null,
+            rating: formData.get("rating") ? Number(formData.get("rating")) : null,
             ratingMood: formData.get("ratingMood")?.toString() || null,
             lastReviewApproach: formData.get("lastReviewApproach")
                 ? new Date(formData.get("lastReviewApproach") as string)
