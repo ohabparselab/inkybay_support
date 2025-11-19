@@ -187,6 +187,7 @@ model Chat {
     clientQuery        String    @db.Text
     handleBy           Int?
     projectId          Int?
+    agentRating        Int?
     chatDate           DateTime?
     chatTranscript     String?   @db.Text
     storefrontPassword String?   @db.Text
@@ -233,7 +234,7 @@ model Review {
     shopName           String?
     reviewText         String?   @db.Text
     reviewNotAskReason String?   @db.Text
-    agentRating        Int?
+    rating        Int?
     ratingMood         String? // "positive" | "neutral" | "negative"
     lastReviewApproach DateTime?
     reviewDate         DateTime?
