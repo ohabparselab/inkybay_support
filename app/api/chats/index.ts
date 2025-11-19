@@ -63,7 +63,7 @@ const createChat = async (request: Request) => {
             handleBy: formData.get("handleBy") ? Number(formData.get("handleBy")) : null,
             clientId: clientId,
             projectId: formData.get("projectId") ? Number(formData.get("projectId")) : null,
-            chatDate: formData.get("chatDate") ? new Date(`${formData.get("chatDate")}T00:00:00.000Z`) : null,
+            chatDate: formData.get("chatDate") ? new Date(formData.get("chatDate") as string) : null,
             storefrontPassword: formData.get("storefrontPassword")?.toString() || null,
             externalChat: formData.get("externalChat") === "true",
             shopUrl: formData.get("shopUrl")?.toString() || null,
