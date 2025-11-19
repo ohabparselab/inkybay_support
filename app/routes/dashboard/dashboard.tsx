@@ -3,14 +3,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { DashboardCardsSection } from "~/components/dashboard-cards-section";
 import { Badge } from "~/components/ui/badge";
 import { useFetcher } from "react-router-dom";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Spinner } from "~/components/ui/spinner";
+import { CenterSpinner } from "~/components/ui/center-spinner";
+
+const ViewTaskDetailsModal = lazy(() =>
+    import("~/components/modals/view-task-modal").then((m) => ({ default: m.ViewTaskDetailsModal }))
+);
 
 export const meta = () => [{ title: "Dashboard | InkyBay" }];
 
 export default function DashboardPage() {
 
     const fetcher = useFetcher();
+    const [selectedTaskId, setSelectedTaskId] = useState<any | null>(null);
+    const [viewTaskModalOpen, setViewTaskModalOpen] = useState(false);
 
     useEffect(() => {
         fetcher.submit({}, { method: "post", action: "/api/dashboard" });
@@ -21,7 +28,7 @@ export default function DashboardPage() {
     if (!data) {
         return (
             <div className="flex items-center justify-center h-[80vh] text-muted-foreground text-lg">
-                <Spinner/>
+                <Spinner />
             </div>
         )
     }
@@ -61,7 +68,14 @@ export default function DashboardPage() {
                                         <TableBody>
                                             {pendingTasks.length > 0 ? (
                                                 pendingTasks.map((task: any, idx: number) => (
-                                                    <TableRow key={task.id}>
+                                                    <TableRow
+                                                        key={task.id}
+                                                        className="cursor-pointer"
+                                                        onClick={() => {
+                                                            setSelectedTaskId(task.id);
+                                                            setViewTaskModalOpen(true);
+                                                        }}
+                                                    >
                                                         <TableCell>{task.client.shopName}</TableCell>
                                                         <TableCell>{task.providedByUser.fullName}</TableCell>
                                                         <TableCell>{new Date(task.taskAddedDate).toLocaleString()}</TableCell>
@@ -97,7 +111,14 @@ export default function DashboardPage() {
                                         <TableBody>
                                             {latestTasks.length > 0 ? (
                                                 latestTasks.map((task: any, idx: number) => (
-                                                    <TableRow key={task.id}>
+                                                    <TableRow
+                                                        key={task.id}
+                                                        className="cursor-pointer"
+                                                        onClick={() => {
+                                                            setSelectedTaskId(task.id);
+                                                            setViewTaskModalOpen(true);
+                                                        }}
+                                                    >
                                                         <TableCell>{task.client.shopName}</TableCell>
                                                         <TableCell>{task.providedByUser.fullName}</TableCell>
                                                         <TableCell>{new Date(task.taskAddedDate).toLocaleString()}</TableCell>
@@ -213,6 +234,16 @@ export default function DashboardPage() {
                     </section>
                 </div>
             </div>
+
+            {viewTaskModalOpen && selectedTaskId && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <ViewTaskDetailsModal
+                        taskId={selectedTaskId}
+                        open={viewTaskModalOpen}
+                        onOpenChange={setViewTaskModalOpen}
+                    />
+                </Suspense>
+            )}
         </>
     );
 };
