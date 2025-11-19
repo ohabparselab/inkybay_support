@@ -44,6 +44,7 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
 
     const [users, setUsers] = useState<any>([]);
     const [projects, setProjects] = useState<any>([]);
+    const [latestChat, setLatestChat] = useState<any>({});
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [loadingProjects, setLoadingProjects] = useState(false);
     const {
@@ -98,10 +99,20 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
         }
     }
 
+    const getLatestChat = async () => {
+        try {
+            const res = await fetch(`/api/chats/client-chat/${clientId}`);
+            const data = await res.json();
+            setLatestChat(data.chat);
+        } catch (err) {
+            console.error("Failed to fetch latest chat:", err);
+        }
+    }
+
     useEffect(() => {
         fetchUsers();
         fetchProjects();
-
+        getLatestChat();
     }, []);
 
     useEffect(() => {
@@ -109,14 +120,20 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
             const inkybay = projects.find((p: any) =>
                 p.slug === "inkybay"
             );
-            if (inkybay) {
-                reset({
-                    projectId: String(inkybay.id)
-                });
-            }
+
+            reset({
+                projectId: inkybay?.id ? String(inkybay?.id) : '',
+                clientEmails: latestChat?.client?.clientEmail?.map((e: any) => e.email) || [],
+                reviewAsked: latestChat?.review?.reviewAsked || false,
+                reviewStatus: latestChat?.review?.reviewStatus || false,
+                storeDetails: latestChat?.storeDetails || "",
+                otherStoresUrl: latestChat?.otherStoresUrl || "",
+                storefrontPassword: latestChat?.storefrontPassword || "",
+                externalChat: externalChat,
+            });
         }
 
-    }, [projects]);
+    }, [projects, latestChat]);
 
     const onSubmit = async (data: AddChatFormInput) => {
 
@@ -429,7 +446,7 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                     {/* Last Review Approach Date + Client Feedback */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <Label className="mb-2">Reason behind not asking for review</Label>
+                            <Label className="mb-2">Reason Behind not Asking for Review</Label>
                             <Textarea {...register("reviewNotAskReason")} placeholder="Enter reason details..." />
                         </div>
                         <div>

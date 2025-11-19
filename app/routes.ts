@@ -51,6 +51,7 @@ export default [
     route("api/chats", "./api/chats/index.ts"),
     route("api/chats/get-chats-by-client-id", "./api/chats/get-chats-by-client-id.ts"),
     route("api/chats/:chatId", "./api/chats/$chatId.ts"),
+    route("api/chats/client-chat/:clientId", "./api/chats/$clientId.ts"),
 
     route("api/clients", "./api/clients/index.ts"),
 
