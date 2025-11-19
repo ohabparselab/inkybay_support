@@ -101,7 +101,22 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
     useEffect(() => {
         fetchUsers();
         fetchProjects();
+
     }, []);
+
+    useEffect(() => {
+        if (projects) {
+            const inkybay = projects.find((p: any) =>
+                p.slug === "inkybay"
+            );
+            if (inkybay) {
+                reset({
+                    projectId: String(inkybay.id)
+                });
+            }
+        }
+
+    }, [projects]);
 
     const onSubmit = async (data: AddChatFormInput) => {
 
