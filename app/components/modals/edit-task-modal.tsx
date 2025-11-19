@@ -218,7 +218,7 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <Label className="mb-2">Store Password</Label>
-                            <Input type="password" {...register("storePassword")} />
+                            <Input type="text" {...register("storePassword")} />
                         </div>
                         <div>
                             <Label className="mb-2">Store Access</Label>

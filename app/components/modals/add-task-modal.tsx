@@ -34,7 +34,6 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
     const [users, setUsers] = useState<any>([]);
     const [projects, setProjects] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
 
     const { control, register, watch, setValue, handleSubmit, formState: { errors }, reset } = useForm<AddTaskFormInput>({
         resolver: zodResolver(addTaskSchema),
@@ -232,18 +231,18 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                             <Label className="mb-2">Store Password</Label>
                             <div className="relative w-full">
                                 <Input
-                                    type={showPassword ? "text" : "password"}
+                                    type="text"
                                     {...register("storePassword")}
                                     placeholder="Enter store password"
                                     className="pr-10"
                                 />
-                                <button
+                                {/* <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
                                     className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                 >
                                     {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-                                </button>
+                                </button> */}
                             </div>
                         </div>
                         <div>

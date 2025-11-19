@@ -300,15 +300,22 @@ export default function ChatsListPage() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="max-h-64 overflow-auto w-48">
-                                                {tags.map((t: any) => (
-                                                    <DropdownMenuCheckboxItem
-                                                        key={t.id}
-                                                        checked={meta.selectedTags.includes(t.name)}
-                                                        onCheckedChange={(checked) => handleTagToggle(t.name, checked)}
-                                                    >
-                                                        {t.name}
-                                                    </DropdownMenuCheckboxItem>
-                                                ))}
+                                                {
+                                                    tags.length === 0 ? (
+                                                        <div className="p-2 text-center text-sm text-muted-foreground">No tags found</div>
+                                                    ) : (
+                                                        tags.map((t: any) => (
+                                                            <DropdownMenuCheckboxItem
+                                                                key={t.id}
+                                                                checked={meta.selectedTags.includes(t.name)}
+                                                                onCheckedChange={(checked) => handleTagToggle(t.name, checked)}
+                                                            >
+                                                                {t.name}
+                                                            </DropdownMenuCheckboxItem>
+                                                        ))
+                                                    )
+
+                                                }
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </div>
