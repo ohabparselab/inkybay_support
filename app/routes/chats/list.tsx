@@ -13,6 +13,7 @@ import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { cn } from "~/lib/utils";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 const AddChatModal = lazy(() =>
     import("~/components/modals/add-chat-modal").then((m) => ({
@@ -82,16 +83,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
 
     if (date) {
-        const start = new Date(`${date}T00:00:00.000Z`);
-        const end = new Date(`${date}T23:59:59.999Z`);
+        const d = new Date(date);
+
+        const start = new Date(date);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(date);
+        end.setHours(23, 59, 59, 999);
 
         where.chatDate = {
             gte: start,
             lt: end,
         };
     } else if (startDate && endDate) {
-        const start = new Date(`${startDate}T00:00:00.000Z`);
-        const end = new Date(`${endDate}T23:59:59.999Z`);
+        const start = new Date(startDate);
+        const end = new Date(endDate);
 
         where.chatDate = {
             gte: start,
@@ -398,7 +404,7 @@ export default function ChatsListPage() {
                                                         {chat?.review?.reviewStatus == true ? "Yes" : "No"}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {chat.chatDate ? new Date(chat.chatDate).toLocaleDateString() : 'N/A'}
+                                                        {chat.chatDate ? format(new Date(chat.chatDate), "yyyy-MM-dd") : "N/A"}
                                                     </TableCell>
                                                     <TableCell>
                                                         <DropdownMenu>
