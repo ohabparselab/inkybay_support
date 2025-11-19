@@ -60,8 +60,9 @@ export function CommentInput({
                     placeholder={placeholder}
                     allowSuggestionsAboveCursor={true}
                     disabled={readOnly}
-                    className="react-mentions w-full"
                     style={mentionsInputStyle}
+                    className="react-mentions w-full"
+
                 >
                     <Mention
                         trigger="@"
@@ -112,7 +113,7 @@ function extractMentions(content: string): number[] {
 
 const mentionsInputStyle = {
     control: {
-        backgroundColor: "transparent",
+        // backgroundColor: "transparent",
         fontSize: 14,
         fontWeight: "normal",
     },
@@ -148,7 +149,7 @@ const mentionsInputStyle = {
 
     suggestions: {
         list: {
-            backgroundColor: "white",
+            // backgroundColor: "white",
             border: "1px solid rgba(0,0,0,0.15)",
             fontSize: 14,
         },
@@ -163,5 +164,5 @@ const mentionsInputStyle = {
 };
 
 const mentionStyle = {
-    backgroundColor: "#dcd7f7",
+    backgroundColor: "#6366F1",
 };
