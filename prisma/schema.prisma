@@ -172,8 +172,8 @@ model Project {
     collaborationApps CollaborationApp[]
     communities       Community[]
     marketingFunnels  MarketingFunnel[]
-    featureRequests    FeatureRequest[]
-    reviews            Review[]
+    featureRequests   FeatureRequest[]
+    reviews           Review[]
 
     @@map("projects")
 }
@@ -234,7 +234,7 @@ model Review {
     shopName           String?
     reviewText         String?   @db.Text
     reviewNotAskReason String?   @db.Text
-    rating        Int?
+    rating             Int?
     ratingMood         String? // "positive" | "neutral" | "negative"
     lastReviewApproach DateTime?
     reviewDate         DateTime?
