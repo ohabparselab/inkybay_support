@@ -168,6 +168,7 @@ export const addChatSchema = z.object({
     reviewSubmittedAt: z.date().optional(),
     reviewStatus: z.boolean().optional(),
     reviewText: z.string().optional(),
+    rating: z.number().min(0).max(10).optional(),
     lastReviewApproach: z.date().optional(),
     reviewApproachBy: z.string().optional(),
     clientFeedback: z.string().optional(),

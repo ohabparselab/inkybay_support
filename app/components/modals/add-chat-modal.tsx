@@ -26,6 +26,7 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { DatePickerWithClear } from "../ui/date-picker";
 import { CommentInput } from "../comments/CommentInput";
 import { Spinner } from "@/components/ui/spinner";
 import { TagsInput } from "@/components/ui/tags";
@@ -116,22 +117,30 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
     }, []);
 
     useEffect(() => {
-        if (projects) {
-            const inkybay = projects.find((p: any) =>
-                p.slug === "inkybay"
-            );
+        if (!projects) return;
 
-            reset({
-                projectId: inkybay?.id ? String(inkybay?.id) : '',
+        const inkybay = projects.find((p: any) => p.slug === "inkybay");
+
+        const baseData = {
+            projectId: inkybay?.id ? String(inkybay.id) : "",
+            externalChat: externalChat
+        };
+
+        // if externalChat = true → use only baseData
+        const presetData = externalChat
+            ? baseData
+            : {
+                ...baseData,
                 clientEmails: latestChat?.client?.clientEmail?.map((e: any) => e.email) || [],
                 reviewAsked: latestChat?.review?.reviewAsked || false,
                 reviewStatus: latestChat?.review?.reviewStatus || false,
                 storeDetails: latestChat?.storeDetails || "",
                 otherStoresUrl: latestChat?.otherStoresUrl || "",
                 storefrontPassword: latestChat?.storefrontPassword || "",
-                externalChat: externalChat,
-            });
-        }
+                externalChat: externalChat
+            };
+
+        reset(presetData);
 
     }, [projects, latestChat]);
 
@@ -193,6 +202,8 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
         }
     };
 
+    console.log(errors);
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
@@ -234,7 +245,6 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                                             control={control}
                                             render={({ field }) => (
                                                 <Checkbox
-                                                    // disabled
                                                     checked={externalChat}
                                                     onCheckedChange={(checked) => field.onChange(checked)}
                                                 />
@@ -379,6 +389,21 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                                     )}
                                 />
                             </div>
+                            <div>
+                                <Label className="mb-2">Review Rating</Label>
+                                <div className="flex gap-1 mt-2">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star
+                                            key={i}
+                                            className={`h-6 w-6 cursor-pointer ${i < (watch("rating") ?? 0)
+                                                ? "text-yellow-500 fill-yellow-500"
+                                                : "text-gray-300"
+                                                }`}
+                                            onClick={() => setValue("rating", i + 1)}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
@@ -387,25 +412,11 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                                     control={control}
                                     name="lastReviewApproach"
                                     render={({ field }) => (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    className="justify-start text-left font-normal"
-                                                >
-                                                    {field.value ? format(field.value, "PPP") : "Pick a approach date"}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent align="start" className="p-0">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={field.value}
-                                                    onSelect={field.onChange}
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
+                                        <DatePickerWithClear
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            placeholder="Pick a date"
+                                        />
                                     )}
                                 />
                             </div>
@@ -455,25 +466,11 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                                 control={control}
                                 name="reviewSubmittedAt"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-start text-left font-normal"
-                                            >
-                                                {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>
@@ -583,25 +580,11 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                                 control={control}
                                 name="chatDate"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-start text-left font-normal"
-                                            >
-                                                {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                             {errors.chatDate && (
