@@ -15,6 +15,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePickerWithClear } from "../ui/date-picker";
 
 interface AddReviewModalProps {
     open: boolean;
@@ -40,7 +41,7 @@ export function AddReviewModal({ open, onOpenChange, refreshPage }: AddReviewMod
     } = useForm<AddReviewInput>({
         resolver: zodResolver(addReviewSchema),
         defaultValues: {
-            agentRating: 0
+            rating: 0
         },
     });
 
@@ -65,6 +66,17 @@ export function AddReviewModal({ open, onOpenChange, refreshPage }: AddReviewMod
             .catch(() => setUsers([]));
         fetchProjects();
     }, []);
+
+    useEffect(() => {
+        if (!projects) return;
+
+        const inkybay = projects.find((p: any) => p.slug === "inkybay");
+
+        reset({
+            projectId: inkybay?.id ? String(inkybay.id) : "",
+        });
+
+    }, [projects]);
 
     const onSubmit = async (data: AddReviewInput) => {
         try {
@@ -116,39 +128,19 @@ export function AddReviewModal({ open, onOpenChange, refreshPage }: AddReviewMod
                     {/* Rating & Mood */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <Label className="mb-2">Agent Rating</Label>
+                            <Label className="mb-2">Review Rating</Label>
                             <div className="flex gap-1 mt-2">
-                                {[...Array(10)].map((_, i) => (
+                                {[...Array(5)].map((_, i) => (
                                     <Star
                                         key={i}
-                                        className={`h-6 w-6 cursor-pointer ${i < (watch("agentRating") ?? 0)
+                                        className={`h-6 w-6 cursor-pointer ${i < (watch("rating") ?? 0)
                                             ? "text-yellow-500 fill-yellow-500"
                                             : "text-gray-300"
                                             }`}
-                                        onClick={() => setValue("agentRating", i + 1)}
+                                        onClick={() => setValue("rating", i + 1)}
                                     />
                                 ))}
                             </div>
-                        </div>
-
-                        <div>
-                            <Label className="mb-2">Rating mood</Label>
-                            <Controller
-                                name="ratingMood"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select rating mood" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="positive">Positive</SelectItem>
-                                            <SelectItem value="neutral">Neutral</SelectItem>
-                                            <SelectItem value="negative">Negative</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
                         </div>
                     </div>
 
@@ -231,17 +223,11 @@ export function AddReviewModal({ open, onOpenChange, refreshPage }: AddReviewMod
                                 control={control}
                                 name="lastReviewApproach"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline" className="w-full justify-start">
-                                                {field.value ? format(field.value, "PPP") : "Pick date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>
@@ -252,17 +238,11 @@ export function AddReviewModal({ open, onOpenChange, refreshPage }: AddReviewMod
                                 control={control}
                                 name="reviewSubmittedAt"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline" className="w-full justify-start">
-                                                {field.value ? format(field.value, "PPP") : "Pick date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>

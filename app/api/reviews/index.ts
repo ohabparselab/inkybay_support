@@ -29,7 +29,7 @@ const createReview = async (request: Request) => {
         // Parse & validate data
         const value = addReviewSchema.parse({
             ...data,
-            agentRating: Number(data.agentRating),
+            rating: Number(data.rating),
             lastReviewApproach: data.lastReviewApproach ? new Date(data.lastReviewApproach) : undefined,
             reviewSubmittedAt: data.reviewSubmittedAt ? new Date(data.reviewSubmittedAt) : undefined,
         });
@@ -38,8 +38,7 @@ const createReview = async (request: Request) => {
         const reviewData:any = {
             shopUrl: value.shopUrl,
             shopName: value.shopName,
-            agentRating: value.agentRating,
-            ratingMood: value.ratingMood,
+            rating: value.rating,
             reviewText: value.reviewText,
             lastReviewApproach: value.lastReviewApproach ? new Date(value.lastReviewApproach) : null,
             reviewSubmittedAt: value.reviewSubmittedAt ? new Date(value.reviewSubmittedAt) : null,

@@ -54,14 +54,14 @@ export function ReviewDetailsModal({ open, onOpenChange, review }: ReviewDetails
                             </p>
                         </div>
                         <div>
-                            <p className="text-muted-foreground">Agent Rating</p>
+                            <p className="text-muted-foreground">Review Rating</p>
                             <p className="font-medium">
                                 <div className="flex">
-                                    {review?.agentRating ? (
-                                        [...Array(10)].map((_, i) => (
+                                    {review?.rating ? (
+                                        [...Array(5)].map((_, i) => (
                                             <Star
                                                 key={i}
-                                                className={`h-6 w-6 ${i < (review?.agentRating || 0)
+                                                className={`h-6 w-6 ${i < (review?.rating || 0)
                                                     ? "text-yellow-500 fill-yellow-500"
                                                     : "text-gray-300"
                                                     }`}
@@ -70,10 +70,6 @@ export function ReviewDetailsModal({ open, onOpenChange, review }: ReviewDetails
                                     ) : ' N/A'}
                                 </div>
                             </p>
-                        </div>
-                        <div>
-                            <p className="text-muted-foreground">Rating Mood</p>
-                            <p className="font-medium">{review.ratingMood || "—"}</p>
                         </div>
                         <div>
                             <p className="text-muted-foreground">Approach By</p>

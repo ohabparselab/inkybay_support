@@ -255,7 +255,6 @@ export default function ReviewListPage() {
                         <TableRow>
                             <TableHead>#</TableHead>
                             <TableHead>Shop URL</TableHead>
-                            <TableHead>Rating Mood</TableHead>
                             <TableHead>Rating</TableHead>
                             <TableHead>
                                 <div className="flex items-center gap-2">
@@ -299,8 +298,7 @@ export default function ReviewListPage() {
                                                         rev.meeting?.storeUrl || "—"
                                                     }
                                                 </TableCell>
-                                                <TableCell className="capitalize">{rev.ratingMood ?? "—"}</TableCell>
-                                                <TableCell>{rev.agentRating ?? "—"}</TableCell>
+                                                <TableCell>{rev.rating ?? "—"}</TableCell>
                                                 <TableCell>{rev.reviewSubmittedAt ? new Date(rev.reviewSubmittedAt).toLocaleDateString() : "—"}</TableCell>
                                                 <TableCell>{rev.approachByUser?.fullName ?? "—"}</TableCell>
 
