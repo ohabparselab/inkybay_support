@@ -113,7 +113,9 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
     useEffect(() => {
         fetchUsers();
         fetchProjects();
-        getLatestChat();
+        if(clientId){
+            getLatestChat();
+        }
     }, []);
 
     useEffect(() => {
