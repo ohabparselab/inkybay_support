@@ -1082,7 +1082,7 @@ export default function ShopDetailsPage() {
                                                                         <TableCell>{idx + 1}</TableCell>
                                                                         <TableCell className="max-w-xs truncate">{meeting.storeUrl}</TableCell>
                                                                         <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
-                                                                        <TableCell className="flex flex-wrap gap-1">
+                                                                        <TableCell>
                                                                             {meeting.joiningStatus ? 'Yes' : 'No'}
                                                                         </TableCell>
                                                                         <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
