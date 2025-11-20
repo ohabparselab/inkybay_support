@@ -23,6 +23,7 @@ import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { Plus, X, ListRestart, CalendarIcon } from "lucide-react";
 import { CenterSpinner } from "@/components/ui/center-spinner";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { DatePickerWithClear } from "@/components/ui/date-picker";
 import { CommentInput } from "../comments/CommentInput";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Suspense, useEffect, useState } from "react";
@@ -61,11 +62,6 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
         },
     });
 
-    // const { fields, append, remove } = useFieldArray({
-    //     control,
-    //     name: "comments",
-    // });
-
     const fetchData = async () => {
         const [projectsRes, usersRes, statusRes] = await Promise.all([
             fetch("/api/settings/projects").then((res) => res.json()),
@@ -81,6 +77,17 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
         if (!open) return;
         fetchData();
     }, [open]);
+
+    useEffect(() => {
+        if (!projects) return;
+
+        const inkybay = projects.find((p: any) => p.slug === "inkybay");
+
+        reset({
+            projectId: inkybay?.id ? String(inkybay.id) : "",
+        });
+
+    }, [projects]);
 
     const onSubmit = async (data: AddCommunityInput) => {
         try {
@@ -222,17 +229,11 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
                                 control={control}
                                 name="listedDate"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline" className="w-full justify-start text-left font-normal">
-                                                {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="p-0">
-                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>
@@ -249,11 +250,11 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
                         <Label className="mb-2">Comment</Label>
                         <CommentInput
                             value={watch("comments")}
-                            onChange={(value:any, mentions:any) => {
+                            onChange={(value: any, mentions: any) => {
                                 setValue("comments", value);
                                 setValue("mentions", mentions);
                             }}
-                            onSubmit={async () => { }} 
+                            onSubmit={async () => { }}
                             users={users}
                             sendButtonShow={false}
                         />

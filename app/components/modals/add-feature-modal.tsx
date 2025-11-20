@@ -59,6 +59,17 @@ export function AddFeatureRequestModal({ open, onOpenChange, refreshPage }: AddF
         fetchProjects();
     }, []);
 
+    useEffect(() => {
+        if (!projects) return;
+
+        const inkybay = projects.find((p: any) => p.slug === "inkybay");
+
+        reset({
+            projectId: inkybay?.id ? String(inkybay.id) : "",
+        });
+
+    }, [projects]);
+
     const onSubmit = async (data: AddFeatureRequestInput) => {
         try {
             setLoading(true);

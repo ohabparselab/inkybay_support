@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
+import { DatePickerWithClear } from "@/components/ui/date-picker";
 
 interface AddMarketingFunnelModalProps {
     clientId: number;
@@ -150,7 +151,7 @@ export function AddMarketingFunnelModal({
 
         if (funnels.length > 0) {
 
-            const filterFunnels = funnels.filter((f:any)=> f.followUpStep != null);
+            const filterFunnels = funnels.filter((f: any) => f.followUpStep != null);
 
             const formattedFollowUps = filterFunnels.map((f: any, i: number) => ({
                 funnelId: String(f.id) || undefined,
@@ -391,21 +392,11 @@ export function AddMarketingFunnelModal({
                                                         control={control}
                                                         name={`followUps.${index}.followUpDate`}
                                                         render={({ field }) => (
-                                                            <Popover>
-                                                                <PopoverTrigger asChild>
-                                                                    <Button disabled={!f.isNew} variant="outline" className="justify-start w-full">
-                                                                        {field.value ? format(field.value, "PPP") : "Pick date"}
-                                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                                    </Button>
-                                                                </PopoverTrigger>
-                                                                <PopoverContent align="start" className="p-0">
-                                                                    <Calendar
-                                                                        mode="single"
-                                                                        selected={field.value}
-                                                                        onSelect={field.onChange}
-                                                                    />
-                                                                </PopoverContent>
-                                                            </Popover>
+                                                            <DatePickerWithClear
+                                                                value={field.value}
+                                                                onChange={field.onChange}
+                                                                placeholder="Pick a date"
+                                                            />
                                                         )}
                                                     />
                                                     {errors.followUps?.[index]?.followUpDate && (

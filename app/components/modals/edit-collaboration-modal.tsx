@@ -21,6 +21,7 @@ import { AddCollaborationSchema, type AddCollaborationInput } from "~/lib/valida
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, ListRestart, Plus, Save, X } from "lucide-react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { DatePickerWithClear } from "@/components/ui/date-picker";
 import { CenterSpinner } from "@/components/ui/center-spinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect, Suspense } from "react";
@@ -350,25 +351,11 @@ export function EditCollaborationModal({
                                 control={control}
                                 name="appAddedDate"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-start text-left font-normal"
-                                            >
-                                                {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                             {errors.appAddedDate && (
@@ -381,25 +368,11 @@ export function EditCollaborationModal({
                                 control={control}
                                 name="completedDate"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-start text-left font-normal"
-                                            >
-                                                {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                             {errors.completedDate && (
