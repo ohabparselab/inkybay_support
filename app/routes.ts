@@ -76,6 +76,7 @@ export default [
     // review api routes
     route("api/reviews", "./api/reviews/index.ts"),
     route("api/reviews/:reviewId", "./api/reviews/$reviewId.ts"),
+    route("api/reviews/get-reviews-by-client-id", "./api/reviews/get-reviews-by-client-id.ts"),
     // review api routes
     route("api/features", "./api/features/index.ts"),
     route("api/features/:featureId", "./api/features/$featureId.ts"),

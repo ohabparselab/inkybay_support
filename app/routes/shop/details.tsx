@@ -14,8 +14,8 @@ import { Separator } from "~/components/ui/separator";
 import { Spinner } from "~/components/ui/spinner";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
-import { toast } from "sonner";
 import { formatDate } from "date-fns";
+import { toast } from "sonner";
 
 const ViewChatDetailsModal = lazy(() => import("~/components/modals/view-chat-modal").then((m) => ({ default: m.ViewChatDetailsModal })));
 const DeleteConfirmDialog = lazy(() => import("~/components/ui/confirm-dialog").then((m) => ({ default: m.DeleteConfirmDialog })));
@@ -47,6 +47,7 @@ export default function ShopDetailsPage() {
     const clientFetcher = useFetcher<{ status: number; data: any }>();
     const chatsFetcher = useFetcher<{ status: number; data: any }>();
     const tasksFetcher = useFetcher<{ status: number; data: any }>();
+    const reviewsFetcher = useFetcher<{ status: number; data: any }>();
     const marketingFunnelsFetcher = useFetcher<{ status: number; data: any }>();
     const meetingsFetcher = useFetcher<{ status: number; data: any }>();
 
@@ -133,8 +134,12 @@ export default function ShopDetailsPage() {
             setClientId(client.id);
             const cf = new FormData();
             cf.set("clientId", client.id);
+            const cf2 = new FormData();
+            cf2.set("clientId", client.id);
+            cf2.set("shopUrl", shopUrl);
             chatsFetcher.submit(cf, { method: "post", action: "/api/chats/get-chats-by-client-id" });
             tasksFetcher.submit(cf, { method: "post", action: "/api/tasks/get-tasks-by-client-id" });
+            reviewsFetcher.submit(cf2, { method: "post", action: "/api/reviews/get-reviews-by-client-id" });
             marketingFunnelsFetcher.submit(cf, { method: "post", action: "/api/marketing-funnels/get-marketing-funnels-by-client-id" });
         }
     }, [clientFetcher.state, clientFetcher.data]);
@@ -160,6 +165,10 @@ export default function ShopDetailsPage() {
     const loadingMeetings = meetingsFetcher.state !== "idle";
     const meetings = meetingsFetcher.data?.data || [];
 
+    const loadingReviews = reviewsFetcher.state !== "idle";
+    const reviews = reviewsFetcher.data?.data || [];
+    const hasReview = reviews.length > 0 ? "Yes" : 'No';
+    
     const refreshPage = () => {
         if (!shopUrl || !clientId) return;
 
@@ -334,7 +343,7 @@ export default function ShopDetailsPage() {
                                 ) : (
                                     <>
                                         <h2 className="text-lg font-semibold mb-3">Inkybay Details</h2>
-                                        <div className="grid grid-cols-2 gap-y-1 text-sm">
+                                        <div className="grid grid-cols-3 gap-y-1 text-sm">
                                             <p>
                                                 <span className="font-bold">Version:</span> {inkybay.version ? inkybay.version : "N/A"}
                                             </p>
@@ -364,6 +373,16 @@ export default function ShopDetailsPage() {
                                             <p>
                                                 <span className="font-bold">Free trial:</span>{" "}
                                                 {inkybay.trial_days > 21 ? "No" : "Yes" }
+                                            </p>
+                                            <p>
+                                                <span className="font-bold">Review Status:</span>{" "}
+                                                {
+                                                    loadingReviews ? (
+                                                        <Spinner/>
+                                                    ) : (
+                                                        hasReview
+                                                    )
+                                                }
                                             </p>
                                         </div>
                                     </>
