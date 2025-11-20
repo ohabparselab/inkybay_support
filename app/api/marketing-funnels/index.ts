@@ -38,25 +38,30 @@ const createMarketingFunnel = async (request: Request) => {
         const value = await request.json();
 
         if (!value.clientId) {
-            return Response.json({ success: false, message: "Client ID not found." }, { status: 400 });
+            return Response.json(
+                { success: false, message: "Client ID not found." },
+                { status: 400 }
+            );
         }
 
-        if (Array.isArray(value.followUps) && value.followUps.length > 0) {
-            // Helper to convert '5th', '6th', etc. to numbers for sorting
+        const hasFollowUps = Array.isArray(value.followUps) && value.followUps.length > 0;
+
+        if (hasFollowUps) {
             const stepToNumber = (step: string) => parseInt(step, 10);
 
-            // Sort follow-ups by numeric step (ascending)
             const sortedFollowUps = value.followUps.sort(
-                (a: any, b: any) => stepToNumber(a.followUpStep) - stepToNumber(b.followUpStep)
+                (a: any, b: any) =>
+                    stepToNumber(a.followUpStep) - stepToNumber(b.followUpStep)
             );
 
-            // Find the last follow-up (latest phase)
             const lastIndex = sortedFollowUps.length - 1;
 
             for (const [index, followUp] of sortedFollowUps.entries()) {
-                const funnelId = Number(followUp.funnelId) || 0;
-
-                const funnelParams:any = {
+                let funnelId = Number(value.funnelId) || 0;
+                if(followUp?.funnelId){
+                    funnelId = Number(followUp.funnelId)
+                }
+                const funnelParams: any = {
                     clientId: value.clientId,
                     projectId: Number(value.projectId),
                     typeOfProducts: value.typeOfProducts,
@@ -76,10 +81,33 @@ const createMarketingFunnel = async (request: Request) => {
                     create: funnelParams,
                 });
             }
+        } else {
+
+            let funnelId = Number(value.funnelId) || 0;
+            const funnelParams = {
+                clientId: value.clientId,
+                projectId: Number(value.projectId),
+                typeOfProducts: value.typeOfProducts,
+                customizationType: value.customizationType,
+                followUpStep: null,
+                followUpDate: null,
+                installPhase: value.installPhase || null,
+                otherAppsInstalled: value.otherAppsInstalled || null,
+                initialFeedback: value.initialFeedback || null,
+                clientSuccessStatus: value.clientSuccessStatus || "no",
+                currentPhase: true,
+            }
+
+            await prisma.marketingFunnel.upsert({
+                where: { id: funnelId, clientId: value.clientId },
+                update: funnelParams,
+                create: funnelParams,
+            });
         }
 
-
-        // Save emails (check duplicates)
+        // -----------------------------------------
+        // SAVE EMAILS
+        // -----------------------------------------
         if (Array.isArray(value.emails) && value.emails.length > 0) {
             for (const email of value.emails) {
                 const exists = await prisma.clientEmail.findUnique({
@@ -88,18 +116,24 @@ const createMarketingFunnel = async (request: Request) => {
 
                 if (!exists) {
                     await prisma.clientEmail.create({
-                        data: {
-                            clientId: value.clientId,
-                            email,
-                        },
+                        data: { clientId: value.clientId, email },
                     });
                 }
             }
         }
 
-        return Response.json({ success: true, message: "Marketing Funnel save successfully." });
+        return Response.json({
+            success: true,
+            message: "Marketing Funnel saved successfully.",
+        });
     } catch (error: any) {
-        console.error(" Create Marketing Funnel failed:", error);
-        return Response.json({ success: false, message: error.message || "Internal server error." }, { status: 500 });
+        console.error("Create Marketing Funnel failed:", error);
+        return Response.json(
+            {
+                success: false,
+                message: error.message || "Internal server error.",
+            },
+            { status: 500 }
+        );
     }
 };

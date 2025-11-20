@@ -36,6 +36,50 @@ const updateMarketingFunnel = async (mfId: number, request: Request) => {
 
         // Update main funnel fields
 
+        const hasFollowUps = Array.isArray(value.followUps) && value.followUps.length > 0;
+
+        if (hasFollowUps) {
+            for (const followUp of value.followUps) {
+                const funnelParams = {
+                    clientId: value.clientId,
+                    projectId: Number(value.projectId),
+                    typeOfProducts: value.typeOfProducts,
+                    customizationType: value.customizationType,
+                    followUpStep: followUp.followUpStep,
+                    followUpDate: followUp.followUpDate,
+                    installPhase: followUp.installPhase,
+                    otherAppsInstalled: followUp.otherAppsInstalled,
+                    initialFeedback: followUp.initialFeedback,
+                    clientSuccessStatus: followUp.clientSuccessStatus,
+                }
+
+                await prisma.marketingFunnel.update({
+                    where: { id: mfId },
+                    data: funnelParams,
+                });
+            }
+        } else {
+            
+            const funnelParams = {
+                clientId: value.clientId,
+                projectId: Number(value.projectId),
+                typeOfProducts: value.typeOfProducts,
+                customizationType: value.customizationType,
+                followUpStep: null,
+                followUpDate: null,
+                installPhase: value.installPhase || null,
+                otherAppsInstalled: value.otherAppsInstalled || null,
+                initialFeedback: value.initialFeedback || null,
+                clientSuccessStatus: value.clientSuccessStatus || "no",
+                currentPhase: true,
+            }
+
+            await prisma.marketingFunnel.update({
+                where: { id: mfId },
+                data: funnelParams,
+            });
+        }
+
         if (Array.isArray(value?.followUps) && value?.followUps.length > 0) {
             for (const followUp of value.followUps) {
                 const funnelParams = {

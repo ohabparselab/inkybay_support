@@ -221,6 +221,8 @@ export const addMeetingSchema = z.object({
 
 export const addMarketingFunnelSchema = z.object({
   clientId: z.number().optional(),
+  funnelId: z.number().optional(),
+  installPhase: z.string().optional(),
   emails: z.array(z.string().email("Invalid email")).optional(),
   typeOfProducts: z.string().min(1, "Type of products field is required."),
   customizationType: z.string().optional(),
@@ -241,7 +243,7 @@ export const addMarketingFunnelSchema = z.object({
         otherAppsInstalled: z.string().optional(),
         isNew: z.boolean(),
       })
-    ),
+    ).optional(),
 });
 
 export const addProjectSchema = z.object({

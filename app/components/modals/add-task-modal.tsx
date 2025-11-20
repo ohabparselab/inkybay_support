@@ -137,8 +137,8 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
         fetchUsers();
         fetchStatuses();
         fetchProjects();
-        fetchClientEmails();
         if (clientId) {
+            fetchClientEmails();
             getLatestTask();
         }
     }, []);
@@ -163,7 +163,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
 
         });
 
-    }, [projects]);
+    }, [projects, latestTask]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

@@ -44,6 +44,8 @@ export function AddMarketingFunnelModal({
     const [funnels, setFunnels] = useState<any | null>([]);
     const [projects, setProjects] = useState<any>([]);
     const [loadingProjects, setLoadingProjects] = useState(false);
+    const [clientEmails, setClientEmails] = useState<any>([]);
+
 
     const currentInstallPhase = isAppInstall ? "install" : "uninstall";
     const {
@@ -83,9 +85,21 @@ export function AddMarketingFunnelModal({
             setLoadingProjects(false);
         }
     }
+    const fetchClientEmails = async () => {
+        try {
+            const res = await fetch(`/api/clients/emails/${clientId}`);
+            const data = await res.json();
+            setClientEmails(data.clientEmails);
+        } catch (err) {
+            console.error("Failed to fetch client emails:", err);
+        }
+    }
 
     useEffect(() => {
         fetchProjects();
+        if (clientId) {
+            fetchClientEmails();
+        }
     }, []);
 
     // 🔹 Fetch funnels by clientId
@@ -115,16 +129,30 @@ export function AddMarketingFunnelModal({
         return `${step}${suffixes[remainder] || "th"}`;
     };
 
-    const updateFollowUpSteps = (updatedFollowUps: any[]) => {
-        return updatedFollowUps.map((fu, i) => ({
-            ...fu,
-            followUpStep: `${i + 1}${['st', 'nd', 'rd'][((i + 1) % 10) - 1] || 'th'}`, // 1st, 2nd, 3rd, etc.
-        }));
-    };
-
     useEffect(() => {
+        const inkybay = projects.find((p: any) => p.slug === "inkybay");
+        let presetData: any = {
+            projectId: inkybay?.id ? String(inkybay.id) : "",
+            emails: clientEmails?.map((e: any) => e.email) || [],
+            installPhase: currentInstallPhase,
+        }
+
+        if (funnels.length == 1 && funnels[0]?.followUpStep == null) {
+            presetData = {
+                ...presetData,
+                clientId,
+                typeOfProducts: funnels[0]?.typeOfProducts,
+                customizationType: funnels[0]?.customizationType,
+                funnelId: funnels[0].id,
+                followUps: [],
+            };
+        }
+
         if (funnels.length > 0) {
-            const formattedFollowUps = funnels.map((f: any, i: number) => ({
+
+            const filterFunnels = funnels.filter((f:any)=> f.followUpStep != null);
+
+            const formattedFollowUps = filterFunnels.map((f: any, i: number) => ({
                 funnelId: String(f.id) || undefined,
                 installPhase: f.installPhase || currentInstallPhase,
                 followUpStep: f.followUpStep,
@@ -135,13 +163,13 @@ export function AddMarketingFunnelModal({
                 isNew: false
             }));
 
-            reset({
+            presetData = {
+                ...presetData,
                 clientId,
                 typeOfProducts: funnels[0].typeOfProducts,
                 customizationType: funnels[0].customizationType,
-                emails: funnels[0].client?.clientEmail?.map((e: any) => e.email) || [],
-                followUps: formattedFollowUps,
-            });
+                followUps: formattedFollowUps || [],
+            };
 
             setFunnel({
                 client: {
@@ -150,7 +178,10 @@ export function AddMarketingFunnelModal({
                 },
             });
         }
-    }, [funnels, reset]);
+
+        reset(presetData);
+
+    }, [funnels, projects, reset]);
 
 
     const onSubmit = async (data: AddMarketingFunnelInput) => {
@@ -174,6 +205,8 @@ export function AddMarketingFunnelModal({
             toast.error("Something went wrong.");
         }
     };
+
+    console.log("========errors====>", errors);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

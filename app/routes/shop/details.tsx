@@ -15,6 +15,7 @@ import { Spinner } from "~/components/ui/spinner";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { toast } from "sonner";
+import { formatDate } from "date-fns";
 
 const ViewChatDetailsModal = lazy(() => import("~/components/modals/view-chat-modal").then((m) => ({ default: m.ViewChatDetailsModal })));
 const DeleteConfirmDialog = lazy(() => import("~/components/ui/confirm-dialog").then((m) => ({ default: m.DeleteConfirmDialog })));
@@ -890,8 +891,6 @@ export default function ShopDetailsPage() {
                                                                 <TableHead>Follow-up Date</TableHead>
                                                                 <TableHead>Type of Products</TableHead>
                                                                 <TableHead>Client Success</TableHead>
-                                                                {/* <TableHead>Customization Type</TableHead>
-                                                                <TableHead>Initial Feedback</TableHead> */}
                                                                 <TableHead>Actions</TableHead>
                                                             </TableRow>
                                                         </TableHeader>
@@ -903,11 +902,9 @@ export default function ShopDetailsPage() {
                                                                         <TableCell>{funnel.client.shopDomain}</TableCell>
                                                                         <TableCell>{funnel.installPhase}</TableCell>
                                                                         <TableCell>{funnel.followUpStep}</TableCell>
-                                                                        <TableCell>{new Date(funnel.followUpDate).toLocaleDateString()}</TableCell>
+                                                                        <TableCell>{funnel.followUpDate ? formatDate(funnel.followUpDate, 'yyyy-MM-dd') : 'N/A'}</TableCell>
                                                                         <TableCell>{funnel.typeOfProducts ?? 'N/A'}</TableCell>
                                                                         <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No'}</TableCell>
-                                                                        {/* <TableCell>{funnel.customizationType == '' ? 'N/A' : funnel.customizationType}</TableCell>
-                                                                        <TableCell>{funnel.initialFeedback == '' ? 'N/A' : funnel.initialFeedback}</TableCell> */}
                                                                         <TableCell>
                                                                             <DropdownMenu>
                                                                                 <DropdownMenuTrigger asChild>

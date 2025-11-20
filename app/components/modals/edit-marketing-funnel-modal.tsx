@@ -72,8 +72,9 @@ export function EditMarketingFunnelModal({ funnel, open, onOpenChange, refreshPa
     }, []);
 
     useEffect(() => {
+
         reset({
-            followUps: [{
+            followUps: funnel.followUpStep == null ? [] : [{
                 installPhase: funnel.installPhase,
                 followUpStep: funnel.followUpStep,
                 followUpDate: funnel.followUpDate ? new Date(funnel.followUpDate) : undefined,
@@ -85,8 +86,9 @@ export function EditMarketingFunnelModal({ funnel, open, onOpenChange, refreshPa
             typeOfProducts: funnel.typeOfProducts,
             customizationType: funnel.customizationType,
             emails: funnel.client?.clientEmail?.map((e: any) => e.email) || [],
-            clientId: funnel.clientId ,
-            projectId: String(funnel.projectId) || ""
+            clientId: funnel.clientId,
+            projectId: String(funnel.projectId) || "",
+            installPhase: funnel.installPhase,
 
         });
     }, [funnel, reset]);
@@ -227,113 +229,120 @@ export function EditMarketingFunnelModal({ funnel, open, onOpenChange, refreshPa
 
                         <div className="border rounded-md p-3">
                             {
-                                followUpFields.map((f: any, index) => (
-                                    <div
-                                        key={f.id}
-                                        // className="grid grid-cols-10 gap-3 items-center mb-3 border-b pb-2 last:border-0 last:pb-0"
-                                        className={`grid grid-cols-10 gap-3 items-center mb-3 border rounded-md p-3 
+
+                                followUpFields.length === 0 ? (
+                                    <div className="flex justify-center items-center bordered py-10">
+                                        No funnels found
+                                    </div>
+                                ) : (
+                                    followUpFields.map((f: any, index) => (
+                                        <div
+                                            key={f.id}
+                                            // className="grid grid-cols-10 gap-3 items-center mb-3 border-b pb-2 last:border-0 last:pb-0"
+                                            className={`grid grid-cols-10 gap-3 items-center mb-3 border rounded-md p-3 
                                                     ${!f.isNew ? "bg-muted/60 pointer-events-none opacity-70" : ""}`}
-                                    >
-                                        {/* Follow Step */}
-                                        <div>
-                                            <Input
-                                                {...register(`followUps.${index}.funnelId`)}
-                                                className="bg-muted dark:bg-muted hidden"
-                                            />
-                                            <Label className="text-sm">Install Phase</Label>
-                                            <Input
-                                                {...register(`followUps.${index}.installPhase`)}
-                                                readOnly className="bg-muted dark:bg-muted"
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label className="text-sm">Follow Step</Label>
-                                            <Input
-                                                {...register(`followUps.${index}.followUpStep`)}
-                                                readOnly
-                                                className="bg-muted dark:bg-muted"
-                                            />
-                                        </div>
-
-                                        {/* Follow-up Date */}
-                                        <div className="col-span-2">
-                                            <Label className="text-sm">Follow-up Date</Label>
-                                            <Controller
-                                                control={control}
-                                                name={`followUps.${index}.followUpDate`}
-                                                render={({ field }) => (
-                                                    <Popover>
-                                                        <PopoverTrigger asChild>
-                                                            <Button disabled={!f.isNew} variant="outline" className="justify-start w-full">
-                                                                {field.value ? format(field.value, "PPP") : "Pick date"}
-                                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                            </Button>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent align="start" className="p-0">
-                                                            <Calendar
-                                                                mode="single"
-                                                                selected={field.value}
-                                                                onSelect={field.onChange}
-                                                            />
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                )}
-                                            />
-                                            {errors.followUps?.[index]?.followUpDate && (
-                                                <p className="text-sm text-red-500">
-                                                    {errors.followUps[index]?.followUpDate?.message as string}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        {/* Client Success */}
-                                        <div className="col-span-2">
-                                            <Label className="text-sm">Client Success</Label>
-                                            <Controller
-                                                control={control}
-                                                name={`followUps.${index}.clientSuccessStatus`}
-                                                render={({ field }) => (
-                                                    <Select disabled={!f.isNew} onValueChange={field.onChange} value={field.value || ""}>
-                                                        <SelectTrigger className="w-full">
-                                                            <SelectValue placeholder="Select status" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="yes">Yes</SelectItem>
-                                                            <SelectItem value="no">No</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
-                                            />
-                                            {errors.followUps?.[index]?.clientSuccessStatus && (
-                                                <p className="text-sm text-red-500">
-                                                    {errors.followUps[index]?.clientSuccessStatus?.message as string}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        {/* Feedback */}
-                                        <div className="col-span-2">
-                                            <Label className="text-sm">Initial Feedback</Label>
-                                            <Input
-                                                disabled={!f.isNew}
-                                                {...register(`followUps.${index}.initialFeedback`)}
-                                                placeholder="Feedback..."
-                                            />
-                                        </div>
-
-                                        {/* Other Apps + Delete */}
-                                        <div className="col-span-2 flex items-center gap-2">
+                                        >
+                                            {/* Follow Step */}
                                             <div>
-                                                <Label className="text-sm">Other App Installed</Label>
                                                 <Input
-                                                    disabled={!f.isNew}
-                                                    {...register(`followUps.${index}.otherAppsInstalled`)}
-                                                    placeholder="Other apps.."
+                                                    {...register(`followUps.${index}.funnelId`)}
+                                                    className="bg-muted dark:bg-muted hidden"
+                                                />
+                                                <Label className="text-sm">Install Phase</Label>
+                                                <Input
+                                                    {...register(`followUps.${index}.installPhase`)}
+                                                    readOnly className="bg-muted dark:bg-muted"
                                                 />
                                             </div>
+                                            <div>
+                                                <Label className="text-sm">Follow Step</Label>
+                                                <Input
+                                                    {...register(`followUps.${index}.followUpStep`)}
+                                                    readOnly
+                                                    className="bg-muted dark:bg-muted"
+                                                />
+                                            </div>
+
+                                            {/* Follow-up Date */}
+                                            <div className="col-span-2">
+                                                <Label className="text-sm">Follow-up Date</Label>
+                                                <Controller
+                                                    control={control}
+                                                    name={`followUps.${index}.followUpDate`}
+                                                    render={({ field }) => (
+                                                        <Popover>
+                                                            <PopoverTrigger asChild>
+                                                                <Button disabled={!f.isNew} variant="outline" className="justify-start w-full">
+                                                                    {field.value ? format(field.value, "PPP") : "Pick date"}
+                                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                                </Button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent align="start" className="p-0">
+                                                                <Calendar
+                                                                    mode="single"
+                                                                    selected={field.value}
+                                                                    onSelect={field.onChange}
+                                                                />
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    )}
+                                                />
+                                                {errors.followUps?.[index]?.followUpDate && (
+                                                    <p className="text-sm text-red-500">
+                                                        {errors.followUps[index]?.followUpDate?.message as string}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            {/* Client Success */}
+                                            <div className="col-span-2">
+                                                <Label className="text-sm">Client Success</Label>
+                                                <Controller
+                                                    control={control}
+                                                    name={`followUps.${index}.clientSuccessStatus`}
+                                                    render={({ field }) => (
+                                                        <Select disabled={!f.isNew} onValueChange={field.onChange} value={field.value || ""}>
+                                                            <SelectTrigger className="w-full">
+                                                                <SelectValue placeholder="Select status" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="yes">Yes</SelectItem>
+                                                                <SelectItem value="no">No</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
+                                                />
+                                                {errors.followUps?.[index]?.clientSuccessStatus && (
+                                                    <p className="text-sm text-red-500">
+                                                        {errors.followUps[index]?.clientSuccessStatus?.message as string}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            {/* Feedback */}
+                                            <div className="col-span-2">
+                                                <Label className="text-sm">Initial Feedback</Label>
+                                                <Input
+                                                    disabled={!f.isNew}
+                                                    {...register(`followUps.${index}.initialFeedback`)}
+                                                    placeholder="Feedback..."
+                                                />
+                                            </div>
+
+                                            {/* Other Apps + Delete */}
+                                            <div className="col-span-2 flex items-center gap-2">
+                                                <div>
+                                                    <Label className="text-sm">Other App Installed</Label>
+                                                    <Input
+                                                        disabled={!f.isNew}
+                                                        {...register(`followUps.${index}.otherAppsInstalled`)}
+                                                        placeholder="Other apps.."
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))
+                                    ))
+                                )
                             }
                         </div>
                     </div>
