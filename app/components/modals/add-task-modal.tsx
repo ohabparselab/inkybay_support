@@ -35,6 +35,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
     const [users, setUsers] = useState<any>([]);
     const [projects, setProjects] = useState<any>([]);
     const [clientEmails, setClientEmails] = useState<any>([]);
+    const [latestTask, setLatestTask] = useState<any>({});
     const [loadingUsers, setLoadingUsers] = useState(false);
 
     const { control, register, watch, setValue, handleSubmit, formState: { errors }, reset } = useForm<AddTaskFormInput>({
@@ -122,11 +123,24 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
         }
     }
 
+    const getLatestTask = async () => {
+        try {
+            const res = await fetch(`/api/tasks/latest-task/${clientId}`);
+            const data = await res.json();
+            setLatestTask(data.task);
+        } catch (err) {
+            console.error("Failed to fetch latest task:", err);
+        }
+    }
+
     useEffect(() => {
         fetchUsers();
         fetchStatuses();
         fetchProjects();
         fetchClientEmails();
+        if (clientId) {
+            getLatestTask();
+        }
     }, []);
 
     useEffect(() => {
@@ -134,8 +148,18 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
 
         const inkybay = projects.find((p: any) => p.slug === "inkybay");
         reset({
+            taskDetails: "",
             projectId: inkybay?.id ? String(inkybay.id) : "",
             emails: clientEmails?.map((e: any) => e.email) || [],
+            storePassword: latestTask?.storePassword || "",
+            storeAccess: latestTask?.storeAccess == 'given' ? 'given' : 'notNecessary',
+            providedBy: "",
+            taskStatus: "",
+            taskAddedDate: undefined,
+            solvedBy: "",
+            notes: "",
+            comments: "",
+            mentions: [],
 
         });
 
@@ -439,6 +463,5 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                 </Suspense>
             )}
         </Dialog>
-
     );
 }

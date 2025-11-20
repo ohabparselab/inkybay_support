@@ -713,7 +713,6 @@ export default function ShopDetailsPage() {
                                                                 <TableHead>ID</TableHead>
                                                                 <TableHead>Shop Name</TableHead>
                                                                 <TableHead>Task Details</TableHead>
-                                                                <TableHead>Client</TableHead>
                                                                 <TableHead>Provided By</TableHead>
                                                                 <TableHead>Solved By</TableHead>
                                                                 <TableHead>Store Access</TableHead>
@@ -729,7 +728,6 @@ export default function ShopDetailsPage() {
                                                                         <TableCell>{idx + 1}</TableCell>
                                                                         <TableCell>{task.client.shopName}</TableCell>
                                                                         <TableCell className="max-w-[20px] truncate justify-center"><HtmlViewerWithIframe content={task.taskDetails || "-"} /></TableCell>
-                                                                        <TableCell>{task.client?.shopName ?? "—"}</TableCell>
                                                                         <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
                                                                         <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
                                                                         <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>

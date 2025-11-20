@@ -61,6 +61,7 @@ export default [
     route("api/tasks", "./api/tasks/index.ts"),
     route("api/tasks/get-tasks-by-client-id", "./api/tasks/get-tasks-by-client-id.ts"),
     route("api/tasks/:taskId", "./api/tasks/$taskId.ts"),
+    route("api/tasks/latest-task/:clientId", "./api/tasks/$clientId.latest-task.ts"),
 
     // meeting routes
     route("api/meetings", "./api/meetings/index.ts"),
