@@ -402,7 +402,6 @@ export default function ShopDetailsPage() {
 
                     {/* Shopify Details */}
                     <ShopDetails shopUrl={shopUrl} />
-                    <Separator />
 
                     {/* Tabs Section */}
                     <section className="border p-3 rounded">
