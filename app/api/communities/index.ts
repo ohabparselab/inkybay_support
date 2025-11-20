@@ -45,7 +45,7 @@ const createCommunity = async (request: Request) => {
             questionUrl: value.questionUrl,
             reply: value.reply || null,
             listedDate: value.listedDate ? new Date(value.listedDate) : null,
-            createdBy: Number(userId),
+            // createdBy: Number(userId),
         };
 
         if (value.addedById) {
@@ -57,7 +57,9 @@ const createCommunity = async (request: Request) => {
         }
         if (value?.projectId) {
             communityData.project = value.projectId ? { connect: { id: Number(value.projectId) } } : undefined;
-
+        }
+        if (userId) {
+            communityData.createdByUser = { connect: { id: Number(userId) } };
         }
 
         // Create Community record
