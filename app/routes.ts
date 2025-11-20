@@ -40,6 +40,8 @@ export default [
         route("activity-logs", "./routes/activity-logs/list.tsx"),
     ]),
     
+    route("/api/clients/emails/:clientId", "./api/clients/$clientId.emails.ts"),
+
     route("reports/marketing-funnel", "./routes/reports/marketing-funnel.tsx"),
     // api routes
     route("api/auth/login", "./api/auth/login.ts"),

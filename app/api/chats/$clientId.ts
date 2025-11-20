@@ -33,7 +33,7 @@ export async function loader({ params }: { params: any }) {
             chat
         });
     } catch (error: any) {
-        console.error("Error fetching tasks:", error);
+        console.error("Error fetching latest client chat:", error);
         return Response.json({ success: false, message: error.message }, { status: 500 });
     }
 }

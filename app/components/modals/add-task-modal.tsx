@@ -7,6 +7,7 @@ import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { CommentInput } from "../comments/CommentInput";
+import { DatePickerWithClear } from "../ui/date-picker";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CenterSpinner } from "../ui/center-spinner";
 import { Calendar } from "@/components/ui/calendar";
@@ -33,6 +34,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
 
     const [users, setUsers] = useState<any>([]);
     const [projects, setProjects] = useState<any>([]);
+    const [clientEmails, setClientEmails] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
 
     const { control, register, watch, setValue, handleSubmit, formState: { errors }, reset } = useForm<AddTaskFormInput>({
@@ -107,7 +109,16 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
             setProjects(data.projects);
         } catch (err) {
             console.error("Failed to fetch projects:", err);
-        } finally {
+        }
+    }
+
+    const fetchClientEmails = async () => {
+        try {
+            const res = await fetch(`/api/clients/emails/${clientId}`);
+            const data = await res.json();
+            setClientEmails(data.clientEmails);
+        } catch (err) {
+            console.error("Failed to fetch client emails:", err);
         }
     }
 
@@ -115,7 +126,20 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
         fetchUsers();
         fetchStatuses();
         fetchProjects();
+        fetchClientEmails();
     }, []);
+
+    useEffect(() => {
+        if (!projects) return;
+
+        const inkybay = projects.find((p: any) => p.slug === "inkybay");
+        reset({
+            projectId: inkybay?.id ? String(inkybay.id) : "",
+            emails: clientEmails?.map((e: any) => e.email) || [],
+
+        });
+
+    }, [projects]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -236,13 +260,6 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                                     placeholder="Enter store password"
                                     className="pr-10"
                                 />
-                                {/* <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                    {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-                                </button> */}
                             </div>
                         </div>
                         <div>
@@ -302,25 +319,11 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                                 control={control}
                                 name="taskAddedDate"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-start text-left font-normal"
-                                            >
-                                                {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>
