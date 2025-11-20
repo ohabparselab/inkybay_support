@@ -28,6 +28,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Spinner } from "../ui/spinner";
+import { DatePickerWithClear } from "../ui/date-picker";
 
 
 interface AddMeetingModalProps {
@@ -44,6 +45,7 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [formSubmitLoading, setFormSubmitLoading] = useState(false);
     const [loadingProjects, setLoadingProjects] = useState(false);
+    const [clientEmails, setClientEmails] = useState<any>([]);
 
     const {
         control,
@@ -95,10 +97,50 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
         }
     }
 
+    const fetchClientEmails = async () => {
+        try {
+            const res = await fetch(`/api/meetings/emails/${storeUrl}`);
+            const data = await res.json();
+            setClientEmails(data.clientEmails);
+        } catch (err) {
+            console.error("Failed to fetch client emails:", err);
+        }
+    }
+
     useEffect(() => {
         fetchUsers();
         fetchProjects();
+        if (storeUrl) {
+            fetchClientEmails();
+        }
     }, []);
+
+    useEffect(() => {
+        if (!projects) return;
+
+        const inkybay = projects.find((p: any) => p.slug === "inkybay");
+
+        let baseData:any = {
+            projectId: inkybay?.id ? String(inkybay.id) : "",
+            agentId: "",
+            emails: [],
+            reviewAsked: false,
+            reviewGiven: false,
+            joiningStatus: false,
+        };
+
+        if (storeUrl) {
+            console.log("======clientEmails===", clientEmails)
+            baseData = {
+                ...baseData,
+                storeUrl: storeUrl,
+                emails: clientEmails?.map((e: any) => e.email)
+            }
+        }
+
+        reset(baseData);
+
+    }, [projects]);
 
     const onSubmit = async (data: AddMeetingInput) => {
         try {
@@ -160,7 +202,6 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                             </>
                         )}
                     </DialogTitle>
-
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-3">
@@ -335,17 +376,11 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                                 control={control}
                                 name="reviewDate"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline" className="w-full justify-start">
-                                                {field.value ? format(field.value, "PPP") : "Pick date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>

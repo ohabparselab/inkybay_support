@@ -67,6 +67,7 @@ export default [
     route("api/meetings", "./api/meetings/index.ts"),
     route("api/meetings/get-meetings-by-shop", "./api/meetings/get-meetings-by-shop.ts"),
     route("api/meetings/:meetingId", "./api/meetings/$meetingId.ts"),
+    route("api/meetings/emails/:storeUrl", "./api/meetings/$storeUrl.emails.ts"),
 
     // marketing funnels routes
     route("api/marketing-funnels", "./api/marketing-funnels/index.ts"),

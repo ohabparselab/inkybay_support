@@ -97,7 +97,7 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                 reviewDate: meeting.review?.reviewDate ? new Date(meeting.review?.reviewDate) : undefined,
                 joiningStatus: meeting.joiningStatus || false,
                 recordedVideo: meeting.recordedVideo || undefined,
-                reviewsInfo: meeting.review.reviewText || "",
+                reviewsInfo: meeting.review?.reviewText || "",
                 meetingNotes: meeting.meetingNotes || "",
                 isExternalMeeting: meeting.isExternalMeeting || false,
                 emails: meeting.emails?.map((e: any) => e.email) || [],
