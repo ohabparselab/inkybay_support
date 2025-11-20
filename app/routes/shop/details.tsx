@@ -1111,7 +1111,7 @@ export default function ShopDetailsPage() {
                                                                                                     setEditMeetingModalOpen(true);
                                                                                                 }}
                                                                                             >
-                                                                                                <PenBox /> Edit Task
+                                                                                                <PenBox /> Edit Meeting
                                                                                             </DropdownMenuItem>
                                                                                         )
                                                                                     }

@@ -120,7 +120,7 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
 
         const inkybay = projects.find((p: any) => p.slug === "inkybay");
 
-        let baseData:any = {
+        let baseData: any = {
             projectId: inkybay?.id ? String(inkybay.id) : "",
             agentId: "",
             emails: [],
@@ -130,7 +130,6 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
         };
 
         if (storeUrl) {
-            console.log("======clientEmails===", clientEmails)
             baseData = {
                 ...baseData,
                 storeUrl: storeUrl,
@@ -266,35 +265,60 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                         </div>
                         <div>
                             <Label className="mb-2">Meeting Date & Time</Label>
+
                             <Controller
                                 control={control}
                                 name="meetingDateTime"
                                 render={({ field }) => {
-                                    const value = field.value ? new Date(field.value) : undefined;
+                                    let value = field.value ? new Date(field.value) : undefined;
+                                    const [open, setOpen] = useState(false);
+
                                     return (
-                                        <Popover>
+                                        <Popover open={open} onOpenChange={setOpen}>
                                             <PopoverTrigger asChild>
-                                                <Button variant="outline" className="w-full justify-start">
-                                                    {value ? format(value, "PPP p") : "Pick date & time"}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
+                                                <div className="relative w-full">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        className="w-full justify-between text-left"
+                                                    >
+                                                        {value ? format(value, "PPP p") : "Pick date & time"}
+                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    </Button>
+
+                                                    {/* CLEAR BUTTON (X) */}
+                                                    {value && (
+                                                        <X
+                                                            className="absolute hover:bg-accent rounded-2xl right-9 top-1/2 -translate-y-1/2 h-4 w-4 cursor-pointer opacity-70 hover:opacity-100"
+                                                            onClick={(e) => {
+                                                                field.onChange(null);
+                                                                e.stopPropagation();
+                                                                setOpen(false);
+                                                            }}
+                                                        />
+                                                    )}
+                                                </div>
                                             </PopoverTrigger>
 
                                             <PopoverContent align="start" className="p-4 w-auto">
+                                                {/* CALENDAR SECTION */}
                                                 <Calendar
                                                     mode="single"
                                                     selected={value}
                                                     onSelect={(date) => {
                                                         if (!date) return;
+
                                                         const current = value ?? new Date();
-                                                        // Preserve existing time when changing date
                                                         date.setHours(current.getHours(), current.getMinutes());
+
                                                         field.onChange(date);
                                                     }}
+                                                    initialFocus
                                                 />
 
-                                                {/* Full hour & minute dropdowns */}
+                                                {/* TIME PICKER */}
                                                 <div className="flex gap-2 mt-4 items-center">
+                                                    {/* HOURS */}
                                                     <select
                                                         className="border rounded px-2 py-1 text-sm"
                                                         value={value ? value.getHours() : ""}
@@ -313,8 +337,9 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                                                         ))}
                                                     </select>
 
-                                                    <span>:</span>
+                                                    <span className="text-gray-500">:</span>
 
+                                                    {/* MINUTES */}
                                                     <select
                                                         className="border rounded px-2 py-1 text-sm"
                                                         value={value ? value.getMinutes() : ""}
@@ -338,7 +363,12 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                                     );
                                 }}
                             />
-                            {errors.meetingDateTime && <p className="text-sm text-red-500">{errors.meetingDateTime.message}</p>}
+
+                            {errors.meetingDateTime && (
+                                <p className="text-sm text-red-500">
+                                    {errors.meetingDateTime.message}
+                                </p>
+                            )}
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

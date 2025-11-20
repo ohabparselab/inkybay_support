@@ -28,6 +28,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Spinner } from "../ui/spinner";
+import { DatePickerWithClear } from "../ui/date-picker";
 
 interface EditMeetingModalProps {
     open: boolean;
@@ -240,31 +241,60 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                         </div>
                         <div>
                             <Label className="mb-2">Meeting Date & Time</Label>
+
                             <Controller
                                 control={control}
                                 name="meetingDateTime"
                                 render={({ field }) => {
-                                    const value = field.value ? new Date(field.value) : undefined;
+                                    let value = field.value ? new Date(field.value) : undefined;
+                                    const [open, setOpen] = useState(false);
+
                                     return (
-                                        <Popover>
+                                        <Popover open={open} onOpenChange={setOpen}>
                                             <PopoverTrigger asChild>
-                                                <Button variant="outline" className="w-full justify-start">
-                                                    {value ? format(value, "PPP p") : "Pick date & time"}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
+                                                <div className="relative w-full">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        className="w-full justify-between text-left"
+                                                    >
+                                                        {value ? format(value, "PPP p") : "Pick date & time"}
+                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    </Button>
+
+                                                    {/* CLEAR BUTTON (X) */}
+                                                    {value && (
+                                                        <X
+                                                            className="absolute hover:bg-accent rounded-2xl right-9 top-1/2 -translate-y-1/2 h-4 w-4 cursor-pointer opacity-70 hover:opacity-100"
+                                                            onClick={(e) => {
+                                                                field.onChange(null);
+                                                                e.stopPropagation();
+                                                                setOpen(false);
+                                                            }}
+                                                        />
+                                                    )}
+                                                </div>
                                             </PopoverTrigger>
+
                                             <PopoverContent align="start" className="p-4 w-auto">
+                                                {/* CALENDAR SECTION */}
                                                 <Calendar
                                                     mode="single"
                                                     selected={value}
                                                     onSelect={(date) => {
                                                         if (!date) return;
+
                                                         const current = value ?? new Date();
                                                         date.setHours(current.getHours(), current.getMinutes());
+
                                                         field.onChange(date);
                                                     }}
+                                                    initialFocus
                                                 />
+
+                                                {/* TIME PICKER */}
                                                 <div className="flex gap-2 mt-4 items-center">
+                                                    {/* HOURS */}
                                                     <select
                                                         className="border rounded px-2 py-1 text-sm"
                                                         value={value ? value.getHours() : ""}
@@ -277,10 +307,15 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                                                     >
                                                         <option value="">HH</option>
                                                         {[...Array(24)].map((_, i) => (
-                                                            <option key={i} value={i}>{i.toString().padStart(2, "0")}</option>
+                                                            <option key={i} value={i}>
+                                                                {i.toString().padStart(2, "0")}
+                                                            </option>
                                                         ))}
                                                     </select>
+
                                                     <span className="text-gray-500">:</span>
+
+                                                    {/* MINUTES */}
                                                     <select
                                                         className="border rounded px-2 py-1 text-sm"
                                                         value={value ? value.getMinutes() : ""}
@@ -293,7 +328,9 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                                                     >
                                                         <option value="">MM</option>
                                                         {[...Array(60)].map((_, i) => (
-                                                            <option key={i} value={i}>{i.toString().padStart(2, "0")}</option>
+                                                            <option key={i} value={i}>
+                                                                {i.toString().padStart(2, "0")}
+                                                            </option>
                                                         ))}
                                                     </select>
                                                 </div>
@@ -302,7 +339,12 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                                     );
                                 }}
                             />
-                            {errors.meetingDateTime && <p className="text-sm text-red-500">{errors.meetingDateTime.message}</p>}
+
+                            {errors.meetingDateTime && (
+                                <p className="text-sm text-red-500">
+                                    {errors.meetingDateTime.message}
+                                </p>
+                            )}
                         </div>
                     </div>
 
@@ -336,17 +378,11 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                                 control={control}
                                 name="reviewDate"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline" className="w-full justify-start">
-                                                {field.value ? format(field.value, "PPP") : "Pick date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>

@@ -21,7 +21,7 @@ export function DatePickerWithClear({ value, onChange, placeholder = "Pick a dat
                     </Button>
                     {value && (
                         <X
-                            className="absolute right-8 top-1/2 -translate-y-1/2 h-4 w-4 cursor-pointer opacity-70 hover:opacity-100"
+                            className="absolute hover:bg-accent rounded-2xl right-8 top-1/2 -translate-y-1/2 h-4 w-4 cursor-pointer opacity-70 hover:opacity-100"
                             onClick={(e) => {
                                 e.stopPropagation(); 
                                 onChange(undefined);
