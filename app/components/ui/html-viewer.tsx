@@ -40,7 +40,6 @@ export function HtmlViewerWithIframe({ content }: HtmlViewerProps) {
               margin: 0;
               padding: 0;
               font-family: inherit;
-              line-height: 1.5;
               color: inherit;
             }
             h1, h2, h3, h4, h5, h6 { margin-top: 1em; margin-bottom: 0.5em; }

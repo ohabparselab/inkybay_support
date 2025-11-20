@@ -5,6 +5,7 @@ import { AlertTriangle, Ellipsis, ExternalLink, Eye, PenBox, Plus, Trash2 } from
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFetcher, useLocation, useRouteLoaderData } from "react-router";
+import { HtmlViewerWithIframe } from "~/components/ui/html-viewer";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { ShopDetails } from "~/components/shop-details";
@@ -727,7 +728,7 @@ export default function ShopDetailsPage() {
                                                                     <TableRow key={task.id}>
                                                                         <TableCell>{idx + 1}</TableCell>
                                                                         <TableCell>{task.client.shopName}</TableCell>
-                                                                        <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell>
+                                                                        <TableCell className="max-w-[20px] truncate justify-center"><HtmlViewerWithIframe content={task.taskDetails || "-"} /></TableCell>
                                                                         <TableCell>{task.client?.shopName ?? "—"}</TableCell>
                                                                         <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
                                                                         <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
