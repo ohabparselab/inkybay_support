@@ -86,7 +86,7 @@ export function ViewTaskDetailsModal({ open, onOpenChange, taskId }: ViewTaskDet
                                         </p>
                                         <p><strong>Solved By:</strong> {task.solvedByUser?.fullName || "N/A"}</p>
                                         <p><strong>Store Password:</strong> {task.storePassword || "N/A"}</p>
-                                        <p><strong>Store Access:</strong> {task.storeAccess || "N/A"}</p>
+                                        <p><strong>Store Access:</strong> {task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</p>
                                     </div>
                                     <div className="space-y-2">
                                         <p>
