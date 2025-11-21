@@ -30,6 +30,7 @@ import { CommentList } from "@/components/comments/CommentList";
 import { Spinner } from "@/components/ui/spinner";
 import { TagsInput } from "@/components/ui/tags";
 import { DatePickerWithClear } from "../ui/date-picker";
+import { localDateToUtcIso } from "~/lib/helper.sever";
 
 interface EditChatModalProps {
     open: boolean;
@@ -165,9 +166,11 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                 value.forEach((v) => appendFormData(`${key}[]`, v));
                 return;
             }
+            
             // Handle Date
             if (value instanceof Date) {
-                formData.append(key, value.toISOString());
+                console.log("==localDateToUtcIso=>>", localDateToUtcIso(value));
+                formData.append(key, localDateToUtcIso(value));
                 return;
             }
             // Handle FileList

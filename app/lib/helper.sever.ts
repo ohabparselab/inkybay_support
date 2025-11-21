@@ -43,7 +43,17 @@ export const charIconGen = (str: string) => {
         .map((n: string) => n[0])
         .join("")
         .toUpperCase() || "?";
-
     return char;
+}
 
+export const localDateToUtcIso = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
+    const utcDate = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+
+    return utcDate.toISOString();
 }
