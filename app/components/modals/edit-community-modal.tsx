@@ -31,6 +31,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { CommentInput } from "../comments/CommentInput";
 import { CommentList } from "../comments/CommentList";
+import { DatePickerWithClear } from "../ui/date-picker";
 
 interface EditCommunityModalProps {
     open: boolean;
@@ -249,25 +250,11 @@ export function EditCommunityModal({
                                 control={control}
                                 name="listedDate"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-start text-left font-normal"
-                                            >
-                                                {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>

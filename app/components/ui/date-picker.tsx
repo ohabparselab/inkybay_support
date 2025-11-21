@@ -16,7 +16,7 @@ export function DatePickerWithClear({ value, onChange, placeholder = "Pick a dat
             <PopoverTrigger asChild>
                 <div className="relative w-full">
                     <Button type="button" variant="outline" className="w-full justify-between text-left font-normal">
-                        {value ? format(value, "yyyy-MM-dd") : placeholder}
+                        {value ? format(value, "PPP") : placeholder}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                     </Button>
                     {value && (
