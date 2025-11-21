@@ -2,6 +2,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, Filter } from "lucide-react";
 import type { DateRange } from "react-day-picker";
+import { toLocalISO } from "~/lib/helper.sever";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
@@ -39,7 +40,7 @@ export function DynamicDateFilter({
         const params = new URLSearchParams(window.location.search)
 
         if (selectedDate) {
-            params.set(singleKey, format(selectedDate, "yyyy-MM-dd"))
+            params.set(singleKey, toLocalISO(selectedDate))
             params.delete(fromKey)
             params.delete(toKey)
         } else {
@@ -56,9 +57,9 @@ export function DynamicDateFilter({
         setRange(updatedRange);
 
         const params = new URLSearchParams(window.location.search)
-        if (updatedRange.from) params.set(fromKey, format(updatedRange.from, "yyyy-MM-dd"))
+        if (updatedRange.from) params.set(fromKey, toLocalISO(updatedRange.from))
         else params.delete(fromKey)
-        if (updatedRange.to) params.set(toKey, format(updatedRange.to, "yyyy-MM-dd"))
+        if (updatedRange.to) params.set(toKey, toLocalISO(updatedRange.to))
         else params.delete(toKey)
 
         params.delete(singleKey)
