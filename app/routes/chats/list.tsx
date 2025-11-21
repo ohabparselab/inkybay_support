@@ -83,24 +83,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
 
     if (date) {
-        console.log("====date===>", date)
         const d = new Date(date);
-        d.toISOString();
-        console.log("====d.toISOString()====>", d)
-
-        const start = new Date(
-            d.getFullYear(),
-            d.getMonth(),
-            d.getDate(),
+        const start = new Date(Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth(),
+            d.getUTCDate(),
             0, 0, 0, 0
-        );
-
-        const end = new Date(
-            d.getFullYear(),
-            d.getMonth(),
-            d.getDate(),
+        ));
+        const end = new Date(Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth(),
+            d.getUTCDate(),
             23, 59, 59, 999
-        );
+        ));
 
         where.chatDate = {
             gte: start,
@@ -125,7 +120,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             lt: end,
         };
     }
-    
+
     console.log(where)
 
     const [chats, total, tags] = await Promise.all([

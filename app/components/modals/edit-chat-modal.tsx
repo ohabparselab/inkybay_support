@@ -169,8 +169,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
             
             // Handle Date
             if (value instanceof Date) {
-                console.log("==localDateToUtcIso=>>", localDateToUtcIso(value));
-                formData.append(key, localDateToUtcIso(value));
+                formData.append(key, value.toISOString());
                 return;
             }
             // Handle FileList
