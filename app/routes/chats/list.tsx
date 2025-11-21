@@ -83,47 +83,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
 
     if (date) {
-        console.log("date======>>", date)
-        const d = new Date(date);
-        console.log("d======>>", d)
+    const d = new Date(date);
 
-        const start = new Date(
-            d.getFullYear(),
-            d.getMonth(),
-            d.getDate(),
-            0, 0, 0, 0
-        );
+    const start = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0));
+    const end   = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999));
 
-        const end = new Date(
-            d.getFullYear(),
-            d.getMonth(),
-            d.getDate(),
-            23, 59, 59, 999
-        );
+    where.chatDate = { gte: start, lt: end };
+} else if (startDate && endDate) {
+    const s = new Date(startDate);
+    const e = new Date(endDate);
 
-        where.chatDate = {
-            gte: start,
-            lt: end,
-        };
-    } else if (startDate && endDate) {
-        const s = new Date(startDate);
-        const e = new Date(endDate);
+    const start = new Date(Date.UTC(s.getFullYear(), s.getMonth(), s.getDate(), 0, 0, 0, 0));
+    const end   = new Date(Date.UTC(e.getFullYear(), e.getMonth(), e.getDate(), 23, 59, 59, 999));
 
-        const start = new Date(
-            s.getFullYear(), s.getMonth(), s.getDate(),
-            0, 0, 0, 0
-        );
-
-        const end = new Date(
-            e.getFullYear(), e.getMonth(), e.getDate(),
-            23, 59, 59, 999
-        );
-
-        where.chatDate = {
-            gte: start,
-            lt: end,
-        };
-    }
+    where.chatDate = { gte: start, lt: end };
+}
     console.log(where)
 
     const [chats, total, tags] = await Promise.all([
