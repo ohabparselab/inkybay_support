@@ -211,7 +211,6 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
         }
     };
 
-    console.log("testing", errors)
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

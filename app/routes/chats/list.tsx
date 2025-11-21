@@ -83,21 +83,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
 
     if (date) {
-        const d = new Date(date);
+        const d = new Date(date); // ISO "2025-11-20"
 
-        const start = new Date(
-            d.getFullYear(),
-            d.getMonth(),
-            d.getDate(),
+        const start = new Date(Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth(),
+            d.getUTCDate(),
             0, 0, 0, 0
-        );
+        ));
 
-        const end = new Date(
-            d.getFullYear(),
-            d.getMonth(),
-            d.getDate(),
+        const end = new Date(Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth(),
+            d.getUTCDate(),
             23, 59, 59, 999
-        );
+        ));
 
         where.chatDate = {
             gte: start,
@@ -107,15 +107,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
         const s = new Date(startDate);
         const e = new Date(endDate);
 
-        const start = new Date(
-            s.getFullYear(), s.getMonth(), s.getDate(),
+        const start = new Date(Date.UTC(
+            s.getUTCFullYear(),
+            s.getUTCMonth(),
+            s.getUTCDate(),
             0, 0, 0, 0
-        );
+        ));
 
-        const end = new Date(
-            e.getFullYear(), e.getMonth(), e.getDate(),
+        const end = new Date(Date.UTC(
+            e.getUTCFullYear(),
+            e.getUTCMonth(),
+            e.getUTCDate(),
             23, 59, 59, 999
-        );
+        ));
 
         where.chatDate = {
             gte: start,
