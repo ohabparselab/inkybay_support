@@ -83,21 +83,23 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
 
     if (date) {
-        const d = new Date(date); // ISO "2025-11-20"
+        console.log("date======>>", date)
+        const d = new Date(date);
+        console.log("d======>>", d)
 
-        const start = new Date(Date.UTC(
-            d.getUTCFullYear(),
-            d.getUTCMonth(),
-            d.getUTCDate(),
+        const start = new Date(
+            d.getFullYear(),
+            d.getMonth(),
+            d.getDate(),
             0, 0, 0, 0
-        ));
+        );
 
-        const end = new Date(Date.UTC(
-            d.getUTCFullYear(),
-            d.getUTCMonth(),
-            d.getUTCDate(),
+        const end = new Date(
+            d.getFullYear(),
+            d.getMonth(),
+            d.getDate(),
             23, 59, 59, 999
-        ));
+        );
 
         where.chatDate = {
             gte: start,
@@ -107,25 +109,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
         const s = new Date(startDate);
         const e = new Date(endDate);
 
-        const start = new Date(Date.UTC(
-            s.getUTCFullYear(),
-            s.getUTCMonth(),
-            s.getUTCDate(),
+        const start = new Date(
+            s.getFullYear(), s.getMonth(), s.getDate(),
             0, 0, 0, 0
-        ));
+        );
 
-        const end = new Date(Date.UTC(
-            e.getUTCFullYear(),
-            e.getUTCMonth(),
-            e.getUTCDate(),
+        const end = new Date(
+            e.getFullYear(), e.getMonth(), e.getDate(),
             23, 59, 59, 999
-        ));
+        );
 
         where.chatDate = {
             gte: start,
             lt: end,
         };
     }
+    console.log(where)
 
     const [chats, total, tags] = await Promise.all([
         prisma.chat.findMany({
