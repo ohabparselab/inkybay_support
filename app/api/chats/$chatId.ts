@@ -79,6 +79,7 @@ const updateChat = async (chatId: number, request: Request) => {
             updatedAt: new Date(),
         };
 
+        console.log(chatData)
         const handleBy = formData.get("handleBy") ? Number(formData.get("handleBy")) : null;
         const clientId = formData.get("clientId") ? Number(formData.get("clientId")) : null;
         const projectId = formData.get("projectId") ? Number(formData.get("projectId")) : null;
