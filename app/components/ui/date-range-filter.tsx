@@ -115,7 +115,14 @@ export function DateAndDateRangeFilter({ meta, navigateWithLoading }: DateFilter
                                         {date ? format(date, "PPP") : "Pick a date"}
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent align="start" className="p-0">
+                                <PopoverContent
+                                    side="bottom"
+                                    align="start"
+                                    sideOffset={6}
+                                    avoidCollisions={true}
+                                    collisionPadding={10}
+                                    className="p-0 max-h-[50vh] overflow-y-auto"
+                                >
                                     <Calendar
                                         mode="single"
                                         selected={date}
@@ -144,7 +151,14 @@ export function DateAndDateRangeFilter({ meta, navigateWithLoading }: DateFilter
                                             {range?.from ? format(range.from, "LLL dd, y") : "From"}
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent align="start" className="p-0">
+                                    <PopoverContent
+                                        side="bottom"
+                                        align="start"
+                                        sideOffset={6}
+                                        avoidCollisions={true}
+                                        collisionPadding={10}
+                                        className="p-0 max-h-[80vh] overflow-y-auto"
+                                    >
                                         <Calendar
                                             mode="single"
                                             selected={range?.from}
@@ -170,7 +184,14 @@ export function DateAndDateRangeFilter({ meta, navigateWithLoading }: DateFilter
                                             {range?.to ? format(range.to, "LLL dd, y") : "To"}
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent align="start" className="p-0">
+                                    <PopoverContent
+                                        side="bottom"
+                                        align="start"
+                                        sideOffset={6}
+                                        avoidCollisions={true}
+                                        collisionPadding={10}
+                                        className="p-0 max-h-[80vh] overflow-y-auto"
+                                    >
                                         <Calendar
                                             mode="single"
                                             selected={range?.to}

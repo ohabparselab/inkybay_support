@@ -1,16 +1,16 @@
-import { useState } from "react"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { CalendarIcon, Filter } from "lucide-react"
-import type { DateRange } from "react-day-picker"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon, Filter } from "lucide-react";
+import type { DateRange } from "react-day-picker";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface DynamicDateFilterProps {
-    label: string // 👈 e.g. "Created At", "Follow-up Date"
-    paramKey: string // 👈 base param name like "createdAt" or "followUpDate"
+    label: string
+    paramKey: string
     meta: Record<string, any>
     navigateWithLoading: (url: string) => void
 }
@@ -21,6 +21,7 @@ export function DynamicDateFilter({
     meta,
     navigateWithLoading,
 }: DynamicDateFilterProps) {
+    
     const singleKey = `${paramKey}`
     const fromKey = `${paramKey}Start`
     const toKey = `${paramKey}End`
@@ -51,7 +52,7 @@ export function DynamicDateFilter({
 
     const handleRangePart = (key: "from" | "to", value?: Date) => {
         setDate(undefined)
-        const updatedRange:any = { ...range, [key]: value }
+        const updatedRange: any = { ...range, [key]: value }
         setRange(updatedRange);
 
         const params = new URLSearchParams(window.location.search)
@@ -125,7 +126,14 @@ export function DynamicDateFilter({
                                         {date ? format(date, "PPP") : "Pick a date"}
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent align="start" className="p-0">
+                                <PopoverContent
+                                    side="bottom"
+                                    align="start"
+                                    sideOffset={6}
+                                    avoidCollisions={true}
+                                    collisionPadding={10}
+                                    className="p-0 max-h-[50vh] overflow-y-auto"
+                                >
                                     <Calendar
                                         mode="single"
                                         selected={date}
@@ -154,7 +162,14 @@ export function DynamicDateFilter({
                                             {range?.from ? format(range.from, "LLL dd, y") : "From"}
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent align="start" className="p-0">
+                                    <PopoverContent
+                                        side="bottom"
+                                        align="start"
+                                        sideOffset={6}
+                                        avoidCollisions={true}
+                                        collisionPadding={10}
+                                        className="p-0 max-h-[80vh] overflow-y-auto"
+                                    >
                                         <Calendar
                                             mode="single"
                                             selected={range?.from}
@@ -180,7 +195,14 @@ export function DynamicDateFilter({
                                             {range?.to ? format(range.to, "LLL dd, y") : "To"}
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent align="start" className="p-0">
+                                    <PopoverContent
+                                        side="bottom"
+                                        align="start"
+                                        sideOffset={6}
+                                        avoidCollisions={true}
+                                        collisionPadding={10}
+                                        className="p-0 max-h-[80vh] overflow-y-auto"
+                                    >
                                         <Calendar
                                             mode="single"
                                             selected={range?.to}
