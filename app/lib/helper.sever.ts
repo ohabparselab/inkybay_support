@@ -57,3 +57,20 @@ export const localDateToUtcIso = (date: Date) => {
 
     return utcDate.toISOString();
 }
+
+export const toLocalISO = (date: Date) => {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const y = date.getFullYear();
+    const m = pad(date.getMonth() + 1);
+    const d = pad(date.getDate());
+    const hh = pad(date.getHours());
+    const mm = pad(date.getMinutes());
+    const ss = pad(date.getSeconds());
+
+    const offset = -date.getTimezoneOffset();
+    const sign = offset >= 0 ? "+" : "-";
+    const oh = pad(Math.floor(Math.abs(offset) / 60));
+    const om = pad(Math.abs(offset) % 60);
+
+    return `${y}-${m}-${d}T${hh}:${mm}:${ss}${sign}${oh}:${om}`;
+}

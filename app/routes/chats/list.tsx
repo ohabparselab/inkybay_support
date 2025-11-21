@@ -105,14 +105,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
         const s = new Date(startDate);
         const e = new Date(endDate);
 
-        const start = new Date(
+        const start = new Date(Date.UTC(
             s.getFullYear(), s.getMonth(), s.getDate(),
-            0, 0, 0, 0
+            0, 0, 0, 0)
         );
 
-        const end = new Date(
+        const end = new Date(Date.UTC(
             e.getFullYear(), e.getMonth(), e.getDate(),
-            23, 59, 59, 999
+            23, 59, 59, 999)
         );
 
         where.chatDate = {

@@ -3,6 +3,7 @@ import { CalendarIcon, Filter, X } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import type { DateRange } from "react-day-picker"
 import { Button } from "@/components/ui/button"
+import { toLocalISO } from "~/lib/helper.sever"
 import { Label } from "@/components/ui/label"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
@@ -28,7 +29,7 @@ export function DateAndDateRangeFilter({ meta, navigateWithLoading }: DateFilter
         setDate(selectedDate)
         const params = new URLSearchParams(window.location.search)
         if (selectedDate) {
-            params.set("date", selectedDate.toISOString())
+            params.set("date", toLocalISO(selectedDate))
             params.delete("startDate")
             params.delete("endDate")
         } else {
