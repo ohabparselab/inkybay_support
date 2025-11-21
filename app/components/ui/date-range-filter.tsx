@@ -28,7 +28,7 @@ export function DateAndDateRangeFilter({ meta, navigateWithLoading }: DateFilter
         setDate(selectedDate)
         const params = new URLSearchParams(window.location.search)
         if (selectedDate) {
-            params.set("date", format(selectedDate, "yyyy-MM-dd"))
+            params.set("date", format(selectedDate, "PPp"))
             params.delete("startDate")
             params.delete("endDate")
         } else {

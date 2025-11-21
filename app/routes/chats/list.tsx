@@ -83,52 +83,49 @@ export async function loader({ request }: LoaderFunctionArgs) {
     };
 
     if (date) {
-        const start = parseLocalDateToUTC(date);
-        const end = new Date(parseLocalDateToUTC(date));
-        end.setUTCHours(23, 59, 59, 999);
+        console.log("====date===>", date)
+        const d = new Date(date);
+        d.toISOString();
+        console.log("====d.toISOString()====>", d)
+
+        const start = new Date(
+            d.getFullYear(),
+            d.getMonth(),
+            d.getDate(),
+            0, 0, 0, 0
+        );
+
+        const end = new Date(
+            d.getFullYear(),
+            d.getMonth(),
+            d.getDate(),
+            23, 59, 59, 999
+        );
 
         where.chatDate = {
             gte: start,
             lt: end,
         };
     } else if (startDate && endDate) {
-        const start = parseLocalDateToUTC(startDate);
-        const end = new Date(parseLocalDateToUTC(endDate));
-        end.setUTCHours(23, 59, 59, 999);
+        const s = new Date(startDate);
+        const e = new Date(endDate);
+
+        const start = new Date(
+            s.getFullYear(), s.getMonth(), s.getDate(),
+            0, 0, 0, 0
+        );
+
+        const end = new Date(
+            e.getFullYear(), e.getMonth(), e.getDate(),
+            23, 59, 59, 999
+        );
 
         where.chatDate = {
             gte: start,
             lt: end,
         };
     }
-
-    function parseLocalDateToUTC(dateString: string) {
-        const [year, month, day] = dateString.split("-").map(Number);
-        const localDate = new Date(year, month - 1, day);
-        return localDate.toISOString(); 
-    }
-
-    const dateStr = url.searchParams.get("date"); // "2025-11-20"
-    const startDateStr = url.searchParams.get("startDate"); // "2025-11-20"
-    const endDateStr = url.searchParams.get("endDate"); // "2025-11-22"
-
-    if (dateStr) {
-        const start = parseLocalDateToUTC(dateStr);
-        const end = new Date(parseLocalDateToUTC(dateStr));
-        end.setUTCHours(23, 59, 59, 999);
-         where.chatDate = {
-            gte: start,
-            lt: end.toISOString(),
-        };
-    }
-
-    if (startDateStr && endDateStr) {
-        const start = parseLocalDateToUTC(startDateStr);
-        const end = new Date(parseLocalDateToUTC(endDateStr));
-        end.setUTCHours(23, 59, 59, 999);
-        console.log({ start, end: end.toISOString() });
-    }
-
+    
     console.log(where)
 
     const [chats, total, tags] = await Promise.all([
