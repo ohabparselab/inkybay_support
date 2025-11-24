@@ -166,7 +166,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                 value.forEach((v) => appendFormData(`${key}[]`, v));
                 return;
             }
-            
+
             // Handle Date
             if (value instanceof Date) {
                 formData.append(key, value.toISOString());
@@ -589,7 +589,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                                 name="chatDate"
                                 render={({ field }) => (
                                     <DatePickerWithClear
-                                        value={field.onChange == undefined ? undefined : field.value}
+                                        value={field.value}
                                         onChange={field.onChange}
                                         placeholder="Pick a date"
                                     />
