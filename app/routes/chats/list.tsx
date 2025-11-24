@@ -121,8 +121,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
         };
     }
 
-    console.log(where)
-
     const [chats, total, tags] = await Promise.all([
         prisma.chat.findMany({
             where,
