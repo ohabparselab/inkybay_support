@@ -503,10 +503,10 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                     </div>
 
                     <DialogFooter className="flex !justify-center w-full mt-6">
-                        <Button variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
+                        <Button  type="button" variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
                             <X /> Cancel
                         </Button>
-                        <Button variant="outline" onClick={() => reset()}>
+                        <Button type="button" variant="outline" onClick={() => reset()}>
                             <ListRestart /> Reset
                         </Button>
                         <Button type="submit">

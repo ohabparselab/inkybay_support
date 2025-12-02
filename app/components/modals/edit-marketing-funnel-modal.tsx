@@ -348,6 +348,7 @@ export function EditMarketingFunnelModal({ funnel, open, onOpenChange, refreshPa
                     </div>
                     <DialogFooter className="flex !justify-center gap-3 mt-6">
                         <Button
+                            type="button"
                             variant="destructive"
                             onClick={() => {
                                 onOpenChange(false);
@@ -356,7 +357,7 @@ export function EditMarketingFunnelModal({ funnel, open, onOpenChange, refreshPa
                         >
                             <X /> Cancel
                         </Button>
-                        <Button variant="outline" onClick={() => reset()}>
+                        <Button type="button" variant="outline" onClick={() => reset()}>
                             <ListRestart /> Reset
                         </Button>
                         <Button type="submit">
