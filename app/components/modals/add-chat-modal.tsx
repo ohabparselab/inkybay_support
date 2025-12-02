@@ -632,16 +632,24 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                     </div>
 
                     <DialogFooter className="!justify-center flex w-full">
-                        <Button onClick={() => {
-                            onOpenChange(false);
-                            reset();
-                        }} variant="destructive">
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                onOpenChange(false);
+                                reset();
+                            }}
+                            variant="destructive"
+                        >
                             <X />
                             Cancel
                         </Button>
-                        <Button onClick={() => {
-                            reset();
-                        }} variant="outline">
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                reset();
+                            }}
+                            variant="outline"
+                        >
                             <ListRestart />
                             Reset
                         </Button>

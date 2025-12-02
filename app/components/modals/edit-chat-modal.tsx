@@ -629,14 +629,14 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                     </div>
 
                     <DialogFooter className="!justify-center flex w-full">
-                        <Button onClick={() => {
+                        <Button type="button" onClick={() => {
                             onOpenChange(false);
                             reset();
                         }} variant="destructive">
                             <X />
                             Cancel
                         </Button>
-                        <Button onClick={() => {
+                        <Button type="button" onClick={() => {
                             reset();
                         }} variant="outline">
                             <ListRestart />
