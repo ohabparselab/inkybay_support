@@ -350,6 +350,16 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
                         >
                             <X /> Cancel
                         </Button>
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                reset();
+                            }}
+                            variant="outline"
+                        >
+                            <ListRestart />
+                            Reset
+                        </Button>
                         <Button type="submit">
                             <Save className="h-4 w-4" /> Save Changes
                         </Button>
