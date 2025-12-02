@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "
 import { AlertTriangle, ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
 import { DateAndDateRangeFilter } from "~/components/ui/date-range-filter";
+import { DynamicSelectFilter } from "~/components/dynamic-select-filter";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { PaginationBar } from "~/components/pagination-bar";
@@ -38,6 +39,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const date = url.searchParams.get("date");
     const startDate = url.searchParams.get("startDate");
     const endDate = url.searchParams.get("endDate");
+    const joiningStatus = url.searchParams.get("joiningStatus");
+    const isExternalMeeting = url.searchParams.get("isExternalMeeting");
+    const reviewAsked = url.searchParams.get("reviewAsked");
+    const reviewStatus = url.searchParams.get("reviewStatus");
 
     const where: any = search
         ? {
@@ -50,26 +55,63 @@ export async function loader({ request }: LoaderFunctionArgs) {
         : {};
 
     if (date) {
-        const start = new Date(date);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(date);
-        end.setHours(23, 59, 59, 999);
+        const d = new Date(date);
+        const start = new Date(Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth(),
+            d.getUTCDate(),
+            0, 0, 0, 0
+        ));
+        const end = new Date(Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth(),
+            d.getUTCDate(),
+            23, 59, 59, 999
+        ));
 
         where.meetingDateTime = {
             gte: start,
             lt: end,
         };
     } else if (startDate && endDate) {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
+        const s = new Date(startDate);
+        const e = new Date(endDate);
 
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
+        const start = new Date(Date.UTC(
+            s.getFullYear(), s.getMonth(), s.getDate(),
+            0, 0, 0, 0)
+        );
+
+        const end = new Date(Date.UTC(
+            e.getFullYear(), e.getMonth(), e.getDate(),
+            23, 59, 59, 999)
+        );
 
         where.meetingDateTime = {
             gte: start,
             lt: end,
+        };
+    }
+
+    if (joiningStatus) {
+        where.joiningStatus = joiningStatus === 'true';
+    }
+
+    if (isExternalMeeting) {
+        where.isExternalMeeting = isExternalMeeting === 'true';
+    }
+
+    if (reviewAsked) {
+        where.review = {
+            ...where.review,
+            reviewAsked: reviewAsked === "true"
+        };
+    }
+
+    if (reviewStatus) {
+        where.review = {
+            ...where.review,
+            reviewStatus: reviewStatus === "true"
         };
     }
 
@@ -99,7 +141,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
             search,
             date,
             startDate,
-            endDate
+            endDate,
+            joiningStatus,
+            isExternalMeeting,
+            reviewAsked,
+            reviewStatus
         },
     };
 }
@@ -217,7 +263,21 @@ export default function MeetingListPage() {
                                 <TableHead>ID</TableHead>
                                 <TableHead>Store URL</TableHead>
                                 <TableHead>Agent</TableHead>
-                                <TableHead>Joining Status</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Joining Status</span>
+                                        <DynamicSelectFilter
+                                            label="Joining Status"
+                                            paramKey="joiningStatus"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: true, name: "Yes" },
+                                                { id: false, name: "No" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
                                 <TableHead>
                                     <div className="flex items-center gap-2">
                                         <span>Meeting Datetime </span>
@@ -227,9 +287,51 @@ export default function MeetingListPage() {
                                         />
                                     </div>
                                 </TableHead>
-                                <TableHead>External?</TableHead>
-                                <TableHead>Review Asked?</TableHead>
-                                <TableHead>Review Given?</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>External?</span>
+                                        <DynamicSelectFilter
+                                            label="External"
+                                            paramKey="isExternalMeeting"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: true, name: "Yes" },
+                                                { id: false, name: "No" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Review Asked?</span>
+                                        <DynamicSelectFilter
+                                            label="Review Asked"
+                                            paramKey="reviewAsked"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: true, name: "Yes" },
+                                                { id: false, name: "No" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Review Given?</span>
+                                        <DynamicSelectFilter
+                                            label="Review Status"
+                                            paramKey="reviewStatus"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: true, name: "Yes" },
+                                                { id: false, name: "No" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -260,7 +362,7 @@ export default function MeetingListPage() {
                                                     <TableCell>
                                                         {meeting.joiningStatus ? 'Yes' : 'No'}
                                                     </TableCell>
-                                                    <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
+                                                    <TableCell>{meeting.meetingDateTime ? new Date(meeting.meetingDateTime).toLocaleString() : '-'}</TableCell>
                                                     <TableCell>{meeting.isExternalMeeting ? "Yes" : "No"}</TableCell>
                                                     <TableCell>{meeting.review?.reviewAsked ? "Yes" : "No"}</TableCell>
                                                     <TableCell>{meeting.review?.reviewStatus ? "Yes" : "No"}</TableCell>
