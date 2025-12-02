@@ -462,7 +462,7 @@ export function EditCollaborationModal({
                             Cancel
                         </Button>
                         <Button
-                            type="button"
+                            type="button" 
                             onClick={() => {
                                 reset();
                             }}
