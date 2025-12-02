@@ -523,7 +523,7 @@ export default function ShopDetailsPage() {
                                                         <TableHeader>
                                                             <TableRow>
                                                                 <TableHead>ID</TableHead>
-                                                                <TableHead>Shop Name</TableHead>
+                                                                <TableHead>Store URL</TableHead>
                                                                 <TableHead>Client Query</TableHead>
                                                                 <TableHead>Handle By</TableHead>
                                                                 <TableHead>Tags</TableHead>
@@ -730,7 +730,7 @@ export default function ShopDetailsPage() {
                                                         <TableHeader>
                                                             <TableRow>
                                                                 <TableHead>ID</TableHead>
-                                                                <TableHead>Shop Name</TableHead>
+                                                                <TableHead>Store URL</TableHead>
                                                                 <TableHead>Task Details</TableHead>
                                                                 <TableHead>Provided By</TableHead>
                                                                 <TableHead>Solved By</TableHead>
@@ -903,7 +903,7 @@ export default function ShopDetailsPage() {
                                                         <TableHeader>
                                                             <TableRow>
                                                                 <TableHead>ID</TableHead>
-                                                                <TableHead>Shop URL</TableHead>
+                                                                <TableHead>Store URL</TableHead>
                                                                 <TableHead>Install Phase</TableHead>
                                                                 <TableHead>Follow-up Step</TableHead>
                                                                 <TableHead>Follow-up Date</TableHead>
