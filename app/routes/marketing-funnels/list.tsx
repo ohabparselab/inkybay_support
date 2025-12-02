@@ -389,8 +389,8 @@ export default function MarketingFunnelListPage() {
                                                         }}
                                                     >{funnel.client.shopDomain.split('.')[0]}</TableCell>
                                                     <TableCell>{funnel.installPhase}</TableCell>
-                                                    <TableCell><Badge variant="outline">{funnel.followUpStep}</Badge></TableCell>
-                                                    <TableCell>{new Date(funnel.followUpDate).toLocaleDateString()}</TableCell>
+                                                    <TableCell><Badge variant="outline">{funnel.followUpStep ? funnel.followUpStep : 'No'}</Badge></TableCell>
+                                                    <TableCell>{funnel.followUpDate ? new Date(funnel.followUpDate).toLocaleDateString() : 'N/A'}</TableCell>
                                                     <TableCell><Badge variant="outline">{funnel.clientSuccessStatus == 'yes' ? 'Yes' : 'No'}</Badge></TableCell>
 
                                                     <TableCell className="max-w-[20px] truncate">
@@ -422,7 +422,7 @@ export default function MarketingFunnelListPage() {
                                                                 }}>
                                                                     <Eye /> View Details
                                                                 </DropdownMenuItem>
-                                                                {
+                                                                {/* {
                                                                     canCreate && (
                                                                         <DropdownMenuItem
                                                                             onClick={() => {
@@ -434,7 +434,7 @@ export default function MarketingFunnelListPage() {
                                                                             <Plus /> Add Marketing Funnel
                                                                         </DropdownMenuItem>
                                                                     )
-                                                                }
+                                                                } */}
                                                                 {
                                                                     canEdit && (
                                                                         <DropdownMenuItem
