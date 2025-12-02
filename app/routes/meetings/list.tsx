@@ -54,38 +54,23 @@ export async function loader({ request }: LoaderFunctionArgs) {
         }
         : {};
 
-    if (date) {
-        const d = new Date(date);
-        const start = new Date(Date.UTC(
-            d.getUTCFullYear(),
-            d.getUTCMonth(),
-            d.getUTCDate(),
-            0, 0, 0, 0
-        ));
-        const end = new Date(Date.UTC(
-            d.getUTCFullYear(),
-            d.getUTCMonth(),
-            d.getUTCDate(),
-            23, 59, 59, 999
-        ));
+     if (date) {
+        const start = new Date(date);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(date);
+        end.setHours(23, 59, 59, 999);
 
         where.meetingDateTime = {
             gte: start,
             lt: end,
         };
     } else if (startDate && endDate) {
-        const s = new Date(startDate);
-        const e = new Date(endDate);
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
 
-        const start = new Date(Date.UTC(
-            s.getFullYear(), s.getMonth(), s.getDate(),
-            0, 0, 0, 0)
-        );
-
-        const end = new Date(Date.UTC(
-            e.getFullYear(), e.getMonth(), e.getDate(),
-            23, 59, 59, 999)
-        );
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
 
         where.meetingDateTime = {
             gte: start,
