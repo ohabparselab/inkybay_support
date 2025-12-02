@@ -260,7 +260,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                                         />
                                     </div>
                                     <div>
-                                        <Label className="mb-2">Shop URL</Label>
+                                        <Label className="mb-2">Store URL</Label>
                                         <Input {...register("shopUrl")} placeholder="Enter shop url..." />
                                     </div>
                                 </div>

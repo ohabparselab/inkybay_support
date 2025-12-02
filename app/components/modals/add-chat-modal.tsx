@@ -254,7 +254,7 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                                         />
                                     </div>
                                     <div>
-                                        <Label className="mb-2">Shop URL</Label>
+                                        <Label className="mb-2">Store URL</Label>
                                         <Input {...register("shopUrl")} placeholder="Enter shop url..." />
                                     </div>
                                 </div>

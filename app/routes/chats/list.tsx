@@ -304,7 +304,7 @@ export default function ChatsListPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
-                                <TableHead>Shop URL</TableHead>
+                                <TableHead>Store URL</TableHead>
                                 <TableHead>Client Query</TableHead>
                                 <TableHead>Handle By</TableHead>
                                 <TableHead>

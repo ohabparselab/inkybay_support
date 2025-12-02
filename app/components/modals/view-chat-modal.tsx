@@ -141,7 +141,7 @@ export function ViewChatDetailsModal({ open, onOpenChange, chatId }: ViewChatDet
                                     {
                                         chat.externalChat && (
                                             <>
-                                                <p><strong>Shop Url:</strong> {chat?.shopUrl || "N/A"}</p>
+                                                <p><strong>Store Url:</strong> {chat?.shopUrl || "N/A"}</p>
                                                 <p><strong>Shop Name:</strong> {chat?.shopName || "N/A"}</p>
                                                 <p><strong>Shop Email:</strong> {chat?.shopEmail || "N/A"}</p>
                                             </>
