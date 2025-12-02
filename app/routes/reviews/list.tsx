@@ -4,6 +4,7 @@ import { Eye, PenBox, Trash2, Search, AlertTriangle, Plus, Ellipsis } from "luci
 import { useLoaderData, useNavigate, useRouteLoaderData } from "react-router";
 import { DynamicSelectFilter } from "~/components/dynamic-select-filter"
 import { DynamicDateFilter } from "~/components/dynamic-date-filter";
+import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { PaginationBar } from "~/components/pagination-bar";
@@ -11,7 +12,6 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner"
-import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 
 const AddReviewModal = lazy(() =>
     import("~/components/modals/add-review-modal").then((m) => ({ default: m.AddReviewModal }))
@@ -39,6 +39,10 @@ export async function loader({ request }: any) {
     const reviewSubmittedAt = url.searchParams.get("reviewSubmittedAt");
     const reviewSubmittedAtStart = url.searchParams.get("reviewSubmittedAtStart");
     const reviewSubmittedAtEnd = url.searchParams.get("reviewSubmittedAtEnd");
+
+    const lastReviewApproach = url.searchParams.get("lastReviewApproach");
+    const lastReviewApproachStart = url.searchParams.get("lastReviewApproachStart");
+    const lastReviewApproachEnd = url.searchParams.get("lastReviewApproachEnd");
 
     const ratingMood = url.searchParams.get("ratingMood");
 
@@ -97,6 +101,30 @@ export async function loader({ request }: any) {
         };
     }
 
+    if (lastReviewApproach) {
+        const start = new Date(lastReviewApproach);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(lastReviewApproach);
+        end.setHours(23, 59, 59, 999);
+
+        where.reviewSubmittedAt = {
+            gte: start,
+            lt: end,
+        };
+    } else if (lastReviewApproachStart && lastReviewApproachEnd) {
+        const start = new Date(lastReviewApproachStart);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(lastReviewApproachEnd);
+        end.setHours(23, 59, 59, 999);
+
+        where.lastReviewApproach = {
+            gte: start,
+            lt: end,
+        };
+    }
+
     const [reviews, total] = await Promise.all([
         prisma.review.findMany({
             where,
@@ -141,6 +169,9 @@ export async function loader({ request }: any) {
             reviewSubmittedAt,
             reviewSubmittedAtStart,
             reviewSubmittedAtEnd,
+            lastReviewApproach,
+            lastReviewApproachStart,
+            lastReviewApproachEnd,
             ratingMood
         }
     }
@@ -267,6 +298,17 @@ export default function ReviewListPage() {
                                     />
                                 </div>
                             </TableHead>
+                            <TableHead>
+                                <div className="flex items-center gap-2">
+                                    <span>Review Approach Date</span>
+                                    <DynamicDateFilter
+                                        label="Review Approach Date"
+                                        paramKey="lastReviewApproach"
+                                        meta={meta}
+                                        navigateWithLoading={navigateWithLoading}
+                                    />
+                                </div>
+                            </TableHead>
                             <TableHead>Approached By</TableHead>
                             <TableHead>Actions</TableHead>
                         </TableRow>
@@ -300,6 +342,7 @@ export default function ReviewListPage() {
                                                 </TableCell>
                                                 <TableCell>{rev.rating ?? "—"}</TableCell>
                                                 <TableCell>{rev.reviewSubmittedAt ? new Date(rev.reviewSubmittedAt).toLocaleDateString() : "—"}</TableCell>
+                                                <TableCell>{rev.lastReviewApproach ? new Date(rev.lastReviewApproach).toLocaleDateString() : "—"}</TableCell>
                                                 <TableCell>{rev.approachByUser?.fullName ?? "—"}</TableCell>
 
                                                 <TableCell>
