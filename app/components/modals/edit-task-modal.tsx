@@ -8,6 +8,7 @@ import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { CommentList } from "@/components/comments/CommentList";
 import { CenterSpinner } from "@/components/ui/center-spinner";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { DatePickerWithClear } from "../ui/date-picker";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { DatePickerWithClear } from "../ui/date-picker";
 
 const AddStatusModal = lazy(() =>
     import('~/components/modals/add-status-modal').then(module => ({ default: module.AddStatusModal }))

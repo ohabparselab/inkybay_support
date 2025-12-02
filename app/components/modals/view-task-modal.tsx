@@ -74,7 +74,7 @@ export function ViewTaskDetailsModal({ open, onOpenChange, taskId }: ViewTaskDet
                                 <div className="grid grid-cols-2 gap-x-4 text-sm">
 
                                     <div className="space-y-2">
-                                        <p><strong>Stop URL:</strong> {task?.client?.shopDomain.split(".")[0] || "-"}</p>
+                                        <p><strong>Store URL:</strong> {task?.client?.shopDomain.split(".")[0] || "-"}</p>
                                         <p ><strong>Task Details:</strong><HtmlViewerWithIframe content={task.taskDetails || "-"} /></p>
                                         <p><strong>Provided By:</strong> {task.providedByUser?.fullName || "-"}</p>
                                         <p><strong>Status:</strong>
