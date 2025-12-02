@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
 import { CalendarIcon, X } from "lucide-react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 
 interface DatePickerWithClearProps {
@@ -15,13 +15,12 @@ export function DatePickerWithClear({ value, onChange, placeholder = "Pick a dat
     // Local state to prevent RHF from restoring old values
     const [localValue, setLocalValue] = useState<Date | undefined>(value);
 
-    // Update when parent changes (initial load or reset)
     useEffect(() => {
         setLocalValue(value);
     }, [value]);
 
     const handleSelect = (date: Date | undefined) => {
-        setLocalValue(date);
+         setLocalValue(date);
         onChange(date);
     };
 

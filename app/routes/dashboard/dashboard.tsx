@@ -35,6 +35,8 @@ export default function DashboardPage() {
 
     const { summary, pendingTasks, latestTasks, todayMeetings, upcomingMeetings } = data;
 
+
+
     return (
         <>
             <DashboardCardsSection summary={summary} />
@@ -59,7 +61,7 @@ export default function DashboardPage() {
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Shop Name</TableHead>
+                                                <TableHead>Store URL</TableHead>
                                                 <TableHead>Provided By</TableHead>
                                                 <TableHead>Task Added</TableHead>
                                                 <TableHead>Status</TableHead>
@@ -76,9 +78,9 @@ export default function DashboardPage() {
                                                             setViewTaskModalOpen(true);
                                                         }}
                                                     >
-                                                        <TableCell>{task.client.shopName}</TableCell>
+                                                        <TableCell>{task.client.shopDomain}</TableCell>
                                                         <TableCell>{task.providedByUser.fullName}</TableCell>
-                                                        <TableCell>{new Date(task.taskAddedDate).toLocaleString()}</TableCell>
+                                                        <TableCell>{task.taskAddedDate ? new Date(task.taskAddedDate).toLocaleDateString() : '-'}</TableCell>
                                                         <TableCell>
                                                             <Badge variant="outline">
                                                                 {task.status.name}
@@ -102,7 +104,7 @@ export default function DashboardPage() {
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Shop Name</TableHead>
+                                                <TableHead>Store URL</TableHead>
                                                 <TableHead>Provided By</TableHead>
                                                 <TableHead>Task Added</TableHead>
                                                 <TableHead>Status</TableHead>
@@ -119,9 +121,11 @@ export default function DashboardPage() {
                                                             setViewTaskModalOpen(true);
                                                         }}
                                                     >
-                                                        <TableCell>{task.client.shopName}</TableCell>
+                                                        <TableCell>{task.client.shopDomain}</TableCell>
                                                         <TableCell>{task.providedByUser.fullName}</TableCell>
-                                                        <TableCell>{new Date(task.taskAddedDate).toLocaleString()}</TableCell>
+                                                        <TableCell>{task.taskAddedDate
+                                                            ? new Date(task.taskAddedDate).toLocaleDateString()
+                                                            : "—"}</TableCell>
                                                         <TableCell>
                                                             <Badge variant="outline">
                                                                 {task.status.name}
@@ -182,7 +186,7 @@ export default function DashboardPage() {
                                                                 {meeting.joiningStatus ? 'Yes' : 'No'}
                                                             </Badge>
                                                         </TableCell>
-                                                        <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
+                                                        <TableCell>{meeting.meetingDateTime ? new Date(meeting.meetingDateTime).toLocaleString() :  "—"}</TableCell>
                                                     </TableRow>
                                                 ))) : (
                                                 <TableRow>
@@ -217,7 +221,7 @@ export default function DashboardPage() {
                                                                 {meeting.joiningStatus ? 'Yes' : 'No'}
                                                             </Badge>
                                                         </TableCell>
-                                                        <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
+                                                        <TableCell>{meeting.meetingDateTime ? new Date(meeting.meetingDateTime).toLocaleString() : '-'}</TableCell>
                                                     </TableRow>
                                                 ))) : (
                                                 <TableRow>
