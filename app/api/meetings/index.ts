@@ -54,7 +54,7 @@ const createMeeting = async (request: Request) => {
             storeUrl: storeUrl.trim(),
             isExternalMeeting: formData.get("isExternalMeeting") === "true",
             meetingDetails: formData.get("meetingDetails")?.toString() ?? null,
-            meetingDateTime: parseDate(formData.get("meetingDateTime")),
+            meetingDateTime: formData.get("meetingDateTime") ? new Date(formData.get("meetingDateTime") as string) : null,
             joiningStatus: formData.get("joiningStatus") === "true",
             meetingNotes: formData.get("meetingNotes")?.toString() ?? null,
             recordedVideo: formData.get("recordedVideo")?.toString() ?? null,

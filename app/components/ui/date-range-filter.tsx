@@ -49,11 +49,11 @@ export function DateAndDateRangeFilter({ meta, navigateWithLoading }: DateFilter
 
         const params = new URLSearchParams(window.location.search)
         if (updatedRange.from)
-            params.set("startDate", format(updatedRange.from, "yyyy-MM-dd"))
+            params.set("startDate", toLocalISO(updatedRange.from))
         else params.delete("startDate")
 
         if (updatedRange.to)
-            params.set("endDate", format(updatedRange.to, "yyyy-MM-dd"))
+            params.set("endDate", toLocalISO(updatedRange.to))
         else params.delete("endDate")
 
         params.delete("date");

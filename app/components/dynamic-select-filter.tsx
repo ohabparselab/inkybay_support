@@ -16,7 +16,7 @@ interface DynamicFilterProps {
     meta: Record<string, any>;
 
     /** Options list */
-    options: { id: string | number; name: string }[];
+    options: { id: string | number | any; name: string }[];
 
     /** Callback for navigation (preserves query state) */
     navigateWithLoading: (url: string) => void;

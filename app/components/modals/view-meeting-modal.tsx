@@ -20,7 +20,6 @@ interface ViewMeetingDetailsModalProps {
 
 export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMeetingDetailsModalProps) {
 
-    console.log(meeting)
     if (!meeting) return null;
 
     const formatDate = (date?: Date | string | null) =>
