@@ -236,6 +236,7 @@ export function EditCommunityModal({
                                     )}
                                 />
                                 <Button
+                                    type="button"
                                     variant="outline"
                                     onClick={() => setAddStatusModalOpen(true)}
                                 >
