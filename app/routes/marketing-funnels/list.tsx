@@ -296,7 +296,7 @@ export default function MarketingFunnelListPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
-                                <TableHead>Shop URL</TableHead>
+                                <TableHead>Store URL</TableHead>
                                 <TableHead>
                                     <div className="flex items-center gap-2">
                                         <span>Install Phase</span>

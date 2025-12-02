@@ -168,7 +168,7 @@ export default function ShopDetailsPage() {
     const loadingReviews = reviewsFetcher.state !== "idle";
     const reviews = reviewsFetcher.data?.data || [];
     const hasReview = reviews.length > 0 ? "Yes" : 'No';
-    
+
     const refreshPage = () => {
         if (!shopUrl || !clientId) return;
 
@@ -372,13 +372,13 @@ export default function ShopDetailsPage() {
                                             </p>
                                             <p>
                                                 <span className="font-bold">Free trial:</span>{" "}
-                                                {inkybay.trial_days > 21 ? "No" : "Yes" }
+                                                {inkybay.trial_days > 21 ? "No" : "Yes"}
                                             </p>
                                             <p>
                                                 <span className="font-bold">Review Status:</span>{" "}
                                                 {
                                                     loadingReviews ? (
-                                                        <Spinner/>
+                                                        <Spinner />
                                                     ) : (
                                                         hasReview
                                                     )
@@ -538,7 +538,15 @@ export default function ShopDetailsPage() {
                                                                 chats.map((chat: any, index: any) => (
                                                                     <TableRow key={chat.id}>
                                                                         <TableCell>{index + 1}</TableCell>
-                                                                        <TableCell>{chat.client.shopDomain}</TableCell>
+                                                                        <TableCell
+                                                                            className="text-blue-600 hover:underline cursor-pointer"
+                                                                            onClick={() => {
+                                                                                setSelectedChat(chat);
+                                                                                setViewChatModal(true);
+                                                                            }}
+                                                                        >
+                                                                            {chat.client.shopDomain}
+                                                                        </TableCell>
                                                                         <TableCell className="max-w-[20px] truncate">
                                                                             <TooltipProvider>
                                                                                 <Tooltip>
@@ -745,7 +753,13 @@ export default function ShopDetailsPage() {
                                                                 tasks.map((task: any, idx: number) => (
                                                                     <TableRow key={task.id}>
                                                                         <TableCell>{idx + 1}</TableCell>
-                                                                        <TableCell>{task.client.shopName}</TableCell>
+                                                                        <TableCell
+                                                                            className="text-blue-600 hover:underline cursor-pointer"
+                                                                            onClick={() => {
+                                                                                setSelectedTask(task);
+                                                                                setViewTaskModalOpen(true);
+                                                                            }}
+                                                                        >{task.client.shopDomain}</TableCell>
                                                                         <TableCell className="max-w-[20px] truncate justify-center"><HtmlViewerWithIframe content={task.taskDetails || "-"} /></TableCell>
                                                                         <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
                                                                         <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
@@ -917,7 +931,13 @@ export default function ShopDetailsPage() {
                                                                 marketingFunnels?.map((funnel: any, idx: number) => (
                                                                     <TableRow key={funnel.id}>
                                                                         <TableCell>{idx + 1}</TableCell>
-                                                                        <TableCell>{funnel.client.shopDomain}</TableCell>
+                                                                        <TableCell
+                                                                            className="text-blue-600 hover:underline cursor-pointer"
+                                                                            onClick={() => {
+                                                                                setSelectedMarketingFunnel(funnel);
+                                                                                setViewMarketingFunnelModalOpen(true);
+                                                                            }}
+                                                                        >{funnel.client.shopDomain}</TableCell>
                                                                         <TableCell>{funnel.installPhase}</TableCell>
                                                                         <TableCell>{funnel.followUpStep}</TableCell>
                                                                         <TableCell>{funnel.followUpDate ? formatDate(funnel.followUpDate, 'yyyy-MM-dd') : 'N/A'}</TableCell>
@@ -1080,7 +1100,13 @@ export default function ShopDetailsPage() {
                                                                 meetings.map((meeting: any, idx: number) => (
                                                                     <TableRow key={meeting.id}>
                                                                         <TableCell>{idx + 1}</TableCell>
-                                                                        <TableCell className="max-w-xs truncate">{meeting.storeUrl}</TableCell>
+                                                                        <TableCell
+                                                                            className="max-w-xs truncate text-blue-600 hover:underline cursor-pointer"
+                                                                            onClick={() => {
+                                                                                setSelectedMeeting(meeting);
+                                                                                setViewMeetingModalOpen(true);
+                                                                            }}
+                                                                        >{meeting.storeUrl}</TableCell>
                                                                         <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
                                                                         <TableCell>
                                                                             {meeting.joiningStatus ? 'Yes' : 'No'}
