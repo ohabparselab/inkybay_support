@@ -262,7 +262,7 @@ export function AddCommunityModal({ open, onOpenChange, refreshPage }: Community
 
                     {/* Footer */}
                     <DialogFooter className="!justify-center flex gap-2">
-                        <Button variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
+                        <Button type="button" variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
                             <X /> Cancel
                         </Button>
                         <Button type="button" variant="outline" onClick={() => reset()}>

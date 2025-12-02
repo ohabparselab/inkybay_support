@@ -168,10 +168,10 @@ export function AddFeatureRequestModal({ open, onOpenChange, refreshPage }: AddF
 
                     {/* Footer Buttons */}
                     <DialogFooter className="flex !justify-center gap-3 mt-6">
-                        <Button variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
+                        <Button type="button" variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
                             <X /> Cancel
                         </Button>
-                        <Button variant="outline" onClick={() => reset()}>
+                        <Button type="button" variant="outline" onClick={() => reset()}>
                             <ListRestart /> Reset
                         </Button>
                         <Button type="submit" disabled={loading}>
