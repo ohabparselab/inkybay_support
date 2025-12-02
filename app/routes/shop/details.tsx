@@ -1,7 +1,7 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { AlertTriangle, Ellipsis, ExternalLink, Eye, PenBox, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Check, Ellipsis, ExternalLink, Eye, Filter, PenBox, Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFetcher, useLocation, useRouteLoaderData } from "react-router";
@@ -15,6 +15,7 @@ import { Spinner } from "~/components/ui/spinner";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { formatDate } from "date-fns";
+import { cn } from "~/lib/utils";
 import { toast } from "sonner";
 
 const ViewChatDetailsModal = lazy(() => import("~/components/modals/view-chat-modal").then((m) => ({ default: m.ViewChatDetailsModal })));
@@ -244,6 +245,31 @@ export default function ShopDetailsPage() {
             toast.error(err.message || "Failed to delete meeting.");
         }
     }
+
+
+    const [selectedPhaseValue, setSelectedPhaseValue] = useState(null);
+    const options = [
+        {
+            name: 'install'
+        },
+        {
+            name: 'uninstall'
+        }
+    ];
+
+    useEffect(() => {
+        if (clientFetcher.state === "idle" && clientFetcher.data?.data) {
+            const client = clientFetcher.data.data;
+            setClientId(client.id);
+            const cf = new FormData();
+            cf.set("clientId", client.id);
+            if(selectedPhaseValue){
+                cf.set("installPhase", selectedPhaseValue);
+            }
+            marketingFunnelsFetcher.submit(cf, { method: "post", action: "/api/marketing-funnels/get-marketing-funnels-by-client-id" });
+        }
+    }, [clientFetcher.state, clientFetcher.data, selectedPhaseValue]);
+
 
     return (
         <div className="w-full px-6">
@@ -884,7 +910,7 @@ export default function ShopDetailsPage() {
                                             <div className="flex justify-center py-5">
                                                 <Spinner />
                                             </div>
-                                        ) : marketingFunnels.length > 0 ? (
+                                        ) : marketingFunnels ? (
                                             <div className="w-full space-y-4">
                                                 <div className="flex items-center justify-between">
                                                     <div className="relative w-full sm:w-64">
@@ -918,7 +944,54 @@ export default function ShopDetailsPage() {
                                                             <TableRow>
                                                                 <TableHead>ID</TableHead>
                                                                 <TableHead>Store URL</TableHead>
-                                                                <TableHead>Install Phase</TableHead>
+                                                                <TableHead>
+                                                                    
+                                                                    <div className="flex items-center gap-2 relative">
+                                                                        Install Phase
+                                                                        <DropdownMenu>
+                                                                            <DropdownMenuTrigger asChild>
+                                                                                <Button
+                                                                                    variant="ghost"
+                                                                                    size="icon"
+                                                                                    className={cn(
+                                                                                        selectedPhaseValue ? "text-blue-600" : "text-muted-foreground",
+                                                                                        "h-6 w-6"
+                                                                                    )}
+                                                                                    title='Install Phase'
+                                                                                >
+                                                                                    <Filter className="size-4" />
+                                                                                </Button>
+                                                                            </DropdownMenuTrigger>
+
+                                                                            <DropdownMenuContent align="end" className="max-h-64 overflow-auto">
+                                                                                {options.map((opt:any, index) => {
+                                                                                    const isSelected = String(opt.name) === selectedPhaseValue;
+                                                                                    return (
+                                                                                        <DropdownMenuItem
+                                                                                            key={index}
+                                                                                            onClick={() => setSelectedPhaseValue(opt.name)}
+                                                                                            className={cn(isSelected && "bg-blue-100 text-blue-700")}
+                                                                                        >
+                                                                                            <span className="flex capitalize items-center justify-between w-full">
+                                                                                                {opt.name}
+                                                                                                {isSelected && <Check className="ml-2 h-4 w-4" />}
+                                                                                            </span>
+                                                                                        </DropdownMenuItem>
+                                                                                    );
+                                                                                })}
+                                                                            </DropdownMenuContent>
+                                                                        </DropdownMenu>
+
+                                                                        {selectedPhaseValue && (
+                                                                            <p
+                                                                                className="text-xs cursor-pointer text-blue-700 hover:text-destructive"
+                                                                                onClick={() => setSelectedPhaseValue(null)}
+                                                                            >
+                                                                                Clear
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                </TableHead>
                                                                 <TableHead>Follow-up Step</TableHead>
                                                                 <TableHead>Follow-up Date</TableHead>
                                                                 <TableHead>Type of Products</TableHead>
@@ -1006,8 +1079,8 @@ export default function ShopDetailsPage() {
                                                                 ))
                                                             ) : (
                                                                 <TableRow>
-                                                                    <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
-                                                                        No marketing funnels found.
+                                                                    <TableCell colSpan={8} className="text-center py-15 text-muted-foreground">
+                                                                        No marketing funnels data found.
                                                                     </TableCell>
                                                                 </TableRow>
                                                             )}
@@ -1016,7 +1089,7 @@ export default function ShopDetailsPage() {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="text-gray-400 text-center py-15">
+                                            <div className="text-gray-400 text-center py-30">
                                                 <span>
                                                     No marketing funnels available
                                                 </span>
@@ -1200,8 +1273,6 @@ export default function ShopDetailsPage() {
                                             </div>
                                         </div>
                                     )
-
-
 
                                 }
                             </TabsContent>
