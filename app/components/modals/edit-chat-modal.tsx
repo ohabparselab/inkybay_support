@@ -400,16 +400,19 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                             <div>
                                 <Label className="mb-2">Review Rating</Label>
                                 <div className="flex gap-1 mt-2">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star
-                                            key={i}
-                                            className={`h-6 w-6 cursor-pointer ${i < (watch("rating") ?? 0)
-                                                ? "text-yellow-500 fill-yellow-500"
-                                                : "text-gray-300"
-                                                }`}
-                                            onClick={() => setValue("rating", i + 1)}
-                                        />
-                                    ))}
+                                    {[...Array(5)].map((_, i) => {
+                                        const current = watch("rating") ?? 0;
+                                        return (
+                                            <Star
+                                                key={i}
+                                                className={`h-6 w-6 cursor-pointer ${i < current ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
+                                                    }`}
+                                                onClick={() => {
+                                                    setValue("rating", current === i + 1 ? 0 : i + 1);
+                                                }}
+                                            />
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -513,16 +516,19 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                         <div>
                             <Label className="mb-2">Agent Rating</Label>
                             <div className="flex gap-1 mt-2">
-                                {[...Array(10)].map((_, i) => (
-                                    <Star
-                                        key={i}
-                                        className={`h-6 w-6 cursor-pointer ${i < (watch("agentRating") ?? 0)
-                                            ? "text-yellow-500 fill-yellow-500"
-                                            : "text-gray-300"
-                                            }`}
-                                        onClick={() => setValue("agentRating", i + 1)}
-                                    />
-                                ))}
+                                {[...Array(10)].map((_, i) => {
+                                    const current = watch("agentRating") ?? 0;
+                                    return (
+                                        <Star
+                                            key={i}
+                                            className={`h-6 w-6 cursor-pointer ${i < current ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
+                                                }`}
+                                            onClick={() => {
+                                                setValue("agentRating", current === i + 1 ? 0 : i + 1);
+                                            }}
+                                        />
+                                    );
+                                })}
                             </div>
                         </div>
                         <div>

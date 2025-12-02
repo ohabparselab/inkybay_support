@@ -5,7 +5,6 @@ import type { LoaderFunctionArgs } from "react-router";
 import { AppSidebar } from "@/components/app-sidebar"
 import { Outlet, redirect } from "react-router";
 import { getUserId } from "@/session.server";
-import { Suspense } from "react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
     const userId = await getUserId(request);
@@ -32,9 +31,7 @@ export default function DashboardLayout() {
                 <div className="flex flex-1 flex-col">
                     <div className="@container/main flex flex-1 flex-col gap-2">
                         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                            <Suspense fallback={<CenterSpinner />}>
-                                <Outlet />
-                            </Suspense>
+                            <Outlet />
                         </div>
                     </div>
                 </div>
