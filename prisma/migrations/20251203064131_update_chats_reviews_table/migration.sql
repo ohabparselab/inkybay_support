@@ -24,6 +24,7 @@ CREATE TABLE `_ChatHandledByUsers` (
     `A` INTEGER NOT NULL,
     `B` INTEGER NOT NULL,
 
+    PRIMARY KEY (`A`, `B`),
     UNIQUE INDEX `_ChatHandledByUsers_AB_unique`(`A`, `B`),
     INDEX `_ChatHandledByUsers_B_index`(`B`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -33,6 +34,7 @@ CREATE TABLE `_reviewApproachByUsers` (
     `A` INTEGER NOT NULL,
     `B` INTEGER NOT NULL,
 
+    PRIMARY KEY (`A`, `B`),
     UNIQUE INDEX `_reviewApproachByUsers_AB_unique`(`A`, `B`),
     INDEX `_reviewApproachByUsers_B_index`(`B`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
