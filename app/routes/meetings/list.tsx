@@ -286,57 +286,55 @@ export default function MeetingListPage() {
                                 <TableHead>ID</TableHead>
                                 <TableHead>Store URL</TableHead>
                                 <TableHead>
-                                    <TableHead>
-                                        <div className="flex items-center gap-1">
-                                            <span>Agents</span>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6 cursor-pointer">
-                                                        <Filter
-                                                            className={cn(
-                                                                "size-4 transition-colors",
-                                                                meta.selectedUsers.length > 0
-                                                                    ? "text-blue-600"
-                                                                    : "text-muted-foreground"
-                                                            )}
-                                                        />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent
-                                                    align="end"
-                                                    className="max-h-64 overflow-auto w-48"
-                                                >
-                                                    {users.length === 0 ? (
-                                                        <div className="p-2 text-center text-sm text-muted-foreground">
-                                                            No Users found
-                                                        </div>
-                                                    ) : (
-                                                        users.map((t: any) => (
-                                                            <DropdownMenuCheckboxItem
-                                                                key={t.id}
-                                                                checked={meta.selectedUsers.includes(String(t.id))}
-                                                                onCheckedChange={(checked) =>
-                                                                    handleUserToggle(String(t.id), checked)
-                                                                }
-                                                            >
-                                                                {t.fullName}
-                                                            </DropdownMenuCheckboxItem>
-                                                        ))
-                                                    )}
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                            {meta.selectedUsers.length > 0 && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6 text-red-500 hover:text-red-700"
-                                                    onClick={() => clearAgentsFilter()}
-                                                >
-                                                    <X className="h-4 w-4" />
+                                    <div className="flex items-center gap-1">
+                                        <span>Agents</span>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 cursor-pointer">
+                                                    <Filter
+                                                        className={cn(
+                                                            "size-4 transition-colors",
+                                                            meta.selectedUsers.length > 0
+                                                                ? "text-blue-600"
+                                                                : "text-muted-foreground"
+                                                        )}
+                                                    />
                                                 </Button>
-                                            )}
-                                        </div>
-                                    </TableHead>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent
+                                                align="end"
+                                                className="max-h-64 overflow-auto w-48"
+                                            >
+                                                {users.length === 0 ? (
+                                                    <div className="p-2 text-center text-sm text-muted-foreground">
+                                                        No Users found
+                                                    </div>
+                                                ) : (
+                                                    users.map((t: any) => (
+                                                        <DropdownMenuCheckboxItem
+                                                            key={t.id}
+                                                            checked={meta.selectedUsers.includes(String(t.id))}
+                                                            onCheckedChange={(checked) =>
+                                                                handleUserToggle(String(t.id), checked)
+                                                            }
+                                                        >
+                                                            {t.fullName}
+                                                        </DropdownMenuCheckboxItem>
+                                                    ))
+                                                )}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        {meta.selectedUsers.length > 0 && (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-6 w-6 text-red-500 hover:text-red-700"
+                                                onClick={() => clearAgentsFilter()}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        )}
+                                    </div>
                                 </TableHead>
                                 <TableHead>
                                     <div className="flex items-center gap-2">

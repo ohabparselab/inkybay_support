@@ -1,37 +1,17 @@
-import {
-    DropdownMenu,
-    DropdownMenuTrigger,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-} from "~/components/ui/dropdown-menu";
-import {
-    Table,
-    TableHeader,
-    TableRow,
-    TableHead,
-    TableBody,
-    TableCell,
-} from "~/components/ui/table";
-import {
-    Eye,
-    PenBox,
-    Trash2,
-    Search,
-    Plus,
-    Ellipsis,
-    AlertTriangle,
-} from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuCheckboxItem } from "~/components/ui/dropdown-menu";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "~/components/ui/table";
+import { Eye, PenBox, Trash2, Search, Plus, Ellipsis, AlertTriangle, X, Filter, } from "lucide-react";
+import { useLoaderData, useNavigate, useRouteLoaderData } from "react-router";
 import { DynamicDateFilter } from "~/components/dynamic-date-filter";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { PaginationBar } from "~/components/pagination-bar";
-import { useLoaderData, useNavigate, useRouteLoaderData } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
+import { cn } from "~/lib/utils";
 
 const AddFeatureRequestModal = lazy(() =>
     import("~/components/modals/add-feature-modal").then((m) => ({
@@ -62,6 +42,9 @@ export async function loader({ request }: any) {
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
 
+    const userParams = url.searchParams.get("users");
+    const selectedUsers = userParams ? userParams.split(",").map((t) => t.trim()) : [];
+
     const createdAt = url.searchParams.get("createdAt");
     const createdAtStart = url.searchParams.get("createdAtStart");
     const createdAtEnd = url.searchParams.get("createdAtEnd");
@@ -90,7 +73,11 @@ export async function loader({ request }: any) {
         where.createdAt = { gte: start, lt: end };
     }
 
-    const [features, total] = await Promise.all([
+    if (selectedUsers.length > 0) {
+        where.createdBy = { in: selectedUsers.map(Number) };
+    }
+
+    const [features, total, users] = await Promise.all([
         prisma.featureRequest.findMany({
             where,
             skip,
@@ -111,10 +98,12 @@ export async function loader({ request }: any) {
             },
         }),
         prisma.featureRequest.count({ where }),
+        prisma.user.findMany({ where: { role: { slug: 'user' } } })
     ]);
 
     return {
         features,
+        users,
         meta: {
             total,
             page,
@@ -124,6 +113,7 @@ export async function loader({ request }: any) {
             createdAt,
             createdAtStart,
             createdAtEnd,
+            selectedUsers
         },
     };
 }
@@ -134,7 +124,7 @@ export async function loader({ request }: any) {
 export default function FeatureRequestListPage() {
 
     const navigate = useNavigate();
-    const { features, meta } = useLoaderData<typeof loader>();
+    const { features, meta, users } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
     const [loading, setLoading] = useState(true);
     const [addModalOpen, setAddModalOpen] = useState(false);
@@ -202,6 +192,29 @@ export default function FeatureRequestListPage() {
         }
     };
 
+    const handleUserToggle = (id: string, checked: boolean) => {
+        const params = new URLSearchParams(window.location.search);
+        const currentUsers = params.get("users")
+            ? params.get("users")!.split(",").filter(Boolean)
+            : [];
+        let newUsers: string[];
+        if (checked) newUsers = [...new Set([...currentUsers, id])];
+        else newUsers = currentUsers.filter((t) => t !== id);
+
+        if (newUsers.length) params.set("users", newUsers.join(","));
+        else params.delete("users");
+
+        params.set("page", "1");
+        navigateWithLoading(`?${params.toString()}`);
+    };
+
+    const clearFilter = () => {
+        const params = new URLSearchParams(window.location.search);
+        params.delete("users");
+        params.set("page", "1");
+        navigateWithLoading(`?${params.toString()}`);
+    }
+
     return (
         <div className="px-6 space-y-3">
             <div className="flex items-center justify-between">
@@ -235,7 +248,59 @@ export default function FeatureRequestListPage() {
                             <TableHead>#</TableHead>
                             <TableHead>Shop URL</TableHead>
                             <TableHead>Feature Details</TableHead>
-                            <TableHead>Added By</TableHead>
+                            <TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-1">
+                                        <span>Added By</span>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 cursor-pointer">
+                                                    <Filter
+                                                        className={cn(
+                                                            "size-4 transition-colors",
+                                                            meta.selectedUsers.length > 0
+                                                                ? "text-blue-600"
+                                                                : "text-muted-foreground"
+                                                        )}
+                                                    />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent
+                                                align="end"
+                                                className="max-h-64 overflow-auto w-48"
+                                            >
+                                                {users.length === 0 ? (
+                                                    <div className="p-2 text-center text-sm text-muted-foreground">
+                                                        No Users found
+                                                    </div>
+                                                ) : (
+                                                    users.map((t: any) => (
+                                                        <DropdownMenuCheckboxItem
+                                                            key={t.id}
+                                                            checked={meta.selectedUsers.includes(String(t.id))}
+                                                            onCheckedChange={(checked) =>
+                                                                handleUserToggle(String(t.id), checked)
+                                                            }
+                                                        >
+                                                            {t.fullName}
+                                                        </DropdownMenuCheckboxItem>
+                                                    ))
+                                                )}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        {meta.selectedUsers.length > 0 && (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-6 w-6 text-red-500 hover:text-red-700"
+                                                onClick={() => clearFilter()}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        )}
+                                    </div>
+                                </TableHead>
+                            </TableHead>
                             <TableHead>
                                 <div className="flex items-center gap-2">
                                     <span>Added Date</span>
