@@ -27,9 +27,9 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { Spinner } from "../ui/spinner";
-import { DatePickerWithClear } from "../ui/date-picker";
-
+import { DatePickerWithClear } from "@/components/ui/date-picker";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { Spinner } from "@/components/ui/spinner";
 
 interface AddMeetingModalProps {
     open: boolean;
@@ -57,7 +57,7 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
         resolver: zodResolver(addMeetingSchema),
         defaultValues: {
             storeUrl: storeUrl ? storeUrl : "",
-            agentId: "",
+            agents: [],
             projectId: "",
             emails: [],
             reviewAsked: false,
@@ -122,7 +122,7 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
 
         let baseData: any = {
             projectId: inkybay?.id ? String(inkybay.id) : "",
-            agentId: "",
+            agents: [],
             emails: [],
             reviewAsked: false,
             reviewGiven: false,
@@ -180,6 +180,8 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
         }
     };
 
+    console.log(errors)
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
@@ -236,36 +238,26 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                     {/* Agent + Meeting Date */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                         <div>
-                            <Label className="mb-2">Agent (Handled By)</Label>
+                            <Label className="mb-2">Agents (Handled By)</Label>
                             <Controller
                                 control={control}
-                                name="agentId"
+                                name="agents"
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select Agent" />
-                                        </SelectTrigger>
-                                        <SelectContent className="w-full">
-                                            {loadingUsers ? (
-                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
-                                            ) : users.length === 0 ? (
-                                                <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
-                                            ) : (
-                                                users.map((user: any) => (
-                                                    <SelectItem key={user.id} value={String(user.id)}>
-                                                        {user.fullName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                    <MultiSelect
+                                        options={users.map((u: any) => ({
+                                            label: u.fullName,
+                                            value: String(u.id),
+                                        }))}
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        placeholder="Select agents..."
+                                    />
                                 )}
                             />
-                            {errors.agentId && <p className="text-sm text-red-500">{errors.agentId.message}</p>}
+                            {errors.agents && <p className="text-sm text-red-500">{errors.agents.message}</p>}
                         </div>
                         <div>
                             <Label className="mb-2">Meeting Date & Time</Label>
-
                             <Controller
                                 control={control}
                                 name="meetingDateTime"
@@ -503,7 +495,7 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                     </div>
 
                     <DialogFooter className="flex !justify-center w-full mt-6">
-                        <Button  type="button" variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
+                        <Button type="button" variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
                             <X /> Cancel
                         </Button>
                         <Button type="button" variant="outline" onClick={() => reset()}>
