@@ -1,7 +1,7 @@
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "~/components/ui/table";
-import { AlertTriangle, ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
+import { AlertTriangle, Ellipsis, Eye, Filter, PenBox, Plus, Search, Trash2, X } from "lucide-react";
 import { DateAndDateRangeFilter } from "~/components/ui/date-range-filter";
 import { DynamicSelectFilter } from "~/components/dynamic-select-filter";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
@@ -11,6 +11,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
+import { cn } from "~/lib/utils";
 import { toast } from "sonner";
 
 const AddMeetingModal = lazy(() =>
@@ -36,6 +37,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
 
+    const userParams = url.searchParams.get("users");
+    const selectedUsers = userParams ? userParams.split(",").map((t) => t.trim()) : [];
+
     const date = url.searchParams.get("date");
     const startDate = url.searchParams.get("startDate");
     const endDate = url.searchParams.get("endDate");
@@ -54,7 +58,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         }
         : {};
 
-     if (date) {
+    if (date) {
         const start = new Date(date);
         start.setHours(0, 0, 0, 0);
 
@@ -100,7 +104,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
         };
     }
 
-    const [meetings, total] = await Promise.all([
+    if (selectedUsers.length > 0) {
+        where.agents = {
+            some: {
+                id: { in: selectedUsers.map(Number) }
+            }
+        };
+    }
+
+    const [meetings, total, users] = await Promise.all([
         prisma.meeting.findMany({
             where,
             skip,
@@ -114,10 +126,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
             },
         }),
         prisma.meeting.count({ where }),
+        prisma.user.findMany({ where: { role: { slug: 'user' } } })
     ]);
 
     return {
         meetings,
+        users,
         meta: {
             total,
             page,
@@ -130,7 +144,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
             joiningStatus,
             isExternalMeeting,
             reviewAsked,
-            reviewStatus
+            reviewStatus,
+            selectedUsers
         },
     };
 }
@@ -139,7 +154,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function MeetingListPage() {
 
     const [loading, setLoading] = useState(true);
-    const { meetings, meta } = useLoaderData<typeof loader>();
+    const { meetings, meta, users } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
     const [meetingModalOpen, setMeetingModalOpen] = useState(false);
     const [viewMeetingModalOpen, setViewMeetingModalOpen] = useState(false);
@@ -208,6 +223,29 @@ export default function MeetingListPage() {
         if (loading) setLoading(false);
     }, [meetings]);
 
+    const handleUserToggle = (id: string, checked: boolean) => {
+        const params = new URLSearchParams(window.location.search);
+        const currentUsers = params.get("users")
+            ? params.get("users")!.split(",").filter(Boolean)
+            : [];
+        let newUsers: string[];
+        if (checked) newUsers = [...new Set([...currentUsers, id])];
+        else newUsers = currentUsers.filter((t) => t !== id);
+
+        if (newUsers.length) params.set("users", newUsers.join(","));
+        else params.delete("users");
+
+        params.set("page", "1");
+        navigateWithLoading(`?${params.toString()}`);
+    };
+
+    const clearAgentsFilter = () => {
+        const params = new URLSearchParams(window.location.search);
+        params.delete("users");
+        params.set("page", "1");
+        navigateWithLoading(`?${params.toString()}`);
+    }
+
     return (
         <div className="px-6 space-y-2">
             <div className="flex items-center justify-between">
@@ -247,7 +285,59 @@ export default function MeetingListPage() {
                             <TableRow>
                                 <TableHead>ID</TableHead>
                                 <TableHead>Store URL</TableHead>
-                                <TableHead>Agent</TableHead>
+                                <TableHead>
+                                    <TableHead>
+                                        <div className="flex items-center gap-1">
+                                            <span>Agents</span>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6 cursor-pointer">
+                                                        <Filter
+                                                            className={cn(
+                                                                "size-4 transition-colors",
+                                                                meta.selectedUsers.length > 0
+                                                                    ? "text-blue-600"
+                                                                    : "text-muted-foreground"
+                                                            )}
+                                                        />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent
+                                                    align="end"
+                                                    className="max-h-64 overflow-auto w-48"
+                                                >
+                                                    {users.length === 0 ? (
+                                                        <div className="p-2 text-center text-sm text-muted-foreground">
+                                                            No Users found
+                                                        </div>
+                                                    ) : (
+                                                        users.map((t: any) => (
+                                                            <DropdownMenuCheckboxItem
+                                                                key={t.id}
+                                                                checked={meta.selectedUsers.includes(String(t.id))}
+                                                                onCheckedChange={(checked) =>
+                                                                    handleUserToggle(String(t.id), checked)
+                                                                }
+                                                            >
+                                                                {t.fullName}
+                                                            </DropdownMenuCheckboxItem>
+                                                        ))
+                                                    )}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                            {meta.selectedUsers.length > 0 && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-6 w-6 text-red-500 hover:text-red-700"
+                                                    onClick={() => clearAgentsFilter()}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </TableHead>
+                                </TableHead>
                                 <TableHead>
                                     <div className="flex items-center gap-2">
                                         <span>Joining Status</span>

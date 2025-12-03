@@ -128,8 +128,10 @@ export async function loader({ request }: any) {
     }
 
     if (selectedUsers.length > 0) {
-        where.reviewApproachBy = {
-            in: selectedUsers.map(Number)
+        where.reviewApproachByUsers = {
+            some: {
+                id: { in: selectedUsers.map(Number) }
+            }
         };
     }
 
@@ -396,7 +398,6 @@ export default function ReviewListPage() {
                                     )}
                                 </div>
                             </TableHead>
-
                             <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
