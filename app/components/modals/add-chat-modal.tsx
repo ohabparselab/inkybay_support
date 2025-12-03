@@ -30,6 +30,7 @@ import { DatePickerWithClear } from "../ui/date-picker";
 import { CommentInput } from "../comments/CommentInput";
 import { Spinner } from "@/components/ui/spinner";
 import { TagsInput } from "@/components/ui/tags";
+import { MultiSelect } from "../ui/multi-select";
 import { toast } from "sonner";
 
 interface AddChatModalProps {
@@ -61,6 +62,7 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
         defaultValues: {
             clientEmails: [],
             tags: [],
+            reviewApproachByUsers: [],
             reviewAsked: false,
             reviewStatus: false,
             agentRating: 0,
@@ -152,34 +154,28 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
 
         const appendFormData = (key: string, value: any) => {
             if (value === undefined || value === null) return;
-            // Handle arrays
             if (Array.isArray(value)) {
                 value.forEach((v) => appendFormData(`${key}[]`, v));
                 return;
             }
-            // Handle Date
             if (value instanceof Date) {
                 formData.append(key, value.toISOString());
                 return;
             }
-            // Handle FileList
             if (value instanceof FileList) {
                 if (value.length > 0) formData.append(key, value[0]);
                 return;
             }
-            // Handle object (recursive)
             if (typeof value === "object" && !(value instanceof File)) {
                 Object.entries(value).forEach(([subKey, subVal]) =>
                     appendFormData(`${key}[${subKey}]`, subVal)
                 );
                 return;
             }
-            // Handle boolean
             if (typeof value === "boolean") {
                 formData.append(key, value ? "true" : "false");
                 return;
             }
-            // Default primitive (string, number)
             formData.append(key, String(value));
         };
 
@@ -203,8 +199,6 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
             toast.error('Something is wrong, please again.');
         }
     };
-
-    console.log(errors);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -429,30 +423,17 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                                 <Label className="mb-2">Review Approach By</Label>
                                 <Controller
                                     control={control}
-                                    name="reviewApproachBy"
+                                    name="reviewApproachByUsers"
                                     render={({ field }) => (
-                                        <Select
-                                            onValueChange={field.onChange}
-                                            value={field.value}
-                                            disabled={loadingUsers}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={loadingUsers ? "Loading..." : "Select approacher"} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {loadingUsers ? (
-                                                    <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
-                                                ) : users.length === 0 ? (
-                                                    <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
-                                                ) : (
-                                                    users.map((user: any) => (
-                                                        <SelectItem key={user.id} value={String(user.id)}>
-                                                            {user.fullName}
-                                                        </SelectItem>
-                                                    ))
-                                                )}
-                                            </SelectContent>
-                                        </Select>
+                                        <MultiSelect
+                                            options={users.map((u: any) => ({
+                                                label: u.fullName,
+                                                value: String(u.id),
+                                            }))}
+                                            value={field.value || []}
+                                            onChange={field.onChange}
+                                            placeholder="Select approachers..."
+                                        />
                                     )}
                                 />
                             </div>
@@ -551,37 +532,26 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                         <div>
                             <Label className="mb-2">Handled By</Label>
                             <Controller
+                                name="handleByUsers"
                                 control={control}
-                                name="handleBy"
+                                defaultValue={[]}
                                 render={({ field }) => (
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                        disabled={loadingUsers}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder={loadingUsers ? "Loading..." : "Select Agent"} />
-                                        </SelectTrigger>
-                                        <SelectContent className="w-full">
-                                            {loadingUsers ? (
-                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
-                                            ) : users.length === 0 ? (
-                                                <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
-                                            ) : (
-                                                users.map((user: any) => (
-                                                    <SelectItem key={user.id} value={String(user.id)}>
-                                                        {user.fullName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                    <MultiSelect
+                                        options={users.map((u: any) => ({
+                                            label: u.fullName,
+                                            value: String(u.id),
+                                        }))}
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        placeholder="Select agents..."
+                                    />
                                 )}
                             />
-                            {errors.handleBy && (
-                                <p className="text-sm text-red-500">{errors.handleBy.message}</p>
+                            {errors.handleByUsers && (
+                                <p className="text-sm text-red-500">{errors.handleByUsers.message}</p>
                             )}
                         </div>
+
                         <div>
                             <Label className="mb-2">Chat Date</Label>
                             <Controller
