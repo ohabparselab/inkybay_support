@@ -17,7 +17,7 @@
 -- DROP INDEX `reviews_reviewApproachBy_fkey` ON `reviews`;
 
 -- AlterTable
-ALTER TABLE `chats` DROP COLUMN `handleBy`;
+-- ALTER TABLE `chats` DROP COLUMN `handleBy`;
 
 -- CreateTable
 CREATE TABLE `_ChatHandledByUsers` (
