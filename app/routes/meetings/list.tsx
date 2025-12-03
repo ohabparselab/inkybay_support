@@ -107,7 +107,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             take: limit,
             orderBy: { id: "desc" },
             include: {
-                user: { select: { id: true, fullName: true, email: true } },
+                agents: { select: { id: true, fullName: true, email: true } },
                 emails: { select: { email: true } },
                 project: { select: { id: true, name: true } },
                 review: true
@@ -343,7 +343,20 @@ export default function MeetingListPage() {
                                                             setViewMeetingModalOpen(true);
                                                         }}
                                                     >{meeting.storeUrl}</TableCell>
-                                                    <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
+                                                    <TableCell>
+                                                        {meeting.agents && meeting.agents.length > 0 ? (
+                                                            meeting.agents.map((user: any) => (
+                                                                <span
+                                                                    key={user.fullName}
+                                                                    className="bg-blue-100 text-blue-700 ml-0.5 px-2 py-0.5 rounded-full text-xs"
+                                                                >
+                                                                    {user.fullName}
+                                                                </span>
+                                                            ))
+                                                        ) : (
+                                                            <span>N/A</span>
+                                                        )}
+                                                    </TableCell>
                                                     <TableCell>
                                                         {meeting.joiningStatus ? 'Yes' : 'No'}
                                                     </TableCell>

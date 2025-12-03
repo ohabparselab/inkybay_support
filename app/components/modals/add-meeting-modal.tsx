@@ -355,7 +355,6 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                                     );
                                 }}
                             />
-
                             {errors.meetingDateTime && (
                                 <p className="text-sm text-red-500">
                                     {errors.meetingDateTime.message}

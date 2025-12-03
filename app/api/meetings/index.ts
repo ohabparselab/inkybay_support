@@ -41,12 +41,8 @@ const createMeeting = async (request: Request) => {
         const userId = await getUserId(request);
         const formData = await request.formData();
 
-        const agentId = formData.get("agentId") ? Number(formData.get("agentId")) : null;
+        const agents = formData.getAll("agents[]").map((t) => t.toString().trim()).filter(Boolean);
         const projectId = formData.get("projectId") ? Number(formData.get("projectId")) : null;
-
-        if (!agentId) {
-            return Response.json({ success: false, message: "Agent ID not found." }, { status: 400 });
-        }
 
         const storeUrl = formData.get("storeUrl")?.toString() ?? ""
 
@@ -58,6 +54,10 @@ const createMeeting = async (request: Request) => {
             joiningStatus: formData.get("joiningStatus") === "true",
             meetingNotes: formData.get("meetingNotes")?.toString() ?? null,
             recordedVideo: formData.get("recordedVideo")?.toString() ?? null,
+            agents: agents.length ?
+                {
+                    connect: agents.map((id) => ({ id: Number(id) })),
+                } : undefined,
         };
 
         if (projectId) {
@@ -67,12 +67,7 @@ const createMeeting = async (request: Request) => {
         }
 
         const meeting = await prisma.meeting.create({
-            data: {
-                ...meetingData,
-                user: {
-                    connect: { id: agentId },
-                },
-            },
+            data: meetingData,
         });
 
         const reviewData: any = {

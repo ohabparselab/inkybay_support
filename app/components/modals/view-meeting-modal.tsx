@@ -46,7 +46,20 @@ export function ViewMeetingDetailsModal({ open, onOpenChange, meeting }: ViewMee
                             <p><strong>Review Date:</strong> {formatDate(meeting.review?.reviewDate)}</p>
                         </div>
                         <div className="space-y-2">
-                            <p><strong>Agent:</strong> {meeting.user?.fullName || "N/A"}</p>
+                            <p><strong>Agent:</strong> 
+                                {meeting.agents && meeting.agents.length > 0 ? (
+                                    meeting.agents.map((user: any) => (
+                                        <span
+                                            key={user.fullName}
+                                            className="bg-blue-100 text-blue-700 ml-0.5 px-2 py-0.5 rounded-full text-xs"
+                                        >
+                                            {user.fullName}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <span>N/A</span>
+                                )}
+                            </p>
                             <p><strong>External Meeting:</strong> {meeting.isExternalMeeting ? "Yes" : "No"}</p>
                             <p className="break-words">
                                 <strong>Recorded Video Link:</strong>{" "}

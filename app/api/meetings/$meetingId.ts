@@ -1,6 +1,6 @@
+import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server";
 import { prisma } from "~/lib/prisma.server";
 import { getUserId } from "~/session.server";
-import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server";
 
 export async function action({ request, params }: { request: Request; params: any }) {
 
@@ -22,12 +22,8 @@ const updateMeeting = async (meetingId: number, request: Request) => {
         const userId = await getUserId(request);
         const formData = await request.formData();
 
-        const agentId = formData.get("agentId") ? Number(formData.get("agentId")) : null;
+        const agents = formData.getAll("agents[]").map((t) => t.toString().trim()).filter(Boolean);
         const projectId = formData.get("projectId") ? Number(formData.get("projectId")) : null;
-
-        if (!agentId) {
-            return Response.json({ success: false, message: "Agent ID not found." }, { status: 400 });
-        }
 
         // Find existing meeting
         const existingMeeting = await prisma.meeting.findUnique({
@@ -51,21 +47,24 @@ const updateMeeting = async (meetingId: number, request: Request) => {
             recordedVideo: formData.get("recordedVideo")?.toString() ?? null,
         };
 
+         if (agents.length) {
+            meetingData.agents = {
+                set: agents.map((id) => ({ id: Number(id) })),
+            };
+        } else {
+            meetingData.agents = { set: [] };
+        }
+
         // Update meeting
         const updatedMeeting = await prisma.meeting.update({
             where: { id: meetingId },
-            data: {
-                ...meetingData,
-                user: { connect: { id: agentId } },
-            },
+            data: meetingData,
         });
 
         const reviewData: any = {
             reviewAsked: formData.get("reviewAsked") === "true",
             reviewStatus: formData.get("reviewGiven") === "true",
-            reviewDate: formData.get("reviewDate")
-                ? new Date(formData.get("reviewDate") as string)
-                : existingMeeting.reviewDate,
+            reviewDate: formData.get("reviewDate") ? new Date(formData.get("reviewDate") as string) : undefined,
             reviewText: formData.get("reviewsInfo")?.toString() ?? null,
         }
 

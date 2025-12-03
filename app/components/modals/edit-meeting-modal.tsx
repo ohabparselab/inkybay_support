@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { Spinner } from "../ui/spinner";
 import { DatePickerWithClear } from "../ui/date-picker";
+import { MultiSelect } from "../ui/multi-select";
 
 interface EditMeetingModalProps {
     open: boolean;
@@ -54,7 +55,7 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
     } = useForm<AddMeetingInput>({
         resolver: zodResolver(addMeetingSchema),
         defaultValues: {
-            agentId: "",
+            agents: [],
             emails: [],
             reviewAsked: false,
             reviewGiven: false,
@@ -88,7 +89,7 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
     useEffect(() => {
         if (meeting) {
             reset({
-                agentId: meeting.agentId ? String(meeting.agentId) : "",
+                agents: meeting.agents ? meeting.agents?.map((e: any) => String(e.id)) : [],
                 projectId: meeting.projectId ? String(meeting.projectId) : "",
                 storeUrl: meeting.storeUrl || "",
                 meetingDetails: meeting.meetingDetails || "",
@@ -214,30 +215,23 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                     {/* Agent + Meeting Date */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                         <div>
-                            <Label className="mb-2">Agent (Handled By)</Label>
+                            <Label className="mb-2">Agents (Handled By)</Label>
                             <Controller
                                 control={control}
-                                name="agentId"
+                                name="agents"
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select Agent" />
-                                        </SelectTrigger>
-                                        <SelectContent className="w-full">
-                                            {loadingUsers ? (
-                                                <div className="p-2 text-center text-muted-foreground">Loading...</div>
-                                            ) : (
-                                                users.map((user: any) => (
-                                                    <SelectItem key={user.id} value={String(user.id)}>
-                                                        {user.fullName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                    <MultiSelect
+                                        options={users.map((u: any) => ({
+                                            label: u.fullName,
+                                            value: String(u.id),
+                                        }))}
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        placeholder="Select agents..."
+                                    />
                                 )}
                             />
-                            {errors.agentId && <p className="text-sm text-red-500">{errors.agentId.message}</p>}
+                            {errors.agents && <p className="text-sm text-red-500">{errors.agents.message}</p>}
                         </div>
                         <div>
                             <Label className="mb-2">Meeting Date & Time</Label>
