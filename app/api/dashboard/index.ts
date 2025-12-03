@@ -58,7 +58,7 @@ export async function action({ request }: ActionFunctionArgs) {
                 orderBy: { meetingDateTime: "asc" },
                 take: 7,
                 include: {
-                    user: { select: { fullName: true, email: true } },
+                    agents: { select: { fullName: true, email: true } },
                 },
             }),
             prisma.meeting.findMany({
@@ -69,7 +69,7 @@ export async function action({ request }: ActionFunctionArgs) {
                 orderBy: { meetingDateTime: "asc" },
                 take: 7,
                 include: {
-                    user: { select: { fullName: true, email: true } },
+                    agents: { select: { fullName: true, email: true } },
                 },
             }),
             prisma.review.count({

@@ -193,7 +193,7 @@ export default function DashboardPage() {
                                                         }}
                                                     >
                                                         <TableCell className="cursor-pointer hover:underline text-blue-500">{meeting.storeUrl}</TableCell>
-                                                        <TableCell>{meeting.user.fullName}</TableCell>
+                                                        <TableCell>{meeting.agents.map((e:any) => e.fullName).join(', ')}</TableCell>
                                                         <TableCell>
                                                             <Badge variant="outline">
                                                                 {meeting.joiningStatus ? 'Yes' : 'No'}
@@ -235,7 +235,7 @@ export default function DashboardPage() {
                                                         }}
                                                     >
                                                         <TableCell className="cursor-pointer hover:underline text-blue-500">{meeting.storeUrl}</TableCell>
-                                                        <TableCell>{meeting.user.fullName}</TableCell>
+                                                        <TableCell>{meeting.agents.map((e:any) => e.fullName).join(', ')}</TableCell>
                                                         <TableCell>
                                                             <Badge variant="outline">
                                                                 {meeting.joiningStatus ? 'Yes' : 'No'}
