@@ -5,19 +5,19 @@
 
 */
 -- DropForeignKey
--- ALTER TABLE `chats` DROP FOREIGN KEY `chats_handleBy_fkey`;
+ALTER TABLE `chats` DROP FOREIGN KEY `chats_handleBy_fkey`;
 
 -- DropForeignKey
--- ALTER TABLE `reviews` DROP FOREIGN KEY `reviews_reviewApproachBy_fkey`;
+ALTER TABLE `reviews` DROP FOREIGN KEY `reviews_reviewApproachBy_fkey`;
 
 -- DropIndex
--- DROP INDEX `chats_handleBy_fkey` ON `chats`;
+DROP INDEX `chats_handleBy_fkey` ON `chats`;
 
 -- DropIndex
--- DROP INDEX `reviews_reviewApproachBy_fkey` ON `reviews`;
+DROP INDEX `reviews_reviewApproachBy_fkey` ON `reviews`;
 
 -- AlterTable
--- ALTER TABLE `chats` DROP COLUMN `handleBy`;
+ALTER TABLE `chats` DROP COLUMN `handleBy`;
 
 -- CreateTable
 CREATE TABLE `_ChatHandledByUsers` (
