@@ -265,7 +265,7 @@ export const addReviewSchema = z.object({
     rating: z.number().optional(),
     // ratingMood: z.string().optional(),
     reviewText: z.string().min(3, "Review text required"),
-    reviewApproachBy: z.string().optional(),
+    reviewApproachByUsers: z.array(z.string()).optional(),
     lastReviewApproach: z.date().optional(),
     reviewSubmittedAt: z.date().optional(),
 });

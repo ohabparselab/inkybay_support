@@ -1,21 +1,19 @@
-import { CalendarIcon, Save, X, ListRestart, Star } from "lucide-react";
+import { Save, X, ListRestart, Star } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
 import { toast } from "sonner";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { addReviewSchema, type AddReviewInput } from "~/lib/validations";
+import { DatePickerWithClear } from "@/components/ui/date-picker";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DatePickerWithClear } from "../ui/date-picker";
 
 interface EditReviewModalProps {
     open: boolean;
@@ -43,7 +41,6 @@ export function EditReviewModal({ open, onOpenChange, review, refreshPage }: Edi
         resolver: zodResolver(addReviewSchema)
     });
 
-    // Refill when modal opens
     useEffect(() => {
         if (review) {
             const projectId = review.projectId || review.chat?.projectId || review.meeting?.projectId;
@@ -53,7 +50,7 @@ export function EditReviewModal({ open, onOpenChange, review, refreshPage }: Edi
                 shopName: review.shopName || review.chat?.shopName || review.chat?.client?.shopName || "",
                 rating: review.rating || 0,
                 reviewText: review.reviewText || "",
-                reviewApproachBy: review.approachByUser?.id ? String(review.approachByUser.id) : "",
+                reviewApproachByUsers: review.reviewApproachByUsers?.map((e: any) => String(e.id)) || [],
                 projectId: String(projectId),
                 lastReviewApproach: review.lastReviewApproach ? new Date(review.lastReviewApproach) : undefined,
                 reviewSubmittedAt: review.reviewSubmittedAt ? new Date(review.reviewSubmittedAt) : undefined,
@@ -163,26 +160,17 @@ export function EditReviewModal({ open, onOpenChange, review, refreshPage }: Edi
                             <Label className="mb-2">Approached By</Label>
                             <Controller
                                 control={control}
-                                name="reviewApproachBy"
+                                name="reviewApproachByUsers"
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select approacher" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {
-                                                users.length == 0 ? (
-                                                    <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
-                                                ) : (
-                                                    users.map((u) => (
-                                                        <SelectItem key={u.id} value={String(u.id)}>
-                                                            {u.fullName}
-                                                        </SelectItem>
-                                                    ))
-                                                )
-                                            }
-                                        </SelectContent>
-                                    </Select>
+                                    <MultiSelect
+                                        options={users.map((u: any) => ({
+                                            label: u.fullName,
+                                            value: String(u.id),
+                                        }))}
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        placeholder="Select approachers..."
+                                    />
                                 )}
                             />
                         </div>
