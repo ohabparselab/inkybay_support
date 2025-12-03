@@ -1,36 +1,21 @@
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Badge, CalendarIcon, ListRestart, Plus, Star, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addChatSchema, type AddChatFormInput } from "~/lib/validations";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { ListRestart, Plus, Star, X } from "lucide-react";
+import { DatePickerWithClear } from "../ui/date-picker";
+import { CommentInput } from "../comments/CommentInput";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
+import { Spinner } from "@/components/ui/spinner";
+import { TagsInput } from "@/components/ui/tags";
+import { MultiSelect } from "../ui/multi-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/components/ui/dialog";
-import { DatePickerWithClear } from "../ui/date-picker";
-import { CommentInput } from "../comments/CommentInput";
-import { Spinner } from "@/components/ui/spinner";
-import { TagsInput } from "@/components/ui/tags";
-import { MultiSelect } from "../ui/multi-select";
 import { toast } from "sonner";
 
 interface AddChatModalProps {
@@ -62,6 +47,7 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
         defaultValues: {
             clientEmails: [],
             tags: [],
+            handledByUsers: [],
             reviewApproachByUsers: [],
             reviewAsked: false,
             reviewStatus: false,
@@ -532,7 +518,7 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                         <div>
                             <Label className="mb-2">Handled By</Label>
                             <Controller
-                                name="handleByUsers"
+                                name="handledByUsers"
                                 control={control}
                                 defaultValue={[]}
                                 render={({ field }) => (
@@ -547,8 +533,8 @@ export function AddChatModal({ clientId, open, onOpenChange, refreshPage, chat, 
                                     />
                                 )}
                             />
-                            {errors.handleByUsers && (
-                                <p className="text-sm text-red-500">{errors.handleByUsers.message}</p>
+                            {errors.handledByUsers && (
+                                <p className="text-sm text-red-500">{errors.handledByUsers.message}</p>
                             )}
                         </div>
 

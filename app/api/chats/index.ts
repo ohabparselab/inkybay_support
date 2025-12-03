@@ -57,10 +57,11 @@ const createChat = async (request: Request) => {
 
         const comments = formData.get("comments")?.toString() || null;
         const mentions = formData.get("mentions")?.toString() || null;
-        // --- CHAT DATA ---
+        const handledByUsers = formData.getAll("handledByUsers[]").map((t) => t.toString().trim()).filter(Boolean);
+        const reviewApproachByUsers = formData.getAll("reviewApproachByUsers[]").map((t) => t.toString().trim()).filter(Boolean);
+
         const chatData: any = {
             clientQuery: clientQuery,
-            handleBy: formData.get("handleBy") ? Number(formData.get("handleBy")) : null,
             clientId: clientId,
             projectId: formData.get("projectId") ? Number(formData.get("projectId")) : null,
             chatDate: formData.get("chatDate") ? new Date(formData.get("chatDate") as string) : null,
@@ -75,15 +76,18 @@ const createChat = async (request: Request) => {
             changesMadeByAgent: formData.get("changesMadeByAgent")?.toString() || null,
             agentRating: formData.get("agentRating") ? Number(formData.get("agentRating")) : null,
             createdBy: Number(userId),
+            handledByUsers: handledByUsers.length ?
+                {
+                    connect: handledByUsers.map((id) => ({ id: Number(id) })),
+                } : undefined,
         };
 
-        // --- Handle Chat Transcript Upload ---
         const chatTranscriptFile = formData.get("chatTranscript") as File | null;
         if (chatTranscriptFile) {
             const chatTranscriptUrl = await uploadFile(chatTranscriptFile);
             if (chatTranscriptUrl) chatData.chatTranscript = chatTranscriptUrl;
         }
-
+        console.log('===chatData=====>>', chatData)
         // --- CREATE CHAT ---
         const chat = await prisma.chat.create({ data: chatData });
 
@@ -137,13 +141,14 @@ const createChat = async (request: Request) => {
             lastReviewApproach: formData.get("lastReviewApproach")
                 ? new Date(formData.get("lastReviewApproach") as string)
                 : null,
-            reviewApproachBy: formData.get("reviewApproachBy")
-                ? Number(formData.get("reviewApproachBy"))
-                : null,
             reviewSubmittedAt: formData.get("reviewSubmittedAt")
                 ? new Date(formData.get("reviewSubmittedAt") as string)
                 : null,
             createdBy: Number(userId),
+            reviewApproachByUsers: reviewApproachByUsers.length ?
+                {
+                    connect: reviewApproachByUsers.map((id) => ({ id: Number(id) })),
+                } : undefined,
         };
 
         const review = await prisma.review.create({ data: reviewData });
@@ -174,7 +179,6 @@ const createChat = async (request: Request) => {
             }
         }
 
-        // --- TAGS ---
         const tags = formData.getAll("tags[]").map((t) => t.toString().trim()).filter(Boolean);
         if (tags.length > 0) {
             for (const tagName of tags) {

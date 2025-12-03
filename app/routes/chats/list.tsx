@@ -136,11 +136,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
                         clientEmail: { select: { id: true, email: true } },
                     },
                 },
-                handleByUser: { select: { id: true, fullName: true, email: true } },
+                handledByUsers: { select: { id: true, fullName: true, email: true } },
                 createdByUser: { select: { id: true, fullName: true } },
                 updatedByUser: { select: { id: true, fullName: true } },
                 chatTags: { include: { tag: { select: { name: true } } } },
-                review: { include: { approachByUser: true } },
+                review: { include: { reviewApproachByUsers: true } },
                 project: { select: { name: true } },
                 featureRequest: true,
             },
@@ -398,7 +398,21 @@ export default function ChatsListPage() {
                                                             </Tooltip>
                                                         </TooltipProvider>
                                                     </TableCell>
-                                                    <TableCell>{chat.handleByUser?.fullName ?? "—"}</TableCell>
+                                                    <TableCell>
+                                                        {/* {chat.handledByUsers?.fullName ?? "—"} */}
+                                                        {chat.handledByUsers && chat.handledByUsers.length > 0 ? (
+                                                            chat.handledByUsers.map((user: any) => (
+                                                                <span
+                                                                    key={user.fullName}
+                                                                    className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs"
+                                                                >
+                                                                    {user.fullName}
+                                                                </span>
+                                                            ))
+                                                        ) : (
+                                                            <span>N/A</span>
+                                                        )}
+                                                    </TableCell>
                                                     <TableCell className="flex flex-wrap gap-1">
                                                         {chat.chatTags && chat.chatTags.length > 0 ? (
                                                             chat.chatTags.map((ct: any) => (

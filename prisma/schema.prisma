@@ -32,12 +32,12 @@ model User {
     providedTasks          Task[]                 @relation("UserProvidedTasks")
     solvedTasks            Task[]                 @relation("UserSolvedTasks")
     meeting                Meeting[]
-    handledChats           Chat[]                 @relation("ChatHandledBy")
+    handledChats           Chat[]                 @relation("ChatHandledByUsers")
     createdChats           Chat[]                 @relation("ChatCreatedBy")
     createdTasks           Task[]                 @relation("TaskCreatedBy")
     createdCommunities     Community[]            @relation("CommunityCreatedBy")
     updatedChats           Chat[]                 @relation("ChatUpdatedBy")
-    approachedReviews      Review[]               @relation("ReviewApproachedBy")
+    reviewApproachByUsers  Review[]               @relation("reviewApproachByUsers")
     createdReviews         Review[]               @relation("ReviewCreatedBy")
     updatedReviews         Review[]               @relation("ReviewUpdatedBy")
     createdFeatureRequests FeatureRequest[]       @relation("FeatureCreatedBy")
@@ -185,7 +185,6 @@ model Chat {
     id                 Int       @id @default(autoincrement())
     clientId           Int?
     clientQuery        String    @db.Text
-    handleBy           Int?
     projectId          Int?
     agentRating        Int?
     chatDate           DateTime?
@@ -207,7 +206,7 @@ model Chat {
     updatedAt          DateTime  @updatedAt
 
     // Relations
-    handleByUser   User?           @relation("ChatHandledBy", fields: [handleBy], references: [id])
+    handledByUsers User[]          @relation("ChatHandledByUsers")
     createdByUser  User?           @relation("ChatCreatedBy", fields: [createdBy], references: [id])
     updatedByUser  User?           @relation("ChatUpdatedBy", fields: [updatedBy], references: [id])
     client         Client?         @relation(fields: [clientId], references: [id])
@@ -238,7 +237,6 @@ model Review {
     ratingMood         String? // "positive" | "neutral" | "negative"
     lastReviewApproach DateTime?
     reviewDate         DateTime?
-    reviewApproachBy   Int?
     reviewSubmittedAt  DateTime?
     createdBy          Int?
     updatedBy          Int?
@@ -246,12 +244,12 @@ model Review {
     updatedAt          DateTime  @updatedAt
 
     // Relations
-    chat           Chat?    @relation(fields: [chatId], references: [id])
-    meeting        Meeting? @relation(fields: [meetingId], references: [id])
-    approachByUser User?    @relation("ReviewApproachedBy", fields: [reviewApproachBy], references: [id])
-    createdByUser  User?    @relation("ReviewCreatedBy", fields: [createdBy], references: [id])
-    updatedByUser  User?    @relation("ReviewUpdatedBy", fields: [updatedBy], references: [id])
-    project        Project? @relation(fields: [projectId], references: [id])
+    chat                  Chat?    @relation(fields: [chatId], references: [id])
+    meeting               Meeting? @relation(fields: [meetingId], references: [id])
+    reviewApproachByUsers User[]   @relation("reviewApproachByUsers")
+    createdByUser         User?    @relation("ReviewCreatedBy", fields: [createdBy], references: [id])
+    updatedByUser         User?    @relation("ReviewUpdatedBy", fields: [updatedBy], references: [id])
+    project               Project? @relation(fields: [projectId], references: [id])
 
     @@map("reviews")
 }
