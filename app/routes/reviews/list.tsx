@@ -2,7 +2,6 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "~/components/ui/table";
 import { Eye, PenBox, Trash2, Search, AlertTriangle, Plus, Ellipsis, Filter, X } from "lucide-react";
 import { useLoaderData, useNavigate, useRouteLoaderData } from "react-router";
-import { DynamicSelectFilter } from "~/components/dynamic-select-filter"
 import { DynamicDateFilter } from "~/components/dynamic-date-filter";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
@@ -161,7 +160,7 @@ export async function loader({ request }: any) {
                         storeUrl: true
                     }
                 },
-                approachByUser: true,
+                reviewApproachByUsers: true,
                 createdByUser: true,
                 project: true
             }
@@ -431,8 +430,20 @@ export default function ReviewListPage() {
                                                 <TableCell>{rev.rating ?? "—"}</TableCell>
                                                 <TableCell>{rev.reviewSubmittedAt ? new Date(rev.reviewSubmittedAt).toLocaleDateString() : "—"}</TableCell>
                                                 <TableCell>{rev.lastReviewApproach ? new Date(rev.lastReviewApproach).toLocaleDateString() : "—"}</TableCell>
-                                                <TableCell>{rev.approachByUser?.fullName ?? "—"}</TableCell>
-
+                                                <TableCell>
+                                                    {rev.reviewApproachByUsers && rev.reviewApproachByUsers.length > 0 ? (
+                                                        rev.reviewApproachByUsers?.map((user: any) => (
+                                                            <span
+                                                                key={user.fullName}
+                                                                className="bg-blue-100 text-blue-700 ml-0.5 px-2 py-0.5 rounded-full text-xs"
+                                                            >
+                                                                {user.fullName}
+                                                            </span>
+                                                        ))
+                                                    ) : (
+                                                        <span>N/A</span>
+                                                    )}
+                                                </TableCell>
                                                 <TableCell>
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>

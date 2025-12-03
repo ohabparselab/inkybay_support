@@ -54,7 +54,7 @@ export async function action({ request }: { request: Request }) {
                         storeUrl: true
                     }
                 },
-                approachByUser: true,
+                reviewApproachByUsers: true,
                 createdByUser: true,
                 project: true
             }

@@ -7,12 +7,12 @@ import {
     DialogFooter,
     DialogClose,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { format } from "date-fns"
-import { Star } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { ShopDetails } from "../shop-details"
 import { ShopHistory } from "../shop-history"
+import { Star } from "lucide-react"
+import { format } from "date-fns"
 
 interface ReviewDetailsModalProps {
     open: boolean
@@ -22,7 +22,7 @@ interface ReviewDetailsModalProps {
 
 export function ReviewDetailsModal({ open, onOpenChange, review }: ReviewDetailsModalProps) {
     if (!review) return null
-
+    console.log("=====review===>>", review)
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
@@ -32,7 +32,7 @@ export function ReviewDetailsModal({ open, onOpenChange, review }: ReviewDetails
 
                 <div className="space-y-4 mt-2">
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                         <div>
+                        <div>
                             <p className="text-muted-foreground">Project</p>
                             <p className="font-medium">
                                 {review.project?.name || "N/A"}
@@ -74,7 +74,18 @@ export function ReviewDetailsModal({ open, onOpenChange, review }: ReviewDetails
                         <div>
                             <p className="text-muted-foreground">Approach By</p>
                             <p className="font-medium">
-                                {review.approachByUser?.fullName || "_"}
+                                {review.reviewApproachByUsers && review.reviewApproachByUsers.length > 0 ? (
+                                    review.reviewApproachByUsers?.map((user: any) => (
+                                        <span
+                                            key={user.fullName}
+                                            className="bg-blue-100 text-blue-700 ml-0.5 px-2 py-0.5 rounded-full text-xs"
+                                        >
+                                            {user.fullName}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <span>N/A</span>
+                                )}
                             </p>
                         </div>
                         <div>
