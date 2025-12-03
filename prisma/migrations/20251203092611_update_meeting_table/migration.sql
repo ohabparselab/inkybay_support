@@ -6,16 +6,16 @@
 
 */
 -- DropForeignKey
-ALTER TABLE `meetings` DROP FOREIGN KEY `meetings_agentId_fkey`;
+-- ALTER TABLE `meetings` DROP FOREIGN KEY `meetings_agentId_fkey`;
 
 -- DropIndex
-DROP INDEX `meetings_agentId_fkey` ON `meetings`;
+-- DROP INDEX `meetings_agentId_fkey` ON `meetings`;
 
 -- AlterTable
-ALTER TABLE `meetings` DROP COLUMN `agentId`;
+-- ALTER TABLE `meetings` DROP COLUMN `agentId`;
 
 -- AlterTable
-ALTER TABLE `reviews` DROP COLUMN `reviewApproachBy`;
+-- ALTER TABLE `reviews` DROP COLUMN `reviewApproachBy`;
 
 -- CreateTable
 CREATE TABLE `_MeetingAgents` (
