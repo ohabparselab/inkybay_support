@@ -110,7 +110,20 @@ export function ViewChatDetailsModal({ open, onOpenChange, chatId }: ViewChatDet
                                             <span className="text-gray-500">N/A</span>
                                         )}
                                     </p>
-                                    <p><strong>Handled By:</strong> {chat.handleByUser?.fullName || "-"}</p>
+                                    <p><strong>Handled By:</strong>
+                                        {chat.handledByUsers && chat.handledByUsers.length > 0 ? (
+                                            chat.handledByUsers.map((user: any) => (
+                                                <span
+                                                    key={user.fullName}
+                                                    className="bg-blue-100 text-blue-700 ml-1 px-2 py-0.5 rounded-full text-xs"
+                                                >
+                                                    {user.fullName}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span>N/A</span>
+                                        )}
+                                    </p>
                                     <p><strong>Changes Made By Agent:</strong> {chat?.changesMadeByAgent || "N/A"}</p>
                                     <p><strong>Client Feedback:</strong> {chat?.clientFeedback || "N/A"}</p>
                                     <p><strong>Other Store Url:</strong> {chat?.otherStoresUrl || "N/A"}</p>
@@ -155,7 +168,20 @@ export function ViewChatDetailsModal({ open, onOpenChange, chatId }: ViewChatDet
                                     <p><strong>Review not asking reason:</strong> {chat?.review?.reviewNotAskReason ? chat?.review?.reviewNotAskReason : 'No'}</p>
                                     <p><strong>Last Review Approach:</strong> {formatDate(chat.review?.lastReviewApproach) || "N/A"}</p>
                                     <p><strong>Review Submitted At:</strong> {formatDate(chat.review?.reviewSubmittedAt) || "N/A"}</p>
-                                    <p><strong>Review Approach By:</strong> {chat.review?.approachByUser?.fullName || "N/A"}</p>
+                                    <p><strong>Review Approach By:</strong>
+                                        {chat.review?.reviewApproachByUsers && chat.review?.reviewApproachByUsers.length > 0 ? (
+                                            chat.review?.reviewApproachByUsers.map((user: any) => (
+                                                <span
+                                                    key={user.fullName}
+                                                    className="bg-blue-100 text-blue-700 ml-1 px-2 py-0.5 rounded-full text-xs"
+                                                >
+                                                    {user.fullName}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span>N/A</span>
+                                        )}
+                                    </p>
                                     <p><strong>Feature Request:</strong> {chat?.featureRequest?.featureDetails || "N/A"}</p>
                                     <p><strong>Store Details:</strong> {chat?.storeDetails || "N/A"}</p>
                                     <p><strong>Created At:</strong> {formatDate(chat.createdAt)}</p>
@@ -177,7 +203,7 @@ export function ViewChatDetailsModal({ open, onOpenChange, chatId }: ViewChatDet
                                             ) : ' N/A'}
                                         </div>
                                     </p>
-                                     <p className="font-medium flex">
+                                    <p className="font-medium flex">
                                         <strong>Agent Rating:</strong>
                                         <div className="flex">
                                             {chat?.agentRating ? (

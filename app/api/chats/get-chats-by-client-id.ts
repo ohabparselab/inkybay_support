@@ -26,11 +26,11 @@ export async function action({ request }: { request: Request }) {
                         clientEmail: { select: { id: true, email: true } },
                     },
                 },
-                handleByUser: { select: { id: true, fullName: true, email: true } },
+                handledByUsers: { select: { id: true, fullName: true, email: true } },
                 createdByUser: { select: { id: true, fullName: true } },
                 updatedByUser: { select: { id: true, fullName: true } },
                 chatTags: { include: { tag: { select: { name: true } } } },
-                review: { include: { approachByUser: true } },
+                review: { include: { reviewApproachByUsers: true } },
                 project: { select: { name: true } },
                 featureRequest: true,
             }
