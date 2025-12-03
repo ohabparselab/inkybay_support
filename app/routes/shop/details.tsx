@@ -263,7 +263,7 @@ export default function ShopDetailsPage() {
             setClientId(client.id);
             const cf = new FormData();
             cf.set("clientId", client.id);
-            if(selectedPhaseValue){
+            if (selectedPhaseValue) {
                 cf.set("installPhase", selectedPhaseValue);
             }
             marketingFunnelsFetcher.submit(cf, { method: "post", action: "/api/marketing-funnels/get-marketing-funnels-by-client-id" });
@@ -589,7 +589,20 @@ export default function ShopDetailsPage() {
                                                                                 </Tooltip>
                                                                             </TooltipProvider>
                                                                         </TableCell>
-                                                                        <TableCell>{chat.handleByUser?.fullName ?? "—"}</TableCell>
+                                                                        <TableCell>
+                                                                            {chat.handledByUsers && chat.handledByUsers.length > 0 ? (
+                                                                                chat.handledByUsers.map((user: any) => (
+                                                                                    <span
+                                                                                        key={user.fullName}
+                                                                                        className="bg-blue-100 text-blue-700 ml-0.5 px-2 py-0.5 rounded-full text-xs"
+                                                                                    >
+                                                                                        {user.fullName}
+                                                                                    </span>
+                                                                                ))
+                                                                            ) : (
+                                                                                <span>N/A</span>
+                                                                            )}
+                                                                        </TableCell>
                                                                         <TableCell className="flex flex-wrap gap-1">
                                                                             {chat.chatTags && chat.chatTags.length > 0 ? (
                                                                                 chat.chatTags.map((ct: any) => (
@@ -945,7 +958,7 @@ export default function ShopDetailsPage() {
                                                                 <TableHead>ID</TableHead>
                                                                 <TableHead>Store URL</TableHead>
                                                                 <TableHead>
-                                                                    
+
                                                                     <div className="flex items-center gap-2 relative">
                                                                         Install Phase
                                                                         <DropdownMenu>
@@ -964,7 +977,7 @@ export default function ShopDetailsPage() {
                                                                             </DropdownMenuTrigger>
 
                                                                             <DropdownMenuContent align="end" className="max-h-64 overflow-auto">
-                                                                                {options.map((opt:any, index) => {
+                                                                                {options.map((opt: any, index) => {
                                                                                     const isSelected = String(opt.name) === selectedPhaseValue;
                                                                                     return (
                                                                                         <DropdownMenuItem

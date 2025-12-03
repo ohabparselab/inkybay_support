@@ -399,12 +399,11 @@ export default function ChatsListPage() {
                                                         </TooltipProvider>
                                                     </TableCell>
                                                     <TableCell>
-                                                        {/* {chat.handledByUsers?.fullName ?? "—"} */}
                                                         {chat.handledByUsers && chat.handledByUsers.length > 0 ? (
                                                             chat.handledByUsers.map((user: any) => (
                                                                 <span
                                                                     key={user.fullName}
-                                                                    className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs"
+                                                                    className="bg-blue-100 text-blue-700 ml-0.5 px-2 py-0.5 rounded-full text-xs"
                                                                 >
                                                                     {user.fullName}
                                                                 </span>
