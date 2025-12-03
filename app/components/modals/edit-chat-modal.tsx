@@ -1,16 +1,13 @@
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { addChatSchema, type AddChatFormInput } from "~/lib/validations";
 import { CalendarIcon, ListRestart, Plus, Save, Star, X } from "lucide-react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
 import {
     Select,
     SelectContent,
@@ -25,12 +22,12 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
+import { DatePickerWithClear } from "@/components/ui/date-picker";
 import { CommentList } from "@/components/comments/CommentList";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { Spinner } from "@/components/ui/spinner";
 import { TagsInput } from "@/components/ui/tags";
-import { DatePickerWithClear } from "../ui/date-picker";
-import { localDateToUtcIso } from "~/lib/helper.sever";
+import { toast } from "sonner";
 
 interface EditChatModalProps {
     open: boolean;
@@ -40,6 +37,8 @@ interface EditChatModalProps {
 }
 
 export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditChatModalProps) {
+
+    console.log(chat);
 
     const [projects, setProjects] = useState<any>([]);
     const [users, setUsers] = useState<any[]>([]);
@@ -63,7 +62,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
             tags: chat?.chatTags?.map((t: any) => t.tag.name) || [],
             reviewAsked: chat?.review?.reviewAsked || false,
             reviewStatus: chat?.review?.reviewStatus || false,
-            handleBy: chat?.handleBy?.toString() || "",
+            handledByUsers: chat.handledByUsers?.map((e: any) => String(e.id)) || [],
             agentRating: chat?.review?.agentRating || 0,
             reviewText: chat?.review?.reviewText || "",
             clientFeedback: chat?.clientFeedback || "",
@@ -72,11 +71,9 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
             otherStoresUrl: chat?.otherStoresUrl || "",
             changesMadeByAgent: chat?.changesMadeByAgent || "",
             chatDate: chat?.chatDate ? new Date(chat.chatDate) : undefined,
-            lastReviewApproach: chat?.review?.lastReviewApproach
-                ? new Date(chat.review?.lastReviewApproach)
-                : undefined,
-            externalChat: chat.externalChat
-
+            lastReviewApproach: chat?.review?.lastReviewApproach ? new Date(chat.review?.lastReviewApproach) : undefined,
+            externalChat: chat.externalChat,
+            reviewApproachByUsers: chat.review?.reviewApproachByUsers?.map((e: any) => String(e.id)) || [],
         },
     });
 
@@ -126,7 +123,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                 tags: chat.chatTags?.map((t: any) => t.tag.name) || [],
                 reviewAsked: chat.review?.reviewAsked || false,
                 reviewStatus: chat.review?.reviewStatus || false,
-                handleBy: chat.handleBy?.toString() || "",
+                handledByUsers: chat.handledByUsers?.map((e: any) => String(e.id)) || [],
                 agentRating: chat?.agentRating || 0,
                 reviewText: chat.review?.reviewText || "",
                 clientFeedback: chat.clientFeedback || "",
@@ -135,19 +132,15 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                 otherStoresUrl: chat.otherStoresUrl || "",
                 changesMadeByAgent: chat.changesMadeByAgent || "",
                 chatDate: chat.chatDate ? new Date(chat.chatDate) : undefined,
-                lastReviewApproach: chat.review?.lastReviewApproach
-                    ? new Date(chat.review?.lastReviewApproach)
-                    : undefined,
+                lastReviewApproach: chat.review?.lastReviewApproach ? new Date(chat.review?.lastReviewApproach) : undefined,
                 shopUrl: chat.shopUrl || "",
                 shopName: chat.shopName || "",
                 shopEmail: chat.shopEmail || "",
                 projectId: chat.projectId?.toString() || "",
                 storefrontPassword: chat.storefrontPassword || "",
                 reviewNotAskReason: chat.review?.reviewNotAskReason || "",
-                reviewSubmittedAt: chat.review?.reviewSubmittedAt
-                    ? new Date(chat.review?.reviewSubmittedAt)
-                    : undefined,
-                reviewApproachBy: chat.review?.reviewApproachBy?.toString() || "",
+                reviewSubmittedAt: chat.review?.reviewSubmittedAt ? new Date(chat.review?.reviewSubmittedAt) : undefined,
+                reviewApproachByUsers: chat.review?.reviewApproachByUsers?.map((e: any) => String(e.id)) || [],
                 ratingMood: chat.review?.ratingMood?.toString() || "",
                 rating: chat.review?.rating || 0,
                 externalChat: chat.externalChat,
@@ -435,30 +428,17 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                                 <Label className="mb-2">Review Approach By</Label>
                                 <Controller
                                     control={control}
-                                    name="reviewApproachBy"
+                                    name="reviewApproachByUsers"
                                     render={({ field }) => (
-                                        <Select
-                                            onValueChange={field.onChange}
-                                            value={field.value}
-                                            disabled={loadingUsers}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={loadingUsers ? "Loading..." : "Select approacher"} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {loadingUsers ? (
-                                                    <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
-                                                ) : users.length === 0 ? (
-                                                    <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
-                                                ) : (
-                                                    users.map((user: any) => (
-                                                        <SelectItem key={user.id} value={String(user.id)}>
-                                                            {user.fullName}
-                                                        </SelectItem>
-                                                    ))
-                                                )}
-                                            </SelectContent>
-                                        </Select>
+                                        <MultiSelect
+                                            options={users.map((u: any) => ({
+                                                label: u.fullName,
+                                                value: String(u.id),
+                                            }))}
+                                            value={field.value || []}
+                                            onChange={field.onChange}
+                                            placeholder="Select approachers..."
+                                        />
                                     )}
                                 />
                             </div>
@@ -557,35 +537,23 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                         <div>
                             <Label className="mb-2">Handled By</Label>
                             <Controller
+                                name="handledByUsers"
                                 control={control}
-                                name="handleBy"
+                                defaultValue={[]}
                                 render={({ field }) => (
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                        disabled={loadingUsers}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder={loadingUsers ? "Loading..." : "Select Agent"} />
-                                        </SelectTrigger>
-                                        <SelectContent className="w-full">
-                                            {loadingUsers ? (
-                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
-                                            ) : users.length === 0 ? (
-                                                <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
-                                            ) : (
-                                                users.map((user: any) => (
-                                                    <SelectItem key={user.id} value={String(user.id)}>
-                                                        {user.fullName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                    <MultiSelect
+                                        options={users.map((u: any) => ({
+                                            label: u.fullName,
+                                            value: String(u.id),
+                                        }))}
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        placeholder="Select agents..."
+                                    />
                                 )}
                             />
-                            {errors.handleBy && (
-                                <p className="text-sm text-red-500">{errors.handleBy.message}</p>
+                            {errors.handledByUsers && (
+                                <p className="text-sm text-red-500">{errors.handledByUsers.message}</p>
                             )}
                         </div>
                         <div>
