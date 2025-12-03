@@ -29,7 +29,7 @@ const createReview = async (request: Request) => {
         // Parse & validate data
         const value = addReviewSchema.parse({
             ...data,
-            rating: Number(data.rating),
+            rating: data.rating ? Number(data.rating) : 0,
             lastReviewApproach: data.lastReviewApproach ? new Date(data.lastReviewApproach) : undefined,
             reviewSubmittedAt: data.reviewSubmittedAt ? new Date(data.reviewSubmittedAt) : undefined,
         });
@@ -43,14 +43,18 @@ const createReview = async (request: Request) => {
             lastReviewApproach: value.lastReviewApproach ? new Date(value.lastReviewApproach) : null,
             reviewSubmittedAt: value.reviewSubmittedAt ? new Date(value.reviewSubmittedAt) : null,
             createdByUser: { connect: { id: userId } },
+            reviewApproachByUsers: value?.reviewApproachByUsers?.length ?
+                {
+                    connect: value.reviewApproachByUsers.map((id) => ({ id: Number(id) })),
+                } : undefined,
         };
 
-        if (value.reviewApproachBy) {
-            const reviewApproachBy = Number(value.reviewApproachBy);
-            if (!isNaN(reviewApproachBy)) {
-                reviewData.approachByUser = { connect: { id: reviewApproachBy } };
-            }
-        }
+        // if (value.reviewApproachBy) {
+        //     const reviewApproachBy = Number(value.reviewApproachBy);
+        //     if (!isNaN(reviewApproachBy)) {
+        //         reviewData.approachByUser = { connect: { id: reviewApproachBy } };
+        //     }
+        // }
 
         if (value.projectId) {
             reviewData.project = { connect: { id: Number(value.projectId) } };

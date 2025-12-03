@@ -87,7 +87,6 @@ const createChat = async (request: Request) => {
             const chatTranscriptUrl = await uploadFile(chatTranscriptFile);
             if (chatTranscriptUrl) chatData.chatTranscript = chatTranscriptUrl;
         }
-        console.log('===chatData=====>>', chatData)
         // --- CREATE CHAT ---
         const chat = await prisma.chat.create({ data: chatData });
 

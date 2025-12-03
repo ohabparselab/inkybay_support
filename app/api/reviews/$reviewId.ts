@@ -43,7 +43,7 @@ const updateReview = async (reviewId: number, request: Request) => {
             return Response.json({ success: false, message: "Review not found." }, { status: 404 });
         }
 
-        const reviewApproachBy = value.reviewApproachBy ? Number(value.reviewApproachBy) : null;
+        // const reviewApproachBy = value.reviewApproachBy ? Number(value.reviewApproachBy) : null;
 
         // Build update data
         const reviewData: any = {
@@ -54,13 +54,16 @@ const updateReview = async (reviewId: number, request: Request) => {
             lastReviewApproach: value.lastReviewApproach ?? null,
             reviewSubmittedAt: value.reviewSubmittedAt ?? null,
             updatedByUser: { connect: { id: userId } },
+            reviewApproachByUsers: {
+                    set: value?.reviewApproachByUsers?.map((id) => ({ id: Number(id) })),
+                }
         };
 
-        if (reviewApproachBy) {
-            reviewData.approachByUser = { connect: { id: reviewApproachBy } };
-        } else {
-            reviewData.approachByUser = { disconnect: true };
-        }
+        // if (reviewApproachBy) {
+        //     reviewData.approachByUser = { connect: { id: reviewApproachBy } };
+        // } else {
+        //     reviewData.approachByUser = { disconnect: true };
+        // }
 
         if (value.projectId) {
             reviewData.project = { connect: { id: Number(value.projectId) } };

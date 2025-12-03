@@ -263,7 +263,6 @@ export const addReviewSchema = z.object({
     shopName: z.string().optional(),
     projectId: z.string().optional(),
     rating: z.number().optional(),
-    // ratingMood: z.string().optional(),
     reviewText: z.string().min(3, "Review text required"),
     reviewApproachByUsers: z.array(z.string()).optional(),
     lastReviewApproach: z.date().optional(),
