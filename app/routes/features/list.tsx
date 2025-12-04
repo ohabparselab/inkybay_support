@@ -58,39 +58,32 @@ export async function loader({ request }: any) {
             ],
         }
         : {};
-    console.log("======fe-date====>>", createdAt)
 
     if (createdAt) {
-        const d = new Date(createdAt);
-        const start = new Date(Date.UTC(
-            d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(),
-            0, 0, 0, 0
-        ));
-        const end = new Date(Date.UTC(
-            d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(),
-            23, 59, 59, 999
-        ));
-        where.createdAt = { gte: start, lt: end };
+        // console.log("date=====>", createdAt.split("T")[0]);
+        // const start = new Date(createdAt);
+        // start.setHours(0, 0, 0, 0);
+        // const end = new Date(createdAt);
+        // end.setHours(23, 59, 59, 999);
+        where.createdAt = { 
+            gte: new Date(`${createdAt.split("T")[0]}T00:00:00.000Z`), 
+            lt: new Date(`${createdAt.split("T")[0]}T23:59:59.999Z`) 
+        };
     } else if (createdAtStart && createdAtEnd) {
-        const s = new Date(createdAtStart);
-        const e = new Date(createdAtEnd);
-
-        const start = new Date(Date.UTC(
-            s.getFullYear(), s.getMonth(), s.getDate(),
-            0, 0, 0, 0)
-        );
-
-        const end = new Date(Date.UTC(
-            e.getFullYear(), e.getMonth(), e.getDate(),
-            23, 59, 59, 999)
-        );
-        where.createdAt = { gte: start, lt: end };
+        // const start = new Date(createdAtStart);
+        // start.setHours(0, 0, 0, 0);
+        // const end = new Date(createdAtEnd);
+        // end.setHours(23, 59, 59, 999);
+        where.createdAt = { 
+            gte: new Date(`${createdAtStart.split("T")[0]}T00:00:00.000Z`), 
+            lt: new Date(`${createdAtEnd.split("T")[0]}T23:59:59.999Z`) 
+        };
     }
 
+    console.log('======>>', where)
     if (selectedUsers.length > 0) {
         where.createdBy = { in: selectedUsers.map(Number) };
     }
-    console.log("=====feature====>>", where);
     const [features, total, users] = await Promise.all([
         prisma.featureRequest.findMany({
             where,
