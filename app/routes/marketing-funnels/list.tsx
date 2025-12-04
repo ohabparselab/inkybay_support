@@ -112,26 +112,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     // Created at range filter
     if (createdAt) {
-        const start = new Date(createdAt);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(createdAt);
-        end.setHours(23, 59, 59, 999);
-
         where.createdAt = {
-            gte: start,
-            lt: end,
+            gte: new Date(`${createdAt.split("T")[0]}T00:00:00.000Z`),
+            lt: new Date(`${createdAt.split("T")[0]}T23:59:59.999Z`)
         };
     } else if (createdAtStart && createdAtEnd) {
-        const start = new Date(createdAtStart);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(createdAtEnd);
-        end.setHours(23, 59, 59, 999);
-
         where.createdAt = {
-            gte: start,
-            lt: end,
+            gte: new Date(`${createdAtStart.split("T")[0]}T00:00:00.000Z`),
+            lt: new Date(`${createdAtEnd.split("T")[0]}T23:59:59.999Z`)
         };
     }
 
