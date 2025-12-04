@@ -58,29 +58,42 @@ export async function loader({ request }: LoaderFunctionArgs) {
         }
         : {};
 
+
     if (date) {
-        const start = new Date(date);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(date);
-        end.setHours(23, 59, 59, 999);
-
         where.meetingDateTime = {
-            gte: start,
-            lt: end,
+            gte: new Date(`${date.split("T")[0]}T00:00:00.000Z`),
+            lt: new Date(`${date.split("T")[0]}T23:59:59.999Z`)
         };
     } else if (startDate && endDate) {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-
         where.meetingDateTime = {
-            gte: start,
-            lt: end,
+            gte: new Date(`${startDate.split("T")[0]}T00:00:00.000Z`),
+            lt: new Date(`${endDate.split("T")[0]}T23:59:59.999Z`)
         };
     }
+
+    // if (date) {
+    //     const start = new Date(date);
+    //     start.setHours(0, 0, 0, 0);
+
+    //     const end = new Date(date);
+    //     end.setHours(23, 59, 59, 999);
+
+    //     where.meetingDateTime = {
+    //         gte: start,
+    //         lt: end,
+    //     };
+    // } else if (startDate && endDate) {
+    //     const start = new Date(startDate);
+    //     start.setHours(0, 0, 0, 0);
+
+    //     const end = new Date(endDate);
+    //     end.setHours(23, 59, 59, 999);
+
+    //     where.meetingDateTime = {
+    //         gte: start,
+    //         lt: end,
+    //     };
+    // }
 
     if (joiningStatus) {
         where.joiningStatus = joiningStatus === 'true';
