@@ -71,30 +71,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
         };
     }
 
-    // if (date) {
-    //     const start = new Date(date);
-    //     start.setHours(0, 0, 0, 0);
-
-    //     const end = new Date(date);
-    //     end.setHours(23, 59, 59, 999);
-
-    //     where.meetingDateTime = {
-    //         gte: start,
-    //         lt: end,
-    //     };
-    // } else if (startDate && endDate) {
-    //     const start = new Date(startDate);
-    //     start.setHours(0, 0, 0, 0);
-
-    //     const end = new Date(endDate);
-    //     end.setHours(23, 59, 59, 999);
-
-    //     where.meetingDateTime = {
-    //         gte: start,
-    //         lt: end,
-    //     };
-    // }
-
     if (joiningStatus) {
         where.joiningStatus = joiningStatus === 'true';
     }
