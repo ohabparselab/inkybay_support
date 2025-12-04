@@ -82,6 +82,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
             : {}),
     };
 
+     console.log("======date====>>", date)
+
     if (date) {
         const d = new Date(date);
         const start = new Date(Date.UTC(
@@ -120,6 +122,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             lt: end,
         };
     }
+    console.log("======chat====>>", where)
 
     const [chats, total, tags] = await Promise.all([
         prisma.chat.findMany({
