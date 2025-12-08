@@ -14,7 +14,10 @@
     "prisma": "npx prisma studio",
     "start:beta": "./scripts/start-beta.sh",
     "migrate:beta": "./scripts/migrate-beta.sh",
-    "seed:beta": "./scripts/seed-beta.sh"
+    "seed:beta": "./scripts/seed-beta.sh",
+    "start:prod": "./scripts/start-prod.sh",
+    "migrate:prod": "./scripts/migrate-prod.sh",
+    "seed:prod": "./scripts/seed-prod.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
