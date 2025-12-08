@@ -28,6 +28,8 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Spinner } from "../ui/spinner";
+import { DatePickerWithClear } from "../ui/date-picker";
+import { MultiSelect } from "../ui/multi-select";
 
 interface EditMeetingModalProps {
     open: boolean;
@@ -39,8 +41,10 @@ interface EditMeetingModalProps {
 export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: EditMeetingModalProps) {
 
     const [users, setUsers] = useState<any[]>([]);
+    const [projects, setProjects] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [formSubmitLoading, setFormSubmitLoading] = useState(false);
+    const [loadingProjects, setLoadingProjects] = useState(false);
 
     const {
         control,
@@ -51,7 +55,7 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
     } = useForm<AddMeetingInput>({
         resolver: zodResolver(addMeetingSchema),
         defaultValues: {
-            agentId: "",
+            agents: [],
             emails: [],
             reviewAsked: false,
             reviewGiven: false,
@@ -64,23 +68,38 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
         name: "emails",
     });
 
+    const fetchProjects = async () => {
+        try {
+            setLoadingProjects(true);
+            const res = await fetch("/api/settings/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        } finally {
+            setLoadingProjects(false);
+        }
+    }
+
     useEffect(() => {
         fetchUsers();
+        fetchProjects();
     }, []);
 
     useEffect(() => {
         if (meeting) {
             reset({
-                agentId: meeting.agentId ? String(meeting.agentId) : "",
+                agents: meeting.agents ? meeting.agents?.map((e: any) => String(e.id)) : [],
+                projectId: meeting.projectId ? String(meeting.projectId) : "",
                 storeUrl: meeting.storeUrl || "",
                 meetingDetails: meeting.meetingDetails || "",
                 meetingDateTime: meeting.meetingDateTime ? new Date(meeting.meetingDateTime) : undefined,
-                reviewAsked: meeting.reviewAsked || false,
-                reviewGiven: meeting.reviewGiven || false,
-                reviewDate: meeting.reviewDate ? new Date(meeting.reviewDate) : undefined,
+                reviewAsked: meeting.review?.reviewAsked || false,
+                reviewGiven: meeting.review?.reviewStatus || false,
+                reviewDate: meeting.review?.reviewDate ? new Date(meeting.review?.reviewDate) : undefined,
                 joiningStatus: meeting.joiningStatus || false,
-                recordedVideo: undefined,
-                reviewsInfo: meeting.reviewsInfo || "",
+                recordedVideo: meeting.recordedVideo || undefined,
+                reviewsInfo: meeting.review?.reviewText || "",
                 meetingNotes: meeting.meetingNotes || "",
                 isExternalMeeting: meeting.isExternalMeeting || false,
                 emails: meeting.emails?.map((e: any) => e.email) || [],
@@ -196,58 +215,80 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                     {/* Agent + Meeting Date */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                         <div>
-                            <Label className="mb-2">Agent (Handled By)</Label>
+                            <Label className="mb-2">Agents (Handled By)</Label>
                             <Controller
                                 control={control}
-                                name="agentId"
+                                name="agents"
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select Agent" />
-                                        </SelectTrigger>
-                                        <SelectContent className="w-full">
-                                            {loadingUsers ? (
-                                                <div className="p-2 text-center text-muted-foreground">Loading...</div>
-                                            ) : (
-                                                users.map((user: any) => (
-                                                    <SelectItem key={user.id} value={String(user.id)}>
-                                                        {user.fullName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                    <MultiSelect
+                                        options={users.map((u: any) => ({
+                                            label: u.fullName,
+                                            value: String(u.id),
+                                        }))}
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        placeholder="Select agents..."
+                                    />
                                 )}
                             />
-                            {errors.agentId && <p className="text-sm text-red-500">{errors.agentId.message}</p>}
+                            {errors.agents && <p className="text-sm text-red-500">{errors.agents.message}</p>}
                         </div>
                         <div>
                             <Label className="mb-2">Meeting Date & Time</Label>
+
                             <Controller
                                 control={control}
                                 name="meetingDateTime"
                                 render={({ field }) => {
-                                    const value = field.value ? new Date(field.value) : undefined;
+                                    let value = field.value ? new Date(field.value) : undefined;
+                                    const [open, setOpen] = useState(false);
+
                                     return (
-                                        <Popover>
+                                        <Popover open={open} onOpenChange={setOpen}>
                                             <PopoverTrigger asChild>
-                                                <Button variant="outline" className="w-full justify-start">
-                                                    {value ? format(value, "PPP p") : "Pick date & time"}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
+                                                <div className="relative w-full">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        className="w-full justify-between text-left"
+                                                    >
+                                                        {value ? format(value, "PPP p") : "Pick date & time"}
+                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    </Button>
+
+                                                    {/* CLEAR BUTTON (X) */}
+                                                    {value && (
+                                                        <X
+                                                            className="absolute hover:bg-accent rounded-2xl right-9 top-1/2 -translate-y-1/2 h-4 w-4 cursor-pointer opacity-70 hover:opacity-100"
+                                                            onClick={(e) => {
+                                                                field.onChange(null);
+                                                                e.stopPropagation();
+                                                                setOpen(false);
+                                                            }}
+                                                        />
+                                                    )}
+                                                </div>
                                             </PopoverTrigger>
+
                                             <PopoverContent align="start" className="p-4 w-auto">
+                                                {/* CALENDAR SECTION */}
                                                 <Calendar
                                                     mode="single"
                                                     selected={value}
                                                     onSelect={(date) => {
                                                         if (!date) return;
+
                                                         const current = value ?? new Date();
                                                         date.setHours(current.getHours(), current.getMinutes());
+
                                                         field.onChange(date);
                                                     }}
+                                                    initialFocus
                                                 />
+
+                                                {/* TIME PICKER */}
                                                 <div className="flex gap-2 mt-4 items-center">
+                                                    {/* HOURS */}
                                                     <select
                                                         className="border rounded px-2 py-1 text-sm"
                                                         value={value ? value.getHours() : ""}
@@ -260,10 +301,15 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                                                     >
                                                         <option value="">HH</option>
                                                         {[...Array(24)].map((_, i) => (
-                                                            <option key={i} value={i}>{i.toString().padStart(2, "0")}</option>
+                                                            <option key={i} value={i}>
+                                                                {i.toString().padStart(2, "0")}
+                                                            </option>
                                                         ))}
                                                     </select>
+
                                                     <span className="text-gray-500">:</span>
+
+                                                    {/* MINUTES */}
                                                     <select
                                                         className="border rounded px-2 py-1 text-sm"
                                                         value={value ? value.getMinutes() : ""}
@@ -276,7 +322,9 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                                                     >
                                                         <option value="">MM</option>
                                                         {[...Array(60)].map((_, i) => (
-                                                            <option key={i} value={i}>{i.toString().padStart(2, "0")}</option>
+                                                            <option key={i} value={i}>
+                                                                {i.toString().padStart(2, "0")}
+                                                            </option>
                                                         ))}
                                                     </select>
                                                 </div>
@@ -285,7 +333,12 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                                     );
                                 }}
                             />
-                            {errors.meetingDateTime && <p className="text-sm text-red-500">{errors.meetingDateTime.message}</p>}
+
+                            {errors.meetingDateTime && (
+                                <p className="text-sm text-red-500">
+                                    {errors.meetingDateTime.message}
+                                </p>
+                            )}
                         </div>
                     </div>
 
@@ -319,17 +372,11 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                                 control={control}
                                 name="reviewDate"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline" className="w-full justify-start">
-                                                {field.value ? format(field.value, "PPP") : "Pick date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>
@@ -366,19 +413,48 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                     {/* Recorded Video + Notes */}
                     <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                         <div>
-                            <Label className="mb-2">Recorded Video (Upload New)</Label>
-                            <Controller
-                                control={control}
-                                name="recordedVideo"
-                                render={({ field }) => (
-                                    <Input type="file" accept="video/*" onChange={(e) => field.onChange(e.target.files?.[0])} />
-                                )}
-                            />
+                            <Label className="mb-2">Recorded Video</Label>
+                            <Input {...register("recordedVideo")} placeholder="Enter video link..." />
                         </div>
                         <div>
-                            <Label className="mb-2">Reviews Info</Label>
-                            <Textarea {...register("reviewsInfo")} placeholder="Reviews info..." />
+                            <Label className="mb-2">Project</Label>
+                            <Controller
+                                control={control}
+                                name="projectId"
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        disabled={loadingProjects}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={loadingProjects ? "Loading..." : "Select Project"} />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            {loadingProjects ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
+                                            ) : projects.length === 0 ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
+                                            ) : (
+                                                projects.map((project: any) => (
+                                                    <SelectItem key={project.id} value={String(project.id)}>
+                                                        {project.projectName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.projectId && (
+                                <p className="text-sm text-red-500">{errors.projectId.message}</p>
+                            )}
                         </div>
+                    </div>
+
+                    <div>
+                        <Label className="mb-2">Reviews Info</Label>
+                        <Textarea {...register("reviewsInfo")} placeholder="Reviews info..." />
                     </div>
 
                     <div>
@@ -387,14 +463,14 @@ export function EditMeetingModal({ open, onOpenChange, meeting, refreshPage }: E
                     </div>
 
                     <DialogFooter className="flex !justify-center w-full mt-6">
-                        <Button variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
+                        <Button type="button" variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
                             <X /> Cancel
                         </Button>
-                        <Button variant="outline" onClick={() => reset(meeting)}>
+                        <Button type="button" variant="outline" onClick={() => reset()}>
                             <ListRestart /> Reset
                         </Button>
                         <Button type="submit">
-                            {formSubmitLoading ? <Spinner /> : <Save />} Update Meeting
+                            {formSubmitLoading ? <Spinner /> : <Save />} Save Changes
                         </Button>
                     </DialogFooter>
                 </form>

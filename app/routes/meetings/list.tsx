@@ -1,7 +1,9 @@
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "~/components/ui/table";
-import { AlertTriangle, ChevronLeft, ChevronRight, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
+import { AlertTriangle, Ellipsis, Eye, Filter, PenBox, Plus, Search, Trash2, X } from "lucide-react";
+import { DateAndDateRangeFilter } from "~/components/ui/date-range-filter";
+import { DynamicSelectFilter } from "~/components/dynamic-select-filter";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { PaginationBar } from "~/components/pagination-bar";
@@ -9,6 +11,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
+import { cn } from "~/lib/utils";
 import { toast } from "sonner";
 
 const AddMeetingModal = lazy(() =>
@@ -34,7 +37,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
 
-    const where = search
+    const userParams = url.searchParams.get("users");
+    const selectedUsers = userParams ? userParams.split(",").map((t) => t.trim()) : [];
+
+    const date = url.searchParams.get("date");
+    const startDate = url.searchParams.get("startDate");
+    const endDate = url.searchParams.get("endDate");
+    const joiningStatus = url.searchParams.get("joiningStatus");
+    const isExternalMeeting = url.searchParams.get("isExternalMeeting");
+    const reviewAsked = url.searchParams.get("reviewAsked");
+    const reviewStatus = url.searchParams.get("reviewStatus");
+
+    const where: any = search
         ? {
             OR: [
                 { storeUrl: { contains: searchLower } },
@@ -44,28 +58,83 @@ export async function loader({ request }: LoaderFunctionArgs) {
         }
         : {};
 
-    const [meetings, total] = await Promise.all([
+
+    if (date) {
+        where.meetingDateTime = {
+            gte: new Date(`${date.split("T")[0]}T00:00:00.000Z`),
+            lt: new Date(`${date.split("T")[0]}T23:59:59.999Z`)
+        };
+    } else if (startDate && endDate) {
+        where.meetingDateTime = {
+            gte: new Date(`${startDate.split("T")[0]}T00:00:00.000Z`),
+            lt: new Date(`${endDate.split("T")[0]}T23:59:59.999Z`)
+        };
+    }
+
+    if (joiningStatus) {
+        where.joiningStatus = joiningStatus === 'true';
+    }
+
+    if (isExternalMeeting) {
+        where.isExternalMeeting = isExternalMeeting === 'true';
+    }
+
+    if (reviewAsked) {
+        where.review = {
+            ...where.review,
+            reviewAsked: reviewAsked === "true"
+        };
+    }
+
+    if (reviewStatus) {
+        where.review = {
+            ...where.review,
+            reviewStatus: reviewStatus === "true"
+        };
+    }
+
+    if (selectedUsers.length > 0) {
+        where.agents = {
+            some: {
+                id: { in: selectedUsers.map(Number) }
+            }
+        };
+    }
+
+    const [meetings, total, users] = await Promise.all([
         prisma.meeting.findMany({
             where,
             skip,
             take: limit,
             orderBy: { id: "desc" },
             include: {
-                user: { select: { id: true, fullName: true, email: true } },
+                agents: { select: { id: true, fullName: true, email: true } },
                 emails: { select: { email: true } },
+                project: { select: { id: true, name: true } },
+                review: true
             },
         }),
         prisma.meeting.count({ where }),
+        prisma.user.findMany({ where: { role: { slug: 'user' } } })
     ]);
 
     return {
         meetings,
+        users,
         meta: {
             total,
             page,
             limit,
             totalPages: Math.ceil(total / limit),
             search,
+            date,
+            startDate,
+            endDate,
+            joiningStatus,
+            isExternalMeeting,
+            reviewAsked,
+            reviewStatus,
+            selectedUsers
         },
     };
 }
@@ -74,7 +143,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function MeetingListPage() {
 
     const [loading, setLoading] = useState(true);
-    const { meetings, meta } = useLoaderData<typeof loader>();
+    const { meetings, meta, users } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
     const [meetingModalOpen, setMeetingModalOpen] = useState(false);
     const [viewMeetingModalOpen, setViewMeetingModalOpen] = useState(false);
@@ -143,6 +212,29 @@ export default function MeetingListPage() {
         if (loading) setLoading(false);
     }, [meetings]);
 
+    const handleUserToggle = (id: string, checked: boolean) => {
+        const params = new URLSearchParams(window.location.search);
+        const currentUsers = params.get("users")
+            ? params.get("users")!.split(",").filter(Boolean)
+            : [];
+        let newUsers: string[];
+        if (checked) newUsers = [...new Set([...currentUsers, id])];
+        else newUsers = currentUsers.filter((t) => t !== id);
+
+        if (newUsers.length) params.set("users", newUsers.join(","));
+        else params.delete("users");
+
+        params.set("page", "1");
+        navigateWithLoading(`?${params.toString()}`);
+    };
+
+    const clearAgentsFilter = () => {
+        const params = new URLSearchParams(window.location.search);
+        params.delete("users");
+        params.set("page", "1");
+        navigateWithLoading(`?${params.toString()}`);
+    }
+
     return (
         <div className="px-6 space-y-2">
             <div className="flex items-center justify-between">
@@ -182,18 +274,131 @@ export default function MeetingListPage() {
                             <TableRow>
                                 <TableHead>ID</TableHead>
                                 <TableHead>Store URL</TableHead>
-                                <TableHead>Agent</TableHead>
-                                <TableHead>Joining Status</TableHead>
-                                <TableHead>Meeting Date</TableHead>
-                                <TableHead>External?</TableHead>
-                                <TableHead>Review Asked?</TableHead>
-                                <TableHead>Review Given?</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-1">
+                                        <span>Agents</span>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 cursor-pointer">
+                                                    <Filter
+                                                        className={cn(
+                                                            "size-4 transition-colors",
+                                                            meta.selectedUsers.length > 0
+                                                                ? "text-blue-600"
+                                                                : "text-muted-foreground"
+                                                        )}
+                                                    />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent
+                                                align="end"
+                                                className="max-h-64 overflow-auto w-48"
+                                            >
+                                                {users.length === 0 ? (
+                                                    <div className="p-2 text-center text-sm text-muted-foreground">
+                                                        No Users found
+                                                    </div>
+                                                ) : (
+                                                    users.map((t: any) => (
+                                                        <DropdownMenuCheckboxItem
+                                                            key={t.id}
+                                                            checked={meta.selectedUsers.includes(String(t.id))}
+                                                            onCheckedChange={(checked) =>
+                                                                handleUserToggle(String(t.id), checked)
+                                                            }
+                                                        >
+                                                            {t.fullName}
+                                                        </DropdownMenuCheckboxItem>
+                                                    ))
+                                                )}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        {meta.selectedUsers.length > 0 && (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-6 w-6 text-red-500 hover:text-red-700"
+                                                onClick={() => clearAgentsFilter()}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        )}
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Joining Status</span>
+                                        <DynamicSelectFilter
+                                            label="Joining Status"
+                                            paramKey="joiningStatus"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: true, name: "Yes" },
+                                                { id: false, name: "No" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Meeting Datetime </span>
+                                        <DateAndDateRangeFilter
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                        />
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>External?</span>
+                                        <DynamicSelectFilter
+                                            label="External"
+                                            paramKey="isExternalMeeting"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: true, name: "Yes" },
+                                                { id: false, name: "No" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Review Asked?</span>
+                                        <DynamicSelectFilter
+                                            label="Review Asked"
+                                            paramKey="reviewAsked"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: true, name: "Yes" },
+                                                { id: false, name: "No" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Review Given?</span>
+                                        <DynamicSelectFilter
+                                            label="Review Status"
+                                            paramKey="reviewStatus"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: true, name: "Yes" },
+                                                { id: false, name: "No" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {
-
                                 loading ? (
                                     Array.from({ length: 10 }).map((_, i) => (
                                         <TableRow key={i}>
@@ -205,7 +410,7 @@ export default function MeetingListPage() {
                                 ) : (
                                     canView ? (
                                         meetings.length > 0 ? (
-                                            meetings.map((meeting, idx) => (
+                                            meetings.map((meeting: any, idx) => (
                                                 <TableRow key={meeting.id}>
                                                     <TableCell>{idx + 1}</TableCell>
                                                     <TableCell
@@ -215,14 +420,27 @@ export default function MeetingListPage() {
                                                             setViewMeetingModalOpen(true);
                                                         }}
                                                     >{meeting.storeUrl}</TableCell>
-                                                    <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
-                                                    <TableCell className="flex flex-wrap gap-1">
+                                                    <TableCell>
+                                                        {meeting.agents && meeting.agents.length > 0 ? (
+                                                            meeting.agents.map((user: any) => (
+                                                                <span
+                                                                    key={user.fullName}
+                                                                    className="bg-blue-100 text-blue-700 ml-0.5 px-2 py-0.5 rounded-full text-xs"
+                                                                >
+                                                                    {user.fullName}
+                                                                </span>
+                                                            ))
+                                                        ) : (
+                                                            <span>N/A</span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
                                                         {meeting.joiningStatus ? 'Yes' : 'No'}
                                                     </TableCell>
-                                                    <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
+                                                    <TableCell>{meeting.meetingDateTime ? new Date(meeting.meetingDateTime).toLocaleString() : '-'}</TableCell>
                                                     <TableCell>{meeting.isExternalMeeting ? "Yes" : "No"}</TableCell>
-                                                    <TableCell>{meeting.reviewAsked ? "Yes" : "No"}</TableCell>
-                                                    <TableCell>{meeting.reviewGiven ? "Yes" : "No"}</TableCell>
+                                                    <TableCell>{meeting.review?.reviewAsked ? "Yes" : "No"}</TableCell>
+                                                    <TableCell>{meeting.review?.reviewStatus ? "Yes" : "No"}</TableCell>
                                                     <TableCell>
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>

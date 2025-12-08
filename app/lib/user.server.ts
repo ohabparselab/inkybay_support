@@ -44,6 +44,31 @@ export async function getUser(request: Request) {
 
     return user;
 }
+
+export async function getUserInfoById(userId: number):Promise<any> {
+    
+    if (!userId) return false;
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+            id: true,
+            fullName: true,
+            email: true,
+            avatar: true,
+            isActive: true,
+            role: {
+                select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                },
+            }
+        },
+    });
+
+    return user;
+}
+
 export type User = {
   id: number;
   fullName: string;

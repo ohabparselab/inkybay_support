@@ -1,5 +1,15 @@
 import { uploadFile } from "~/lib/upload.server"
 import { prisma } from "~/lib/prisma.server"
+import { getUserId } from "~/session.server"
+import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server"
+import { getUserInfoById } from "~/lib/user.server"
+import { createNotification } from "~/lib/notification.server"
+
+enum NotificationType {
+    CHAT,
+    TASK,
+    COMMUNITY
+}
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
 
@@ -33,79 +43,142 @@ const getAllChats = async (_request: Request) => {
 //
 // [POST] Create new chats
 //
-
 const createChat = async (request: Request) => {
     try {
+        const userId = await getUserId(request);
         const formData = await request.formData();
 
-        // Parse basic fields
         const clientId = formData.get("clientId") ? Number(formData.get("clientId")) : null;
-        const handleBy = formData.get("handleBy") ? Number(formData.get("handleBy")) : null;
         const clientQuery = formData.get("clientQuery")?.toString() || null;
 
-        if (!clientId) {
-            return Response.json({ success: false, message: "Please select a client." }, { status: 400 });
-        }
-        if (!handleBy) {
-            return Response.json({ success: false, message: "Please select an agent (Handle By)." }, { status: 400 });
-        }
         if (!clientQuery) {
             return Response.json({ success: false, message: "Client query is required." }, { status: 400 });
         }
 
-        // Build chat data
+        const comments = formData.get("comments")?.toString() || null;
+        const mentions = formData.get("mentions")?.toString() || null;
+        const handledByUsers = formData.getAll("handledByUsers[]").map((t) => t.toString().trim()).filter(Boolean);
+        const reviewApproachByUsers = formData.getAll("reviewApproachByUsers[]").map((t) => t.toString().trim()).filter(Boolean);
+
         const chatData: any = {
-            clientQuery,
+            clientQuery: clientQuery,
+            clientId: clientId,
+            projectId: formData.get("projectId") ? Number(formData.get("projectId")) : null,
             chatDate: formData.get("chatDate") ? new Date(formData.get("chatDate") as string) : null,
-            lastReviewApproach: formData.get("lastReviewApproach")
-                ? new Date(formData.get("lastReviewApproach") as string)
-                : null,
-            reviewText: formData.get("reviewText")?.toString() || null,
-            reviewAsked: formData.get("reviewAsked") === "true",
-            reviewStatus: formData.get("reviewStatus") === "true",
+            storefrontPassword: formData.get("storefrontPassword")?.toString() || null,
+            externalChat: formData.get("externalChat") === "true",
+            shopUrl: formData.get("shopUrl")?.toString() || null,
+            shopName: formData.get("shopName")?.toString() || null,
+            shopEmail: formData.get("shopEmail")?.toString() || null,
             clientFeedback: formData.get("clientFeedback")?.toString() || null,
             storeDetails: formData.get("storeDetails")?.toString() || null,
-            featureRequest: formData.get("featureRequest")?.toString() || null,
-            agentRating: formData.get("agentRating") ? Number(formData.get("agentRating")) : null,
-            agentComments: formData.get("agentComments")?.toString() || null,
             otherStoresUrl: formData.get("otherStoresUrl")?.toString() || null,
             changesMadeByAgent: formData.get("changesMadeByAgent")?.toString() || null,
+            agentRating: formData.get("agentRating") ? Number(formData.get("agentRating")) : null,
+            createdBy: Number(userId),
+            handledByUsers: handledByUsers.length ?
+                {
+                    connect: handledByUsers.map((id) => ({ id: Number(id) })),
+                } : undefined,
         };
 
-        // Handle file upload
         const chatTranscriptFile = formData.get("chatTranscript") as File | null;
         if (chatTranscriptFile) {
             const chatTranscriptUrl = await uploadFile(chatTranscriptFile);
             if (chatTranscriptUrl) chatData.chatTranscript = chatTranscriptUrl;
         }
+        // --- CREATE CHAT ---
+        const chat = await prisma.chat.create({ data: chatData });
 
-        // Insert client emails
-        const clientEmails = formData.getAll("clientEmails[]").map(email => email.toString());
-        if (clientEmails.length > 0) {
+        if (comments && comments.trim() !== "") {
+            const comment = await prisma.comment.create({
+                data: {
+                    content: comments,
+                    user: { connect: { id: userId } },
+                    chat: { connect: { id: chat.id } },
+                },
+            });
+
+            if (Array.isArray(mentions) && mentions.length > 0) {
+                const validMentions = (mentions || []).filter(
+                    (mId): mId is number => typeof mId === "number"
+                );
+
+                const actorUser = await getUserInfoById(userId);
+
+                for (const mId of validMentions) {
+                    await prisma.commentMention.create({
+                        data: {
+                            commentId: comment.id,
+                            mentionedId: mId,
+                        },
+                    });
+
+                    const notificationData: any = {
+                        userId: mId,
+                        actorId: userId,
+                        type: NotificationType.CHAT,
+                        entityId: chat.id,
+                        title: `${actorUser.fullName} mentioned you a comment on chat.`,
+                        message: "You have a new mentioned comment in chat please check",
+                    };
+
+                    await createNotification(notificationData);
+                }
+            }
+        }
+
+        // --- REVIEW DATA ---
+        const reviewData: any = {
+            chatId: chat.id,
+            reviewAsked: formData.get("reviewAsked") === "true",
+            reviewStatus: formData.get("reviewStatus") === "true",
+            reviewText: formData.get("reviewText")?.toString() || null,
+            reviewNotAskReason: formData.get("reviewNotAskReason")?.toString() || null,
+            rating: formData.get("rating") ? Number(formData.get("rating")) : null,
+            ratingMood: formData.get("ratingMood")?.toString() || null,
+            lastReviewApproach: formData.get("lastReviewApproach")
+                ? new Date(formData.get("lastReviewApproach") as string)
+                : null,
+            reviewSubmittedAt: formData.get("reviewSubmittedAt")
+                ? new Date(formData.get("reviewSubmittedAt") as string)
+                : null,
+            createdBy: Number(userId),
+            reviewApproachByUsers: reviewApproachByUsers.length ?
+                {
+                    connect: reviewApproachByUsers.map((id) => ({ id: Number(id) })),
+                } : undefined,
+        };
+
+        const review = await prisma.review.create({ data: reviewData });
+
+        // --- FEATURE REQUEST
+        const featureRequest = formData.get("featureRequest")?.toString() || null;
+        if (featureRequest) {
+            await prisma.featureRequest.create({
+                data: {
+                    clientId,
+                    chatId: chat.id,
+                    featureDetails: featureRequest,
+                    createdBy: Number(userId),
+                },
+            });
+        }
+
+        // --- CLIENT EMAILS ---
+        const clientEmails = formData.getAll("clientEmails[]").map((e) => e.toString());
+        if (clientEmails.length > 0 && clientId) {
             for (const email of clientEmails) {
                 const exists = await prisma.clientEmail.findUnique({
                     where: { clientId, email },
                 });
                 if (!exists) {
-                    await prisma.clientEmail.create({
-                        data: { clientId, email },
-                    });
+                    await prisma.clientEmail.create({ data: { clientId, email } });
                 }
             }
         }
 
-        // Create chat with relations
-        const chat = await prisma.chat.create({
-            data: {
-                ...chatData,
-                handleByUser: { connect: { id: handleBy } },
-                client: { connect: { id: clientId } },
-            },
-        });
-
-        // Handle Tags (formData: tags[])
-        const tags = formData.getAll("tags[]").map(t => t.toString().trim()).filter(Boolean);
-
+        const tags = formData.getAll("tags[]").map((t) => t.toString().trim()).filter(Boolean);
         if (tags.length > 0) {
             for (const tagName of tags) {
                 const tag = await prisma.tag.upsert({
@@ -123,10 +196,32 @@ const createChat = async (request: Request) => {
             }
         }
 
-        return Response.json({ success: true, message: "Chat created successfully.", chat });
+        const logsParams = {
+            userId: userId,
+            action: "CREATE" as ActivityAction,
+            modelName: "chat",
+            recordId: chat.id,
+            metaData: {
+                chatData: chat,
+                reviewData: review,
+                featureRequestData: featureRequest,
+                tags: tags,
+                clientEmails: clientEmails
+            }
+        }
+
+        await ActivityLog(logsParams);
+
+        return Response.json({
+            success: true,
+            message: "Chat and review created successfully.",
+            chat,
+        });
     } catch (error: any) {
         console.error("Create chat failed:", error);
         return Response.json({ success: false, message: error.message }, { status: 500 });
     }
 };
+
+
 

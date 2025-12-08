@@ -3,14 +3,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~
 import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
 import { AlertTriangle, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
+import { DynamicSelectFilter } from "~/components/dynamic-select-filter";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
+import { DynamicDateFilter } from "~/components/dynamic-date-filter";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { PaginationBar } from "~/components/pagination-bar";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
+import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
 import { toast } from "sonner";
+
+const GenerateReportModal = lazy(() =>
+    import("~/components/modals/generate-report-modal").then((m) => ({ default: m.GenerateReportModal }))
+);
 
 const AddMarketingFunnelModal = lazy(() =>
     import("~/components/modals/add-marketing-funnel-modal").then((m) => ({ default: m.AddMarketingFunnelModal }))
@@ -35,17 +42,87 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
 
-    const where = search
-        ? {
-            OR: [
-                { client: { shopDomain: { contains: searchLower } } },
-                { client: { shopName: { contains: searchLower } } },
-                { client: { email: { contains: searchLower } } },
-                { installPhase: { contains: searchLower } },
-                { typeOfProducts: { contains: searchLower } },
-            ],
-        }
-        : {};
+    const installPhase = url.searchParams.get("installPhase") || ""; // "install" | "uninstall" | ""
+    const clientSuccessStatus = url.searchParams.get("clientSuccessStatus") || ""; // "1st" | "2nd" | ""
+    const followUpStatus = url.searchParams.get("followUpStatus") || ""; // "1st" | "2nd" | ""
+
+    const followUpDate = url.searchParams.get("followUpDate");
+    const followUpDateStart = url.searchParams.get("followUpDateStart");
+    const followUpDateEnd = url.searchParams.get("followUpDateEnd");
+
+    const createdAt = url.searchParams.get("createdAt");
+    const createdAtStart = url.searchParams.get("createdAtStart");
+    const createdAtEnd = url.searchParams.get("createdAtEnd");
+
+    // Build base filter
+    const where: any = {
+        currentPhase: true,
+    };
+
+    // Search filter
+    if (search) {
+        where.OR = [
+            { client: { shopDomain: { contains: searchLower } } },
+            { client: { shopName: { contains: searchLower } } },
+            { client: { email: { contains: searchLower } } },
+            { installPhase: { contains: searchLower } },
+            { typeOfProducts: { contains: searchLower } },
+        ];
+    }
+
+    // Install phase filter
+    if (installPhase) {
+        where.installPhase = installPhase;
+    }
+
+    // Install phase filter
+    if (followUpStatus) {
+        where.followUpStep = followUpStatus;
+    }
+
+    // Follow-up status filter
+    if (clientSuccessStatus) {
+        where.clientSuccessStatus = clientSuccessStatus;
+    }
+
+    // Follow-up date range filter
+    if (followUpDate) {
+        const start = new Date(followUpDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(followUpDate);
+        end.setHours(23, 59, 59, 999);
+
+        where.followUpDate = {
+            gte: start,
+            lt: end,
+        };
+    } else if (followUpDateStart && followUpDateEnd) {
+        const start = new Date(followUpDateStart);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(followUpDateEnd);
+        end.setHours(23, 59, 59, 999);
+
+        where.followUpDate = {
+            gte: start,
+            lt: end,
+        };
+    }
+
+    // Created at range filter
+    if (createdAt) {
+        where.createdAt = {
+            gte: new Date(`${createdAt.split("T")[0]}T00:00:00.000Z`),
+            lt: new Date(`${createdAt.split("T")[0]}T23:59:59.999Z`)
+        };
+    } else if (createdAtStart && createdAtEnd) {
+        where.createdAt = {
+            gte: new Date(`${createdAtStart.split("T")[0]}T00:00:00.000Z`),
+            lt: new Date(`${createdAtEnd.split("T")[0]}T23:59:59.999Z`)
+        };
+    }
+
 
     const [funnels, total] = await Promise.all([
         prisma.marketingFunnel.findMany({
@@ -62,7 +139,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
                         },
                     },
                 },
-                followUps: true,
+                project: true
             },
         }),
         prisma.marketingFunnel.count({ where }),
@@ -76,6 +153,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
             limit,
             totalPages: Math.ceil(total / limit),
             search,
+            installPhase,
+            followUpStatus,
+            clientSuccessStatus,
+            followUpDate,
+            followUpDateStart,
+            followUpDateEnd,
+            createdAt,
+            createdAtStart,
+            createdAtEnd,
         },
     };
 }
@@ -91,6 +177,7 @@ export default function MarketingFunnelListPage() {
     const [viewMarketingFunnelModalOpen, setViewMarketingFunnelModalOpen] = useState(false);
     const [editMarketingFunnelModalOpen, setEditMarketingFunnelModalOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [generateReportModalOpen, setGenerateReportModalOpen] = useState(false);
     const navigate = useNavigate();
 
     const rootData = useRouteLoaderData("root") as any;
@@ -153,10 +240,27 @@ export default function MarketingFunnelListPage() {
         if (loading) setLoading(false);
     }, [funnels]);
 
+    const generateFollowUpOptions = (count = 20) => {
+        const suffix = (n: number) => {
+            if (n % 10 === 1 && n % 100 !== 11) return `${n}st`;
+            if (n % 10 === 2 && n % 100 !== 12) return `${n}nd`;
+            if (n % 10 === 3 && n % 100 !== 13) return `${n}rd`;
+            return `${n}th`;
+        };
+
+        return Array.from({ length: count }, (_, i) => {
+            const label = suffix(i + 1);
+            return { id: label, name: label };
+        });
+    }
+
     return (
         <div className="px-6 space-y-2">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold tracking-tight">Marketing Funnels</h1>
+                <Button onClick={() => setGenerateReportModalOpen(true)}>
+                    <Plus /> Generate Reports
+                </Button>
             </div>
 
             <div className="w-full space-y-4">
@@ -180,13 +284,72 @@ export default function MarketingFunnelListPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
-                                <TableHead>Shop Name</TableHead>
-                                <TableHead>Install Phase</TableHead>
-                                <TableHead>Type of Products</TableHead>
-                                <TableHead>Client Success</TableHead>
-                                <TableHead>Customization Type</TableHead>
+                                <TableHead>Store URL</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Install Phase</span>
+                                        <DynamicSelectFilter
+                                            label="Install Phase"
+                                            paramKey="installPhase"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: "install", name: "Install" },
+                                                { id: "uninstall", name: "Uninstall" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Follow-up Status</span>
+                                        <DynamicSelectFilter
+                                            label="Follow-up Status"
+                                            paramKey="followUpStatus"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={generateFollowUpOptions(20)}
+                                        />
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Follow-up Date</span>
+                                        <DynamicDateFilter
+                                            label="Follow-up Date"
+                                            paramKey="followUpDate"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                        />
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Client Success</span>
+                                        <DynamicSelectFilter
+                                            label="Client Success"
+                                            paramKey="clientSuccessStatus"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: "yes", name: "Yes" },
+                                                { id: "no", name: "No" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
                                 <TableHead>Initial Feedback</TableHead>
-                                <TableHead>Created At</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Created At</span>
+                                        <DynamicDateFilter
+                                            label="Created At"
+                                            paramKey="createdAt"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                        />
+                                    </div>
+                                </TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -195,7 +358,7 @@ export default function MarketingFunnelListPage() {
                                 loading ? (
                                     Array.from({ length: 9 }).map((_, i) => (
                                         <TableRow key={i}>
-                                            <TableCell colSpan={10} className="py-4">
+                                            <TableCell colSpan={9} className="py-4">
                                                 <div className="animate-pulse h-5 bg-accent rounded" />
                                             </TableCell>
                                         </TableRow>
@@ -203,7 +366,7 @@ export default function MarketingFunnelListPage() {
                                 ) : (
                                     canView ? (
                                         funnels.length > 0 ? (
-                                            funnels.map((funnel, idx) => (
+                                            funnels.map((funnel: any, idx) => (
                                                 <TableRow key={funnel.id}>
                                                     <TableCell>{idx + 1}</TableCell>
                                                     <TableCell
@@ -212,39 +375,11 @@ export default function MarketingFunnelListPage() {
                                                             setSelectedMarketingFunnel(funnel);
                                                             setViewMarketingFunnelModalOpen(true);
                                                         }}
-                                                    >{funnel.client.shopName}</TableCell>
+                                                    >{funnel.client.shopDomain.split('.')[0]}</TableCell>
                                                     <TableCell>{funnel.installPhase}</TableCell>
-                                                    <TableCell className="max-w-[20px] truncate">
-                                                        {funnel.typeOfProducts ? (
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <span>{funnel.typeOfProducts}</span>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>{funnel.typeOfProducts}</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        ) : (
-                                                            <span>N/A</span>
-                                                        )}
-                                                    </TableCell>
-
-                                                    <TableCell>{funnel.clientSuccessStatus === "yes" ? "Yes" : "No"}</TableCell>
-
-                                                    <TableCell className="max-w-[20px] truncate">
-                                                        {funnel.customizationType ? (
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <span>{funnel.customizationType}</span>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>{funnel.customizationType}</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        ) : (
-                                                            <span>N/A</span>
-                                                        )}
-                                                    </TableCell>
+                                                    <TableCell><Badge variant="outline">{funnel.followUpStep ? funnel.followUpStep : 'No'}</Badge></TableCell>
+                                                    <TableCell>{funnel.followUpDate ? new Date(funnel.followUpDate).toLocaleDateString() : 'N/A'}</TableCell>
+                                                    <TableCell><Badge variant="outline">{funnel.clientSuccessStatus == 'yes' ? 'Yes' : 'No'}</Badge></TableCell>
 
                                                     <TableCell className="max-w-[20px] truncate">
                                                         {funnel.initialFeedback ? (
@@ -275,7 +410,7 @@ export default function MarketingFunnelListPage() {
                                                                 }}>
                                                                     <Eye /> View Details
                                                                 </DropdownMenuItem>
-                                                                {
+                                                                {/* {
                                                                     canCreate && (
                                                                         <DropdownMenuItem
                                                                             onClick={() => {
@@ -287,7 +422,7 @@ export default function MarketingFunnelListPage() {
                                                                             <Plus /> Add Marketing Funnel
                                                                         </DropdownMenuItem>
                                                                     )
-                                                                }
+                                                                } */}
                                                                 {
                                                                     canEdit && (
                                                                         <DropdownMenuItem
@@ -398,6 +533,12 @@ export default function MarketingFunnelListPage() {
                         onConfirm={async () => handleDelete()}
                     />
                 </Suspense>
+            )}
+            {generateReportModalOpen && (
+                <GenerateReportModal
+                    open={generateReportModalOpen}
+                    onOpenChange={setGenerateReportModalOpen}
+                />
             )}
         </div>
     );

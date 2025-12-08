@@ -27,8 +27,9 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { Spinner } from "../ui/spinner";
-
+import { DatePickerWithClear } from "@/components/ui/date-picker";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { Spinner } from "@/components/ui/spinner";
 
 interface AddMeetingModalProps {
     open: boolean;
@@ -40,8 +41,11 @@ interface AddMeetingModalProps {
 export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: AddMeetingModalProps) {
 
     const [users, setUsers] = useState<any[]>([]);
+    const [projects, setProjects] = useState<any>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [formSubmitLoading, setFormSubmitLoading] = useState(false);
+    const [loadingProjects, setLoadingProjects] = useState(false);
+    const [clientEmails, setClientEmails] = useState<any>([]);
 
     const {
         control,
@@ -53,7 +57,8 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
         resolver: zodResolver(addMeetingSchema),
         defaultValues: {
             storeUrl: storeUrl ? storeUrl : "",
-            agentId: "",
+            agents: [],
+            projectId: "",
             emails: [],
             reviewAsked: false,
             reviewGiven: false,
@@ -79,9 +84,62 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
         }
     };
 
+    const fetchProjects = async () => {
+        try {
+            setLoadingProjects(true);
+            const res = await fetch("/api/settings/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        } finally {
+            setLoadingProjects(false);
+        }
+    }
+
+    const fetchClientEmails = async () => {
+        try {
+            const res = await fetch(`/api/meetings/emails/${storeUrl}`);
+            const data = await res.json();
+            setClientEmails(data.clientEmails);
+        } catch (err) {
+            console.error("Failed to fetch client emails:", err);
+        }
+    }
+
     useEffect(() => {
         fetchUsers();
+        fetchProjects();
+        if (storeUrl) {
+            fetchClientEmails();
+        }
     }, []);
+
+    useEffect(() => {
+        if (!projects) return;
+
+        const inkybay = projects.find((p: any) => p.slug === "inkybay");
+
+        let baseData: any = {
+            projectId: inkybay?.id ? String(inkybay.id) : "",
+            agents: [],
+            emails: [],
+            reviewAsked: false,
+            reviewGiven: false,
+            joiningStatus: false,
+        };
+
+        if (storeUrl) {
+            baseData = {
+                ...baseData,
+                storeUrl: storeUrl,
+                emails: clientEmails?.map((e: any) => e.email)
+            }
+        }
+
+        reset(baseData);
+
+    }, [projects]);
 
     const onSubmit = async (data: AddMeetingInput) => {
         try {
@@ -122,6 +180,8 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
         }
     };
 
+    console.log(errors)
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
@@ -143,7 +203,6 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                             </>
                         )}
                     </DialogTitle>
-
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-3">
@@ -179,30 +238,23 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                     {/* Agent + Meeting Date */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                         <div>
-                            <Label className="mb-2">Agent (Handled By)</Label>
+                            <Label className="mb-2">Agents (Handled By)</Label>
                             <Controller
                                 control={control}
-                                name="agentId"
+                                name="agents"
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select Agent" />
-                                        </SelectTrigger>
-                                        <SelectContent className="w-full">
-                                            {loadingUsers ? (
-                                                <div className="p-2 text-center text-muted-foreground">Loading...</div>
-                                            ) : (
-                                                users.map((user: any) => (
-                                                    <SelectItem key={user.id} value={String(user.id)}>
-                                                        {user.fullName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                    <MultiSelect
+                                        options={users.map((u: any) => ({
+                                            label: u.fullName,
+                                            value: String(u.id),
+                                        }))}
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        placeholder="Select agents..."
+                                    />
                                 )}
                             />
-                            {errors.agentId && <p className="text-sm text-red-500">{errors.agentId.message}</p>}
+                            {errors.agents && <p className="text-sm text-red-500">{errors.agents.message}</p>}
                         </div>
                         <div>
                             <Label className="mb-2">Meeting Date & Time</Label>
@@ -210,31 +262,55 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                                 control={control}
                                 name="meetingDateTime"
                                 render={({ field }) => {
-                                    const value = field.value ? new Date(field.value) : undefined;
+                                    let value = field.value ? new Date(field.value) : undefined;
+                                    const [open, setOpen] = useState(false);
+
                                     return (
-                                        <Popover>
+                                        <Popover open={open} onOpenChange={setOpen}>
                                             <PopoverTrigger asChild>
-                                                <Button variant="outline" className="w-full justify-start">
-                                                    {value ? format(value, "PPP p") : "Pick date & time"}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                </Button>
+                                                <div className="relative w-full">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        className="w-full justify-between text-left"
+                                                    >
+                                                        {value ? format(value, "PPP p") : "Pick date & time"}
+                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    </Button>
+
+                                                    {/* CLEAR BUTTON (X) */}
+                                                    {value && (
+                                                        <X
+                                                            className="absolute hover:bg-accent rounded-2xl right-9 top-1/2 -translate-y-1/2 h-4 w-4 cursor-pointer opacity-70 hover:opacity-100"
+                                                            onClick={(e) => {
+                                                                field.onChange(null);
+                                                                e.stopPropagation();
+                                                                setOpen(false);
+                                                            }}
+                                                        />
+                                                    )}
+                                                </div>
                                             </PopoverTrigger>
 
                                             <PopoverContent align="start" className="p-4 w-auto">
+                                                {/* CALENDAR SECTION */}
                                                 <Calendar
                                                     mode="single"
                                                     selected={value}
                                                     onSelect={(date) => {
                                                         if (!date) return;
+
                                                         const current = value ?? new Date();
-                                                        // Preserve existing time when changing date
                                                         date.setHours(current.getHours(), current.getMinutes());
+
                                                         field.onChange(date);
                                                     }}
+                                                    initialFocus
                                                 />
 
-                                                {/* Full hour & minute dropdowns */}
+                                                {/* TIME PICKER */}
                                                 <div className="flex gap-2 mt-4 items-center">
+                                                    {/* HOURS */}
                                                     <select
                                                         className="border rounded px-2 py-1 text-sm"
                                                         value={value ? value.getHours() : ""}
@@ -253,8 +329,9 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                                                         ))}
                                                     </select>
 
-                                                    <span>:</span>
+                                                    <span className="text-gray-500">:</span>
 
+                                                    {/* MINUTES */}
                                                     <select
                                                         className="border rounded px-2 py-1 text-sm"
                                                         value={value ? value.getMinutes() : ""}
@@ -278,7 +355,11 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                                     );
                                 }}
                             />
-                            {errors.meetingDateTime && <p className="text-sm text-red-500">{errors.meetingDateTime.message}</p>}
+                            {errors.meetingDateTime && (
+                                <p className="text-sm text-red-500">
+                                    {errors.meetingDateTime.message}
+                                </p>
+                            )}
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -316,17 +397,11 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                                 control={control}
                                 name="reviewDate"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline" className="w-full justify-start">
-                                                {field.value ? format(field.value, "PPP") : "Pick date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>
@@ -371,26 +446,47 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                     {/* Recorded Video + Notes */}
                     <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                         <div>
-                            <Label className="mb-2">Recorded Video (Upload)</Label>
-                            <Controller
-                                control={control}
-                                name="recordedVideo"
-                                render={({ field }) => (
-                                    <Input
-                                        type="file"
-                                        accept="video/*"
-                                        onChange={(e) => field.onChange(e.target.files?.[0])}
-                                    />
-                                )}
-                            />
-                            {/* {errors.recordedVideo && (
-                                <p className="text-sm text-red-500">{errors.recordedVideo.message}</p>
-                            )} */}
+                            <Label className="mb-2">Recorded Video</Label>
+                            <Input {...register("recordedVideo")} placeholder="Enter video link..." />
                         </div>
                         <div>
-                            <Label className="mb-2">Reviews Info</Label>
-                            <Textarea {...register("reviewsInfo")} placeholder="Reviews info..." />
+                            <Label className="mb-2">Project</Label>
+                            <Controller
+                                control={control}
+                                name="projectId"
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        disabled={loadingProjects}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={loadingProjects ? "Loading..." : "Select Project"} />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            {loadingProjects ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
+                                            ) : projects.length === 0 ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
+                                            ) : (
+                                                projects.map((project: any) => (
+                                                    <SelectItem key={project.id} value={String(project.id)}>
+                                                        {project.projectName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.projectId && (
+                                <p className="text-sm text-red-500">{errors.projectId.message}</p>
+                            )}
                         </div>
+                    </div>
+                    <div>
+                        <Label className="mb-2">Reviews Info</Label>
+                        <Textarea {...register("reviewsInfo")} placeholder="Reviews info..." />
                     </div>
                     <div>
                         <Label className="mb-2">Meeting Notes</Label>
@@ -398,10 +494,10 @@ export function AddMeetingModal({ open, onOpenChange, refreshPage, storeUrl }: A
                     </div>
 
                     <DialogFooter className="flex !justify-center w-full mt-6">
-                        <Button variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
+                        <Button type="button" variant="destructive" onClick={() => { onOpenChange(false); reset(); }}>
                             <X /> Cancel
                         </Button>
-                        <Button variant="outline" onClick={() => reset()}>
+                        <Button type="button" variant="outline" onClick={() => reset()}>
                             <ListRestart /> Reset
                         </Button>
                         <Button type="submit">

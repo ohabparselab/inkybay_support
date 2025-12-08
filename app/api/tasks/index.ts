@@ -1,7 +1,17 @@
-import { addTaskSchema } from "~/lib/validations"
-import { prisma } from "~/lib/prisma.server"
+import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server";
+import { createNotification } from "~/lib/notification.server";
+import { getUserInfoById } from "~/lib/user.server";
+import { addTaskSchema } from "~/lib/validations";
+import { prisma } from "~/lib/prisma.server";
+import { getUserId } from "~/session.server";
 
-const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
+enum NotificationType {
+    CHAT,
+    TASK,
+    COMMUNITY
+}
+
+const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 });
 
 //  MAIN CONTROLLER HANDLER
 export const action = async ({ request }: { request: Request }) => {
@@ -34,6 +44,7 @@ const getAllTasks = async (_request: Request) => {
 //
 const createTask = async (request: Request) => {
     try {
+        const userId = await getUserId(request)
         const data = await request.json();
 
         if (data.taskAddedDate) {
@@ -44,6 +55,7 @@ const createTask = async (request: Request) => {
         const providedBy = value.providedBy ? Number(value.providedBy) : null;
         const solvedBy = value.solvedBy ? Number(value.solvedBy) : null;
         const statusId = value.taskStatus ? Number(value.taskStatus) : null;
+        const projectId = value.projectId ? Number(value.projectId) : null;
 
         // Validate required foreign keys
         if (!value.clientId) {
@@ -64,12 +76,11 @@ const createTask = async (request: Request) => {
             storePassword: value.storePassword,
             storeAccess: value.storeAccess,
             taskAddedDate: value.taskAddedDate ? new Date(value.taskAddedDate) : null,
-            reply: value.reply,
-            comments: value.comments,
-            // relations below
+            notes: value.notes,
             client: { connect: { id: Number(value.clientId) } },
             providedByUser: { connect: { id: providedBy } },
             status: { connect: { id: statusId } },
+            project: { connect: { id: projectId } },
         };
 
         // Connect solvedBy only if provided
@@ -77,10 +88,14 @@ const createTask = async (request: Request) => {
             taskData.solvedByUser = { connect: { id: solvedBy } };
         }
 
-         if (value?.emails && value?.emails.length > 0) {
+        if (userId) {
+            taskData.createdByUser = { connect: { id: Number(userId) } };
+        }
+
+        if (value?.emails && value?.emails.length > 0) {
             for (const email of value.emails) {
                 const exists = await prisma.clientEmail.findUnique({
-                    where: { clientId: value.clientId, email } ,
+                    where: { clientId: value.clientId, email },
                 });
                 if (!exists) {
                     await prisma.clientEmail.create({
@@ -94,6 +109,55 @@ const createTask = async (request: Request) => {
         const task = await prisma.task.create({
             data: taskData
         });
+
+        if (value.comments && value.comments.trim() !== "") {
+            const comment = await prisma.comment.create({
+                data: {
+                    content: value.comments,
+                    user: { connect: { id: userId } },
+                    task: { connect: { id: task.id } },
+                },
+            });
+
+            if (Array.isArray(value.mentions) && value.mentions.length > 0) {
+                const validMentions = (value.mentions || []).filter(
+                    (mId): mId is number => typeof mId === "number"
+                );
+
+                const actorUser = await getUserInfoById(userId);
+
+                for (const mId of validMentions) {
+                    await prisma.commentMention.create({
+                        data: {
+                            commentId: comment.id,
+                            mentionedId: mId,
+                        },
+                    });
+                    const notificationData: any = {
+                        userId: mId,
+                        actorId: userId,
+                        type: NotificationType.TASK,
+                        entityId: task.id,
+                        title: `${actorUser.fullName} mentioned you a comment on task.`,
+                        message: "You have a new mentioned comment in task please check",
+                    };
+
+                    await createNotification(notificationData);
+                }
+            }
+        }
+
+        const logsParams = {
+            userId: userId,
+            action: "UPDATE" as ActivityAction,
+            modelName: "task",
+            recordId: task.id,
+            metaData: {
+                taskData: task,
+                clientEmails: value?.emails
+            }
+        }
+        await ActivityLog(logsParams)
 
         return Response.json({
             success: true,

@@ -3,7 +3,7 @@ import { prisma } from "~/lib/prisma.server"
 export async function action({ request, params }: { request: Request; params: any }) {
 
     const mfId = Number(params.mfId);
-    if (!mfId) return new Response(JSON.stringify({ message: "Task ID required" }), { status: 400 });
+    if (!mfId) return new Response(JSON.stringify({ message: "funnels ID required" }), { status: 400 });
 
     switch (request.method.toUpperCase()) {
         case "PUT":
@@ -27,7 +27,7 @@ const updateMarketingFunnel = async (mfId: number, request: Request) => {
         // Check if the funnel exists
         const existingFunnel = await prisma.marketingFunnel.findUnique({
             where: { id: mfId },
-            include: { followUps: true, client: { include: { clientEmail: true } } },
+            include: { client: { include: { clientEmail: true } } },
         });
 
         if (!existingFunnel) {
@@ -35,17 +35,72 @@ const updateMarketingFunnel = async (mfId: number, request: Request) => {
         }
 
         // Update main funnel fields
-        const updatedFunnel = await prisma.marketingFunnel.update({
-            where: { id: mfId },
-            data: {
-                installPhase: value.installPhase,
+
+        const hasFollowUps = Array.isArray(value.followUps) && value.followUps.length > 0;
+
+        if (hasFollowUps) {
+            for (const followUp of value.followUps) {
+                const funnelParams = {
+                    clientId: value.clientId,
+                    projectId: Number(value.projectId),
+                    typeOfProducts: value.typeOfProducts,
+                    customizationType: value.customizationType,
+                    followUpStep: followUp.followUpStep,
+                    followUpDate: followUp.followUpDate,
+                    installPhase: followUp.installPhase,
+                    otherAppsInstalled: followUp.otherAppsInstalled,
+                    initialFeedback: followUp.initialFeedback,
+                    clientSuccessStatus: followUp.clientSuccessStatus,
+                }
+
+                await prisma.marketingFunnel.update({
+                    where: { id: mfId },
+                    data: funnelParams,
+                });
+            }
+        } else {
+            
+            const funnelParams = {
+                clientId: value.clientId,
+                projectId: Number(value.projectId),
                 typeOfProducts: value.typeOfProducts,
-                otherAppsInstalled: value.otherAppsInstalled,
                 customizationType: value.customizationType,
-                initialFeedback: value.initialFeedback,
-                clientSuccessStatus: value.clientSuccessStatus,
-            },
-        });
+                followUpStep: null,
+                followUpDate: null,
+                installPhase: value.installPhase || null,
+                otherAppsInstalled: value.otherAppsInstalled || null,
+                initialFeedback: value.initialFeedback || null,
+                clientSuccessStatus: value.clientSuccessStatus || "no",
+                currentPhase: true,
+            }
+
+            await prisma.marketingFunnel.update({
+                where: { id: mfId },
+                data: funnelParams,
+            });
+        }
+
+        if (Array.isArray(value?.followUps) && value?.followUps.length > 0) {
+            for (const followUp of value.followUps) {
+                const funnelParams = {
+                    clientId: value.clientId,
+                    projectId: Number(value.projectId),
+                    typeOfProducts: value.typeOfProducts,
+                    customizationType: value.customizationType,
+                    followUpStep: followUp.followUpStep,
+                    followUpDate: followUp.followUpDate,
+                    installPhase: followUp.installPhase,
+                    otherAppsInstalled: followUp.otherAppsInstalled,
+                    initialFeedback: followUp.initialFeedback,
+                    clientSuccessStatus: followUp.clientSuccessStatus,
+                }
+
+                await prisma.marketingFunnel.update({
+                    where: { id: mfId },
+                    data: funnelParams,
+                });
+            }
+        }
 
         // Update emails
         if (Array.isArray(value.emails)) {
@@ -73,27 +128,9 @@ const updateMarketingFunnel = async (mfId: number, request: Request) => {
             }
         }
 
-        // Update follow-ups
-        if (Array.isArray(value.followUps)) {
-            // Delete existing follow-ups
-            await prisma.followUp.deleteMany({
-                where: { marketingFunnelId: mfId },
-            });
-
-            // Add new follow-ups
-            const followUpData = value.followUps.map((date: string) => ({
-                marketingFunnelId: mfId,
-                followUpDate: new Date(date),
-            }));
-            if (followUpData.length > 0) {
-                await prisma.followUp.createMany({ data: followUpData });
-            }
-        }
-
         return Response.json({
             success: true,
             message: "Marketing Funnel updated successfully.",
-            data: updatedFunnel,
         });
     } catch (error: any) {
         console.error("Update Marketing Funnel failed:", error);
@@ -107,11 +144,6 @@ const deleteMarketingFunnelHard = async (funnelId: number) => {
         if (!funnelId) {
             return Response.json({ success: false, message: "Funnel ID is required." }, { status: 400 });
         }
-
-        // Delete all follow-ups associated with this funnel
-        await prisma.followUp.deleteMany({
-            where: { marketingFunnelId: funnelId },
-        });
 
         // Delete the funnel itself
         await prisma.marketingFunnel.delete({

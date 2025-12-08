@@ -1,10 +1,11 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { AlertTriangle, Ellipsis, ExternalLink, Eye, PenBox, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Check, Ellipsis, ExternalLink, Eye, Filter, PenBox, Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFetcher, useLocation, useRouteLoaderData } from "react-router";
+import { HtmlViewerWithIframe } from "~/components/ui/html-viewer";
 import { CenterSpinner } from "~/components/ui/center-spinner";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { ShopDetails } from "~/components/shop-details";
@@ -13,6 +14,8 @@ import { Separator } from "~/components/ui/separator";
 import { Spinner } from "~/components/ui/spinner";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
+import { formatDate } from "date-fns";
+import { cn } from "~/lib/utils";
 import { toast } from "sonner";
 
 const ViewChatDetailsModal = lazy(() => import("~/components/modals/view-chat-modal").then((m) => ({ default: m.ViewChatDetailsModal })));
@@ -45,6 +48,7 @@ export default function ShopDetailsPage() {
     const clientFetcher = useFetcher<{ status: number; data: any }>();
     const chatsFetcher = useFetcher<{ status: number; data: any }>();
     const tasksFetcher = useFetcher<{ status: number; data: any }>();
+    const reviewsFetcher = useFetcher<{ status: number; data: any }>();
     const marketingFunnelsFetcher = useFetcher<{ status: number; data: any }>();
     const meetingsFetcher = useFetcher<{ status: number; data: any }>();
 
@@ -131,8 +135,12 @@ export default function ShopDetailsPage() {
             setClientId(client.id);
             const cf = new FormData();
             cf.set("clientId", client.id);
+            const cf2 = new FormData();
+            cf2.set("clientId", client.id);
+            cf2.set("shopUrl", shopUrl);
             chatsFetcher.submit(cf, { method: "post", action: "/api/chats/get-chats-by-client-id" });
             tasksFetcher.submit(cf, { method: "post", action: "/api/tasks/get-tasks-by-client-id" });
+            reviewsFetcher.submit(cf2, { method: "post", action: "/api/reviews/get-reviews-by-client-id" });
             marketingFunnelsFetcher.submit(cf, { method: "post", action: "/api/marketing-funnels/get-marketing-funnels-by-client-id" });
         }
     }, [clientFetcher.state, clientFetcher.data]);
@@ -157,6 +165,10 @@ export default function ShopDetailsPage() {
 
     const loadingMeetings = meetingsFetcher.state !== "idle";
     const meetings = meetingsFetcher.data?.data || [];
+
+    const loadingReviews = reviewsFetcher.state !== "idle";
+    const reviews = reviewsFetcher.data?.data || [];
+    const hasReview = reviews.length > 0 ? "Yes" : 'No';
 
     const refreshPage = () => {
         if (!shopUrl || !clientId) return;
@@ -233,6 +245,31 @@ export default function ShopDetailsPage() {
             toast.error(err.message || "Failed to delete meeting.");
         }
     }
+
+
+    const [selectedPhaseValue, setSelectedPhaseValue] = useState(null);
+    const options = [
+        {
+            name: 'install'
+        },
+        {
+            name: 'uninstall'
+        }
+    ];
+
+    useEffect(() => {
+        if (clientFetcher.state === "idle" && clientFetcher.data?.data) {
+            const client = clientFetcher.data.data;
+            setClientId(client.id);
+            const cf = new FormData();
+            cf.set("clientId", client.id);
+            if (selectedPhaseValue) {
+                cf.set("installPhase", selectedPhaseValue);
+            }
+            marketingFunnelsFetcher.submit(cf, { method: "post", action: "/api/marketing-funnels/get-marketing-funnels-by-client-id" });
+        }
+    }, [clientFetcher.state, clientFetcher.data, selectedPhaseValue]);
+
 
     return (
         <div className="w-full px-6">
@@ -332,7 +369,7 @@ export default function ShopDetailsPage() {
                                 ) : (
                                     <>
                                         <h2 className="text-lg font-semibold mb-3">Inkybay Details</h2>
-                                        <div className="grid grid-cols-2 gap-y-1 text-sm">
+                                        <div className="grid grid-cols-3 gap-y-1 text-sm">
                                             <p>
                                                 <span className="font-bold">Version:</span> {inkybay.version ? inkybay.version : "N/A"}
                                             </p>
@@ -359,6 +396,20 @@ export default function ShopDetailsPage() {
                                                 <span className="font-bold">Promo ID:</span>{" "}
                                                 {inkybay.promo_id}
                                             </p>
+                                            <p>
+                                                <span className="font-bold">Free trial:</span>{" "}
+                                                {inkybay.trial_days > 21 ? "No" : "Yes"}
+                                            </p>
+                                            <p>
+                                                <span className="font-bold">Review Status:</span>{" "}
+                                                {
+                                                    loadingReviews ? (
+                                                        <Spinner />
+                                                    ) : (
+                                                        hasReview
+                                                    )
+                                                }
+                                            </p>
                                         </div>
                                     </>
                                 )
@@ -377,7 +428,6 @@ export default function ShopDetailsPage() {
 
                     {/* Shopify Details */}
                     <ShopDetails shopUrl={shopUrl} />
-                    <Separator />
 
                     {/* Tabs Section */}
                     <section className="border p-3 rounded">
@@ -385,7 +435,7 @@ export default function ShopDetailsPage() {
                             <TabsList className="w-full flex">
                                 <TabsTrigger
                                     value="history"
-                                    className="flex-1 text-center px-6 py-4 text-lg font-medium"
+                                    className="flex-1 cursor-pointer text-center px-6 py-4 text-lg font-medium"
                                 >
                                     History {loadingHistory ? (
                                         <Spinner />
@@ -398,7 +448,7 @@ export default function ShopDetailsPage() {
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="chats"
-                                    className="flex-1 text-center px-6 py-4 text-lg font-medium"
+                                    className="flex-1 cursor-pointer text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Chats {loadingChats ? (
                                         <Spinner />
@@ -411,7 +461,7 @@ export default function ShopDetailsPage() {
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="tasks"
-                                    className="flex-1 text-center px-6 py-4 text-lg font-medium"
+                                    className="flex-1 cursor-pointer text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Tasks
                                     {loadingTasks ? (
@@ -425,7 +475,7 @@ export default function ShopDetailsPage() {
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="marketingFunnels"
-                                    className="flex-1 text-center px-6 py-4 text-lg font-medium"
+                                    className="flex-1 cursor-pointer text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Marketing Funnels
                                     {loadingMarketingFunnels ? (
@@ -439,7 +489,7 @@ export default function ShopDetailsPage() {
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="meetings"
-                                    className="flex-1 text-center px-6 py-4 text-lg font-medium"
+                                    className="flex-1 cursor-pointer text-center px-6 py-4 text-lg font-medium"
                                 >
                                     Meetings
                                     {loadingMeetings ? (
@@ -499,12 +549,12 @@ export default function ShopDetailsPage() {
                                                         <TableHeader>
                                                             <TableRow>
                                                                 <TableHead>ID</TableHead>
-                                                                <TableHead>Shop Name</TableHead>
+                                                                <TableHead>Store URL</TableHead>
                                                                 <TableHead>Client Query</TableHead>
                                                                 <TableHead>Handle By</TableHead>
                                                                 <TableHead>Tags</TableHead>
                                                                 <TableHead>Review Asked?</TableHead>
-                                                                <TableHead>Client Feedback</TableHead>
+                                                                <TableHead>Review Given?</TableHead>
                                                                 <TableHead>Created</TableHead>
                                                                 <TableHead>Actions</TableHead>
                                                             </TableRow>
@@ -514,7 +564,15 @@ export default function ShopDetailsPage() {
                                                                 chats.map((chat: any, index: any) => (
                                                                     <TableRow key={chat.id}>
                                                                         <TableCell>{index + 1}</TableCell>
-                                                                        <TableCell>{chat.client.shopName}</TableCell>
+                                                                        <TableCell
+                                                                            className="text-blue-600 hover:underline cursor-pointer"
+                                                                            onClick={() => {
+                                                                                setSelectedChat(chat);
+                                                                                setViewChatModal(true);
+                                                                            }}
+                                                                        >
+                                                                            {chat.client.shopDomain}
+                                                                        </TableCell>
                                                                         <TableCell className="max-w-[20px] truncate">
                                                                             <TooltipProvider>
                                                                                 <Tooltip>
@@ -531,7 +589,20 @@ export default function ShopDetailsPage() {
                                                                                 </Tooltip>
                                                                             </TooltipProvider>
                                                                         </TableCell>
-                                                                        <TableCell>{chat.handleByUser?.fullName ?? "—"}</TableCell>
+                                                                        <TableCell>
+                                                                            {chat.handledByUsers && chat.handledByUsers.length > 0 ? (
+                                                                                chat.handledByUsers.map((user: any) => (
+                                                                                    <span
+                                                                                        key={user.fullName}
+                                                                                        className="bg-blue-100 text-blue-700 ml-0.5 px-2 py-0.5 rounded-full text-xs"
+                                                                                    >
+                                                                                        {user.fullName}
+                                                                                    </span>
+                                                                                ))
+                                                                            ) : (
+                                                                                <span>N/A</span>
+                                                                            )}
+                                                                        </TableCell>
                                                                         <TableCell className="flex flex-wrap gap-1">
                                                                             {chat.chatTags && chat.chatTags.length > 0 ? (
                                                                                 chat.chatTags.map((ct: any) => (
@@ -547,23 +618,10 @@ export default function ShopDetailsPage() {
                                                                             )}
                                                                         </TableCell>
                                                                         <TableCell>
-                                                                            {chat.reviewAsked == true ? "Yes" : "No"}
+                                                                            {chat.review?.reviewAsked == true ? "Yes" : "No"}
                                                                         </TableCell>
-                                                                        <TableCell className="max-w-[20px] truncate">
-                                                                            <TooltipProvider>
-                                                                                <Tooltip>
-                                                                                    <TooltipTrigger asChild>
-                                                                                        <span className="block truncate cursor-pointer">
-                                                                                            {chat.clientFeedback || "N/A"}
-                                                                                        </span>
-                                                                                    </TooltipTrigger>
-                                                                                    <TooltipContent>
-                                                                                        <p className="max-w-sm break-words">
-                                                                                            {chat.clientFeedback}
-                                                                                        </p>
-                                                                                    </TooltipContent>
-                                                                                </Tooltip>
-                                                                            </TooltipProvider>
+                                                                        <TableCell>
+                                                                            {chat.review?.reviewStatus == true ? "Yes" : "No"}
                                                                         </TableCell>
                                                                         <TableCell>
                                                                             {new Date(chat.createdAt).toLocaleDateString()}
@@ -719,9 +777,8 @@ export default function ShopDetailsPage() {
                                                         <TableHeader>
                                                             <TableRow>
                                                                 <TableHead>ID</TableHead>
-                                                                <TableHead>Shop Name</TableHead>
+                                                                <TableHead>Store URL</TableHead>
                                                                 <TableHead>Task Details</TableHead>
-                                                                <TableHead>Client</TableHead>
                                                                 <TableHead>Provided By</TableHead>
                                                                 <TableHead>Solved By</TableHead>
                                                                 <TableHead>Store Access</TableHead>
@@ -735,9 +792,14 @@ export default function ShopDetailsPage() {
                                                                 tasks.map((task: any, idx: number) => (
                                                                     <TableRow key={task.id}>
                                                                         <TableCell>{idx + 1}</TableCell>
-                                                                        <TableCell>{task.client.shopName}</TableCell>
-                                                                        <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell>
-                                                                        <TableCell>{task.client?.shopName ?? "—"}</TableCell>
+                                                                        <TableCell
+                                                                            className="text-blue-600 hover:underline cursor-pointer"
+                                                                            onClick={() => {
+                                                                                setSelectedTask(task);
+                                                                                setViewTaskModalOpen(true);
+                                                                            }}
+                                                                        >{task.client.shopDomain}</TableCell>
+                                                                        <TableCell className="max-w-[20px] truncate justify-center"><HtmlViewerWithIframe content={task.taskDetails || "-"} /></TableCell>
                                                                         <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
                                                                         <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
                                                                         <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>
@@ -861,7 +923,7 @@ export default function ShopDetailsPage() {
                                             <div className="flex justify-center py-5">
                                                 <Spinner />
                                             </div>
-                                        ) : marketingFunnels.length > 0 ? (
+                                        ) : marketingFunnels ? (
                                             <div className="w-full space-y-4">
                                                 <div className="flex items-center justify-between">
                                                     <div className="relative w-full sm:w-64">
@@ -894,13 +956,59 @@ export default function ShopDetailsPage() {
                                                         <TableHeader>
                                                             <TableRow>
                                                                 <TableHead>ID</TableHead>
-                                                                <TableHead>Shop Name</TableHead>
-                                                                <TableHead>Install Phase</TableHead>
+                                                                <TableHead>Store URL</TableHead>
+                                                                <TableHead>
+
+                                                                    <div className="flex items-center gap-2 relative">
+                                                                        Install Phase
+                                                                        <DropdownMenu>
+                                                                            <DropdownMenuTrigger asChild>
+                                                                                <Button
+                                                                                    variant="ghost"
+                                                                                    size="icon"
+                                                                                    className={cn(
+                                                                                        selectedPhaseValue ? "text-blue-600" : "text-muted-foreground",
+                                                                                        "h-6 w-6"
+                                                                                    )}
+                                                                                    title='Install Phase'
+                                                                                >
+                                                                                    <Filter className="size-4" />
+                                                                                </Button>
+                                                                            </DropdownMenuTrigger>
+
+                                                                            <DropdownMenuContent align="end" className="max-h-64 overflow-auto">
+                                                                                {options.map((opt: any, index) => {
+                                                                                    const isSelected = String(opt.name) === selectedPhaseValue;
+                                                                                    return (
+                                                                                        <DropdownMenuItem
+                                                                                            key={index}
+                                                                                            onClick={() => setSelectedPhaseValue(opt.name)}
+                                                                                            className={cn(isSelected && "bg-blue-100 text-blue-700")}
+                                                                                        >
+                                                                                            <span className="flex capitalize items-center justify-between w-full">
+                                                                                                {opt.name}
+                                                                                                {isSelected && <Check className="ml-2 h-4 w-4" />}
+                                                                                            </span>
+                                                                                        </DropdownMenuItem>
+                                                                                    );
+                                                                                })}
+                                                                            </DropdownMenuContent>
+                                                                        </DropdownMenu>
+
+                                                                        {selectedPhaseValue && (
+                                                                            <p
+                                                                                className="text-xs cursor-pointer text-blue-700 hover:text-destructive"
+                                                                                onClick={() => setSelectedPhaseValue(null)}
+                                                                            >
+                                                                                Clear
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                </TableHead>
+                                                                <TableHead>Follow-up Step</TableHead>
+                                                                <TableHead>Follow-up Date</TableHead>
                                                                 <TableHead>Type of Products</TableHead>
                                                                 <TableHead>Client Success</TableHead>
-                                                                <TableHead>Customization Type</TableHead>
-                                                                <TableHead>Initial Feedback</TableHead>
-                                                                <TableHead>Created At</TableHead>
                                                                 <TableHead>Actions</TableHead>
                                                             </TableRow>
                                                         </TableHeader>
@@ -909,13 +1017,18 @@ export default function ShopDetailsPage() {
                                                                 marketingFunnels?.map((funnel: any, idx: number) => (
                                                                     <TableRow key={funnel.id}>
                                                                         <TableCell>{idx + 1}</TableCell>
-                                                                        <TableCell>{funnel.client.shopName}</TableCell>
+                                                                        <TableCell
+                                                                            className="text-blue-600 hover:underline cursor-pointer"
+                                                                            onClick={() => {
+                                                                                setSelectedMarketingFunnel(funnel);
+                                                                                setViewMarketingFunnelModalOpen(true);
+                                                                            }}
+                                                                        >{funnel.client.shopDomain}</TableCell>
                                                                         <TableCell>{funnel.installPhase}</TableCell>
+                                                                        <TableCell>{funnel.followUpStep}</TableCell>
+                                                                        <TableCell>{funnel.followUpDate ? formatDate(funnel.followUpDate, 'yyyy-MM-dd') : 'N/A'}</TableCell>
                                                                         <TableCell>{funnel.typeOfProducts ?? 'N/A'}</TableCell>
                                                                         <TableCell>{funnel.clientSuccessStatus == 'yes' ? "Yes" : 'No'}</TableCell>
-                                                                        <TableCell>{funnel.customizationType == '' ? 'N/A' : funnel.customizationType}</TableCell>
-                                                                        <TableCell>{funnel.initialFeedback == '' ? 'N/A' : funnel.initialFeedback}</TableCell>
-                                                                        <TableCell>{new Date(funnel.createdAt).toLocaleDateString()}</TableCell>
                                                                         <TableCell>
                                                                             <DropdownMenu>
                                                                                 <DropdownMenuTrigger asChild>
@@ -930,7 +1043,7 @@ export default function ShopDetailsPage() {
                                                                                     }}>
                                                                                         <Eye /> View Details
                                                                                     </DropdownMenuItem>
-                                                                                    {
+                                                                                    {/* {
                                                                                         canMFunnelCreate && (
                                                                                             <DropdownMenuItem
                                                                                                 onClick={() => {
@@ -943,7 +1056,7 @@ export default function ShopDetailsPage() {
                                                                                                 <Plus /> Add Marketing Funnel
                                                                                             </DropdownMenuItem>
                                                                                         )
-                                                                                    }
+                                                                                    } */}
                                                                                     {
                                                                                         canMFunnelEdit && (
                                                                                             <DropdownMenuItem
@@ -979,8 +1092,8 @@ export default function ShopDetailsPage() {
                                                                 ))
                                                             ) : (
                                                                 <TableRow>
-                                                                    <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
-                                                                        No marketing funnels found.
+                                                                    <TableCell colSpan={8} className="text-center py-15 text-muted-foreground">
+                                                                        No marketing funnels data found.
                                                                     </TableCell>
                                                                 </TableRow>
                                                             )}
@@ -989,7 +1102,7 @@ export default function ShopDetailsPage() {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="text-gray-400 text-center py-15">
+                                            <div className="text-gray-400 text-center py-30">
                                                 <span>
                                                     No marketing funnels available
                                                 </span>
@@ -1073,9 +1186,28 @@ export default function ShopDetailsPage() {
                                                                 meetings.map((meeting: any, idx: number) => (
                                                                     <TableRow key={meeting.id}>
                                                                         <TableCell>{idx + 1}</TableCell>
-                                                                        <TableCell className="max-w-xs truncate">{meeting.storeUrl}</TableCell>
-                                                                        <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
-                                                                        <TableCell className="flex flex-wrap gap-1">
+                                                                        <TableCell
+                                                                            className="max-w-xs truncate text-blue-600 hover:underline cursor-pointer"
+                                                                            onClick={() => {
+                                                                                setSelectedMeeting(meeting);
+                                                                                setViewMeetingModalOpen(true);
+                                                                            }}
+                                                                        >{meeting.storeUrl}</TableCell>
+                                                                        <TableCell>
+                                                                            {meeting.agents && meeting.agents.length > 0 ? (
+                                                                                meeting.agents.map((user: any) => (
+                                                                                    <span
+                                                                                        key={user.fullName}
+                                                                                        className="bg-blue-100 text-blue-700 ml-0.5 px-2 py-0.5 rounded-full text-xs"
+                                                                                    >
+                                                                                        {user.fullName}
+                                                                                    </span>
+                                                                                ))
+                                                                            ) : (
+                                                                                <span>N/A</span>
+                                                                            )}
+                                                                        </TableCell>
+                                                                        <TableCell>
                                                                             {meeting.joiningStatus ? 'Yes' : 'No'}
                                                                         </TableCell>
                                                                         <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
@@ -1104,7 +1236,7 @@ export default function ShopDetailsPage() {
                                                                                                     setEditMeetingModalOpen(true);
                                                                                                 }}
                                                                                             >
-                                                                                                <PenBox /> Edit Task
+                                                                                                <PenBox /> Edit Meeting
                                                                                             </DropdownMenuItem>
                                                                                         )
                                                                                     }
@@ -1168,8 +1300,6 @@ export default function ShopDetailsPage() {
                                         </div>
                                     )
 
-
-
                                 }
                             </TabsContent>
                         </Tabs>
@@ -1192,7 +1322,7 @@ export default function ShopDetailsPage() {
             )}
             {viewChatModal && selectedChat && (
                 <Suspense fallback={<CenterSpinner />}>
-                    <ViewChatDetailsModal chat={selectedChat} open={viewChatModal} onOpenChange={setViewChatModal} />
+                    <ViewChatDetailsModal chatId={selectedChat.id} open={viewChatModal} onOpenChange={setViewChatModal} />
                 </Suspense>
             )}
             {editChatModal && selectedChat && (
@@ -1236,7 +1366,7 @@ export default function ShopDetailsPage() {
             {viewTaskModalOpen && selectedTask && (
                 <Suspense fallback={<CenterSpinner />}>
                     <ViewTaskDetailsModal
-                        task={selectedTask}
+                        taskId={selectedTask.id}
                         open={viewTaskModalOpen}
                         onOpenChange={setViewTaskModalOpen}
                     />
@@ -1277,6 +1407,7 @@ export default function ShopDetailsPage() {
                         onOpenChange={setAddMarketingModalOpen}
                         refreshPage={refreshPage}
                         funnel={selectedMarketingFunnel}
+                        isAppInstall={inkybay.active}
                     />
                 </Suspense>
             )}

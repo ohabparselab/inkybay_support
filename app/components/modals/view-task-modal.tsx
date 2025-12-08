@@ -5,25 +5,51 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { HtmlViewerWithIframe } from "@/components/ui/html-viewer";
 import { ShopDetails } from "@/components/shop-details";
 import { ShopHistory } from "@/components/shop-history";
 import { Separator } from "@/components/ui/separator";
+import { CommentList } from "../comments/CommentList";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { HtmlViewer, HtmlViewerWithIframe } from "@/components/ui/html-viewer";
+import { CenterSpinner } from "../ui/center-spinner";
+import { Spinner } from "../ui/spinner";
 
 interface ViewTaskDetailsModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    task?: any;
+    taskId: number;
 }
 
-export function ViewTaskDetailsModal({ open, onOpenChange, task }: ViewTaskDetailsModalProps) {
+export function ViewTaskDetailsModal({ open, onOpenChange, taskId }: ViewTaskDetailsModalProps) {
 
-    if (!task) return null;
+    const [loading, setLoading] = useState(true);
+    const [users, setUsers] = useState<any[]>([]);
+    const [task, setTask] = useState<any | null>({});
+    const [currentUserId, setCurrentUserId] = useState<any>();
 
     const formatDate = (date?: Date | string | null) => date ? format(new Date(date), "PPPp") : "-";
+
+    const fetchData = async () => {
+        const [usersRes, taskRes] = await Promise.all([
+            fetch("/api/users").then((res) => res.json()),
+            fetch(`/api/tasks/${taskId}`).then((res) => res.json()),
+        ]);
+        setUsers(usersRes.users || []);
+        setCurrentUserId(usersRes.currentUserId);
+        setTask(taskRes.task);
+    };
+
+
+    useEffect(() => {
+        if (open && taskId) {
+            fetchData();
+            setLoading(false);
+        }
+    }, [open, taskId]);
+
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -36,38 +62,69 @@ export function ViewTaskDetailsModal({ open, onOpenChange, task }: ViewTaskDetai
                     <h3 className="text-base font-semibold mb-3">Task Info</h3>
                     <Separator />
 
-                    <div className="grid grid-cols-2 gap-x-6 space-y-2 text-sm">
-                        <p><strong>Client:</strong> {task.client?.shopName || "-"}</p>
-                        <p><strong>Provided By:</strong> {task.providedByUser?.fullName || "-"}</p>
-                        <p><strong>Solved By:</strong> {task.solvedByUser?.fullName || "N/A"}</p>
-                        <p><strong>Status:</strong>
-                            {task.status ? (
-                                <Badge variant="secondary" className="ml-2">{task.status.name}</Badge>
-                            ) : (
-                                <span className="text-gray-500 ml-1">N/A</span>
-                            )}
-                        </p>
-                        <p><strong>Store Password:</strong> {task.storePassword || "N/A"}</p>
-                        <p><strong>Store Access:</strong> {task.storeAccess || "N/A"}</p>
-                        <p><strong>Task Added Date:</strong> {formatDate(task.taskAddedDate)}</p>
-                        <p><strong>Created At:</strong> {formatDate(task.createdAt)}</p>
-                        <p><strong>Updated At:</strong> {formatDate(task.updatedAt)}</p>
-                        <p><strong>Reply:</strong> {task.reply || "N/A"}</p>
-                        <p><strong>Comments:</strong> {task.comments || "N/A"}</p>
+                    {
+                        loading ? (
+                            <>
+                                <div className="flex justify-center py-15">
+                                    <Spinner />
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="grid grid-cols-2 gap-x-4 text-sm">
+
+                                    <div className="space-y-2">
+                                        <p><strong>Store URL:</strong> {task?.client?.shopDomain.split(".")[0] || "-"}</p>
+                                        <p ><strong>Task Details:</strong><HtmlViewerWithIframe content={task.taskDetails || "-"} /></p>
+                                        <p><strong>Provided By:</strong> {task.providedByUser?.fullName || "-"}</p>
+                                        <p><strong>Status:</strong>
+                                            {task.status ? (
+                                                <Badge variant="secondary" className="ml-2">{task.status.name}</Badge>
+                                            ) : (
+                                                <span className="text-gray-500 ml-1">N/A</span>
+                                            )}
+                                        </p>
+                                        <p><strong>Solved By:</strong> {task.solvedByUser?.fullName || "N/A"}</p>
+                                        <p><strong>Store Password:</strong> {task.storePassword || "N/A"}</p>
+                                        <p><strong>Store Access:</strong> {task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p>
+                                            <strong>Emails:</strong>{" "}
+                                            {task?.client?.clientEmail && task?.client?.clientEmail.length > 0
+                                                ? task?.client?.clientEmail.map((cEmail: any) => {
+                                                    return <Badge variant="secondary" className="m-1">{cEmail.email}</Badge>
+                                                })
+                                                : "N/A"}
+                                        </p>
+                                        <p><strong>Notes:</strong> {task.notes || "N/A"}</p>
+                                        <p><strong>Task Added Date:</strong> {formatDate(task.taskAddedDate)}</p>
+                                        <p><strong>Created At:</strong> {formatDate(task.createdAt)}</p>
+                                        <p><strong>Updated At:</strong> {formatDate(task.updatedAt)}</p>
+                                        <p><strong>Project:</strong> <Badge variant="secondary">{task.project?.name}</Badge></p>
+                                    </div>
+                                </div >
+                            </>
+                        )
+                    }
+                    <Separator />
+                    <h3 className="text-bold">Comments</h3>
+                    <div>
+                        <CommentList contextId={task.id} currentUserId={currentUserId} contextType="task" users={users} />
                     </div>
-                    <p className="text-sm"><strong>Task Details:</strong><HtmlViewerWithIframe content={task.taskDetails || "-"} /></p>
                     <Separator />
-                    <ShopDetails shopUrl={task.client.shopDomain} />
+
+                    <ShopDetails shopUrl={task?.client?.shopDomain} />
                     <Separator />
-                    <ShopHistory shopUrl={task.client.shopDomain} />
-                </section>
+                    <ShopHistory shopUrl={task?.client?.shopDomain} />
+                </section >
 
                 <DialogFooter className="p-6 border-t">
                     <Button variant="destructive" onClick={() => onOpenChange(false)}>
                         Close
                     </Button>
                 </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            </DialogContent >
+        </Dialog >
     );
 }

@@ -47,7 +47,6 @@ export default function ProjectListPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(editedData),
         });
-        console.log("======res.ok====>>", res.ok);
         if (res.ok) {
             toast.success("Project updated successfully.");
             setEditingRow(null);

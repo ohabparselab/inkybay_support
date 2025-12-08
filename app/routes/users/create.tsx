@@ -5,11 +5,11 @@ import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Link, useLoaderData } from "react-router"
+import { Eye, EyeOff, List } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { prisma } from "~/lib/prisma.server"
-import { Eye, EyeOff, List } from "lucide-react"
 import { toast } from "sonner"
 import { useState } from "react"
 
@@ -156,47 +156,49 @@ export default function CreateUser() {
                                             />
                                         )}
                                     />
-                                    
+
                                 </div>
                             </div>
                         </div>
                         <div className="flex flex-col gap-4">
                             <h2 className="text-lg font-semibold">Module Permissions</h2>
-                            {modules.map((module: any) => (
-                                <div key={module.id} className="border rounded p-4">
-                                    <h3 className="font-medium">{module.name}</h3>
-                                    <div className="flex flex-wrap gap-4 mt-2">
-                                        {permissions.map((perm: any) => (
-                                            <Controller
-                                                key={perm.id}
-                                                control={control}
-                                                name="permissions"
-                                                render={({ field }) => {
-                                                    // Ensure we have an object to avoid 'undefined'
-                                                    const currentPermissions: Record<number, number[]> = field.value || {}
-                                                    const currentModulePermissions = currentPermissions[module.id] || []
-                                                    const checked = currentModulePermissions.includes(perm.id)
+                            <div className="grid grid-cols-2 gap-4">
+                                {modules.map((module: any) => (
+                                    <div key={module.id} className="border rounded p-4">
+                                        <h3 className="font-medium">{module.name}</h3>
+                                        <div className="flex flex-wrap gap-4 mt-2">
+                                            {permissions.map((perm: any) => (
+                                                <Controller
+                                                    key={perm.id}
+                                                    control={control}
+                                                    name="permissions"
+                                                    render={({ field }) => {
+                                                        // Ensure we have an object to avoid 'undefined'
+                                                        const currentPermissions: Record<number, number[]> = field.value || {}
+                                                        const currentModulePermissions = currentPermissions[module.id] || []
+                                                        const checked = currentModulePermissions.includes(perm.id)
 
-                                                    const handleChange = () => {
-                                                        const updated = currentModulePermissions.includes(perm.id)
-                                                            ? currentModulePermissions.filter((id) => id !== perm.id)
-                                                            : [...currentModulePermissions, perm.id]
+                                                        const handleChange = () => {
+                                                            const updated = currentModulePermissions.includes(perm.id)
+                                                                ? currentModulePermissions.filter((id) => id !== perm.id)
+                                                                : [...currentModulePermissions, perm.id]
 
-                                                        field.onChange({ ...currentPermissions, [module.id]: updated })
-                                                    }
+                                                            field.onChange({ ...currentPermissions, [module.id]: updated })
+                                                        }
 
-                                                    return (
-                                                        <div className="flex items-center gap-2">
-                                                            <Checkbox checked={checked} onCheckedChange={handleChange} />
-                                                            <span>{perm.name}</span>
-                                                        </div>
-                                                    )
-                                                }}
-                                            />
-                                        ))}
+                                                        return (
+                                                            <div className="flex items-center gap-2">
+                                                                <Checkbox checked={checked} onCheckedChange={handleChange} />
+                                                                <span>{perm.name}</span>
+                                                            </div>
+                                                        )
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                         <Button type="submit">Create User</Button>
                     </form>

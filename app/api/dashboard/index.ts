@@ -17,6 +17,11 @@ export async function action({ request }: ActionFunctionArgs) {
             totalMeetings,
             todayMeetings,
             upcomingMeetings,
+            totalReviews,
+            totalFeatureRequest,
+            totalCollaboration,
+            totalCommunities,
+
         ] = await Promise.all([
             prisma.task.count({ where: { isDeleted: false } }),
             prisma.task.findMany({
@@ -53,7 +58,7 @@ export async function action({ request }: ActionFunctionArgs) {
                 orderBy: { meetingDateTime: "asc" },
                 take: 7,
                 include: {
-                    user: { select: { fullName: true, email: true } },
+                    agents: { select: { fullName: true, email: true } },
                 },
             }),
             prisma.meeting.findMany({
@@ -64,9 +69,22 @@ export async function action({ request }: ActionFunctionArgs) {
                 orderBy: { meetingDateTime: "asc" },
                 take: 7,
                 include: {
-                    user: { select: { fullName: true, email: true } },
+                    agents: { select: { fullName: true, email: true } },
                 },
             }),
+            prisma.review.count({
+                where: {
+                    NOT: {
+                        OR: [
+                            { reviewText: null },
+                            { reviewText: "" },
+                        ],
+                    },
+                }
+            }),
+            prisma.featureRequest.count(),
+            prisma.collaborationApp.count(),
+            prisma.community.count(),
         ]);
 
         const pendingTaskCount = await prisma.task.count({
@@ -83,6 +101,10 @@ export async function action({ request }: ActionFunctionArgs) {
                 totalChats,
                 totalFunnels,
                 totalMeetings,
+                totalReviews,
+                totalFeatureRequest,
+                totalCollaboration,
+                totalCommunities,
                 todayMeetingCount: todayMeetings.length,
                 upcomingMeetingCount: upcomingMeetings.length,
             },
@@ -92,7 +114,7 @@ export async function action({ request }: ActionFunctionArgs) {
             upcomingMeetings,
         });
     } catch (error: any) {
-        console.error("Update meeting failed:", error);
+        console.error("Failed to fetch dashboard data:", error);
         return Response.json({ success: false, message: error.message }, { status: 500 });
     }
 }

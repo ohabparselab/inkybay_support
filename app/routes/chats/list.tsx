@@ -1,15 +1,18 @@
 
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
+import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
-import { AlertTriangle, Ellipsis, Eye, Filter, PenBox, Plus, Search, Trash2 } from "lucide-react";
+import { AlertTriangle, Ellipsis, Eye, Filter, PenBox, Plus, Search, Trash2, X } from "lucide-react";
+import { DateAndDateRangeFilter } from "~/components/ui/date-range-filter";
+import { DynamicSelectFilter } from "~/components/dynamic-select-filter";
 import { CenterSpinner } from "~/components/ui/center-spinner";
-import { PaginationBar } from "~/components/pagination-bar";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { PaginationBar } from "~/components/pagination-bar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { prisma } from "~/lib/prisma.server";
+import { format } from "date-fns";
 import { cn } from "~/lib/utils";
 import { toast } from "sonner";
 
@@ -46,8 +49,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const tagParams = url.searchParams.get("tags");
     const selectedTags = tagParams ? tagParams.split(",").map((t) => t.trim()) : [];
 
+    const userParams = url.searchParams.get("users");
+    const selectedUsers = userParams ? userParams.split(",").map((t) => t.trim()) : [];
+
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
+
+    const date = url.searchParams.get("date");
+    const startDate = url.searchParams.get("startDate");
+    const endDate = url.searchParams.get("endDate");
+    const reviewAsked = url.searchParams.get("reviewAsked");
+    const reviewStatus = url.searchParams.get("reviewStatus");
 
     const where: any = {
         ...(search
@@ -76,7 +88,68 @@ export async function loader({ request }: LoaderFunctionArgs) {
             : {}),
     };
 
-    const [chats, total, tags] = await Promise.all([
+    if (date) {
+        const d = new Date(date);
+        const start = new Date(Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth(),
+            d.getUTCDate(),
+            0, 0, 0, 0
+        ));
+        const end = new Date(Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth(),
+            d.getUTCDate(),
+            23, 59, 59, 999
+        ));
+
+        where.chatDate = {
+            gte: start,
+            lt: end,
+        };
+    } else if (startDate && endDate) {
+        const s = new Date(startDate);
+        const e = new Date(endDate);
+
+        const start = new Date(Date.UTC(
+            s.getFullYear(), s.getMonth(), s.getDate(),
+            0, 0, 0, 0)
+        );
+
+        const end = new Date(Date.UTC(
+            e.getFullYear(), e.getMonth(), e.getDate(),
+            23, 59, 59, 999)
+        );
+
+        where.chatDate = {
+            gte: start,
+            lt: end,
+        };
+    }
+
+    if (reviewAsked) {
+        where.review = {
+            ...where.review,
+            reviewAsked: reviewAsked === "true"
+        };
+    }
+
+    if (reviewStatus) {
+        where.review = {
+            ...where.review,
+            reviewStatus: reviewStatus === "true"
+        };
+    }
+
+    if (selectedUsers.length > 0) {
+        where.handledByUsers = {
+            some: {
+                id: { in: selectedUsers.map(Number) }
+            }
+        };
+    }
+
+    const [chats, total, tags, users] = await Promise.all([
         prisma.chat.findMany({
             where,
             skip,
@@ -91,17 +164,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
                         clientEmail: { select: { id: true, email: true } },
                     },
                 },
-                handleByUser: { select: { id: true, fullName: true, email: true } },
+                handledByUsers: { select: { id: true, fullName: true, email: true } },
+                createdByUser: { select: { id: true, fullName: true } },
+                updatedByUser: { select: { id: true, fullName: true } },
                 chatTags: { include: { tag: { select: { name: true } } } },
+                review: { include: { reviewApproachByUsers: true } },
+                project: { select: { name: true } },
+                featureRequest: true,
             },
         }),
         prisma.chat.count({ where }),
         prisma.tag.findMany({ select: { id: true, name: true } }),
+        prisma.user.findMany({ where: { role: { slug: 'user' } } })
     ]);
 
     return {
         chats,
         tags,
+        users,
         meta: {
             total,
             page,
@@ -109,6 +189,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
             totalPages: Math.ceil(total / limit),
             search,
             selectedTags,
+            date,
+            startDate,
+            endDate,
+            reviewAsked,
+            reviewStatus,
+            selectedUsers
         },
     };
 }
@@ -120,18 +206,18 @@ export const meta = () => [{ title: "Chats | InkyBay" }];
 export default function ChatsListPage() {
 
     const [loading, setLoading] = useState(true);
+    const [externalChat, setExternalChat] = useState(false);
     const navigate = useNavigate();
-    const { chats, meta, tags } = useLoaderData<typeof loader>();
+    const { chats, meta, tags, users } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
 
-    const [clientId, setClientId] = useState(0);
+    const [clientId, setClientId] = useState<number | null>(null);
 
     const [chatModalOpen, setChatModalOpen] = useState(false);
     const [viewChatModal, setViewChatModal] = useState(false);
     const [editChatModal, setEditChatModal] = useState(false);
     const [selectedChat, setSelectedChat] = useState<any>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [chatToDelete, setChatToDelete] = useState<any>(null);
 
     const rootData = useRouteLoaderData("root") as any;
     const permissions = rootData?.permissions ?? [];
@@ -173,10 +259,10 @@ export default function ChatsListPage() {
     };
 
     const handleChatDelete = async () => {
-        if (!chatToDelete) return;
+        if (!selectedChat) return;
 
         try {
-            const res = await fetch(`/api/chats/${chatToDelete.id}`, {
+            const res = await fetch(`/api/chats/${selectedChat.id}`, {
                 method: "DELETE",
             });
             if (!res.ok) toast.error("Failed to delete chat");
@@ -204,7 +290,7 @@ export default function ChatsListPage() {
         if (newTags.length) params.set("tags", newTags.join(","));
         else params.delete("tags");
 
-        params.set("page", "1"); // reset pagination
+        params.set("page", "1");
         navigateWithLoading(`?${params.toString()}`);
     };
 
@@ -212,10 +298,45 @@ export default function ChatsListPage() {
         if (loading) setLoading(false);
     }, [chats]);
 
+    const handleUserToggle = (id: string, checked: boolean) => {
+        const params = new URLSearchParams(window.location.search);
+        const currentUsers = params.get("users")
+            ? params.get("users")!.split(",").filter(Boolean)
+            : [];
+        let newUsers: string[];
+        if (checked) newUsers = [...new Set([...currentUsers, id])];
+        else newUsers = currentUsers.filter((t) => t !== id);
+
+        if (newUsers.length) params.set("users", newUsers.join(","));
+        else params.delete("users");
+
+        params.set("page", "1");
+        navigateWithLoading(`?${params.toString()}`);
+    };
+
+    const clearFilter = () => {
+        const params = new URLSearchParams(window.location.search);
+        params.delete("users");
+        params.set("page", "1");
+        navigateWithLoading(`?${params.toString()}`);
+    }
+
     return (
         <div className="px-6 space-y-2">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold tracking-tight">Chats</h1>
+                {
+                    canCreate && (
+                        <Button onClick={() => {
+                            setSelectedChat(null);
+                            setExternalChat(true);
+                            setChatModalOpen(true);
+                        }}>
+                            <Plus /> Add External Chat
+                        </Button>
+                    )
+                }
+
             </div>
             <div className="w-full space-y-4">
                 <div className="flex items-center justify-between">
@@ -239,9 +360,59 @@ export default function ChatsListPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
-                                <TableHead>Shop Name</TableHead>
+                                <TableHead>Store URL</TableHead>
                                 <TableHead>Client Query</TableHead>
-                                <TableHead>Handle By</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-1">
+                                        <span>Handle By</span>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 cursor-pointer">
+                                                    <Filter
+                                                        className={cn(
+                                                            "size-4 transition-colors",
+                                                            meta.selectedUsers.length > 0
+                                                                ? "text-blue-600"
+                                                                : "text-muted-foreground"
+                                                        )}
+                                                    />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent
+                                                align="end"
+                                                className="max-h-64 overflow-auto w-48"
+                                            >
+                                                {users.length === 0 ? (
+                                                    <div className="p-2 text-center text-sm text-muted-foreground">
+                                                        No Users found
+                                                    </div>
+                                                ) : (
+                                                    users.map((t: any) => (
+                                                        <DropdownMenuCheckboxItem
+                                                            key={t.id}
+                                                            checked={meta.selectedUsers.includes(String(t.id))}
+                                                            onCheckedChange={(checked) =>
+                                                                handleUserToggle(String(t.id), checked)
+                                                            }
+                                                        >
+                                                            {t.fullName}
+                                                        </DropdownMenuCheckboxItem>
+                                                    ))
+                                                )}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        {meta.selectedUsers.length > 0 && (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-6 w-6 text-red-500 hover:text-red-700"
+                                                onClick={() => clearFilter()}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        )}
+                                    </div>
+                                </TableHead>
                                 <TableHead>
                                     <div className="flex items-center gap-2">
                                         <span>Tags</span>
@@ -257,22 +428,62 @@ export default function ChatsListPage() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="max-h-64 overflow-auto w-48">
-                                                {tags.map((t: any) => (
-                                                    <DropdownMenuCheckboxItem
-                                                        key={t.id}
-                                                        checked={meta.selectedTags.includes(t.name)}
-                                                        onCheckedChange={(checked) => handleTagToggle(t.name, checked)}
-                                                    >
-                                                        {t.name}
-                                                    </DropdownMenuCheckboxItem>
-                                                ))}
+                                                {
+                                                    tags.length === 0 ? (
+                                                        <div className="p-2 text-center text-sm text-muted-foreground">No tags found</div>
+                                                    ) : (
+                                                        tags.map((t: any) => (
+                                                            <DropdownMenuCheckboxItem
+                                                                key={t.id}
+                                                                checked={meta.selectedTags.includes(t.name)}
+                                                                onCheckedChange={(checked) => handleTagToggle(t.name, checked)}
+                                                            >
+                                                                {t.name}
+                                                            </DropdownMenuCheckboxItem>
+                                                        ))
+                                                    )
+
+                                                }
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </div>
                                 </TableHead>
-                                <TableHead>Review Asked?</TableHead>
-                                <TableHead>Client Feedback</TableHead>
-                                <TableHead>Created</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Review Asked?</span>
+                                        <DynamicSelectFilter
+                                            label="Review Asked"
+                                            paramKey="reviewAsked"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: true, name: "Yes" },
+                                                { id: false, name: "No" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Review Given?</span>
+                                        <DynamicSelectFilter
+                                            label="Review Status"
+                                            paramKey="reviewStatus"
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                            options={[
+                                                { id: true, name: "Yes" },
+                                                { id: false, name: "No" },
+                                            ]}
+                                        />
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Chat Date</span>
+                                        <DateAndDateRangeFilter meta={meta} navigateWithLoading={navigateWithLoading} />
+                                    </div>
+                                </TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -298,7 +509,13 @@ export default function ChatsListPage() {
                                                             setSelectedChat(chat);
                                                             setViewChatModal(true);
                                                         }}
-                                                    >{chat.client.shopName}</TableCell>
+                                                    >
+                                                        {
+                                                            chat.externalChat
+                                                                ? chat.shopUrl?.split('.')[0] || ''
+                                                                : chat?.client?.shopDomain?.split('.')[0] || ''
+                                                        }
+                                                    </TableCell>
                                                     <TableCell className="max-w-[20px] truncate">
                                                         <TooltipProvider>
                                                             <Tooltip>
@@ -315,8 +532,21 @@ export default function ChatsListPage() {
                                                             </Tooltip>
                                                         </TooltipProvider>
                                                     </TableCell>
-                                                    <TableCell>{chat.handleByUser?.fullName ?? "—"}</TableCell>
-                                                    <TableCell className="flex flex-wrap gap-1">
+                                                    <TableCell>
+                                                        {chat.handledByUsers && chat.handledByUsers.length > 0 ? (
+                                                            chat.handledByUsers.map((user: any) => (
+                                                                <span
+                                                                    key={user.fullName}
+                                                                    className="bg-blue-100 text-blue-700 ml-0.5 px-2 py-0.5 rounded-full text-xs"
+                                                                >
+                                                                    {user.fullName}
+                                                                </span>
+                                                            ))
+                                                        ) : (
+                                                            <span>N/A</span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
                                                         {chat.chatTags && chat.chatTags.length > 0 ? (
                                                             chat.chatTags.map((ct: any) => (
                                                                 <span
@@ -331,32 +561,13 @@ export default function ChatsListPage() {
                                                         )}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {chat.reviewAsked == true ? "Yes" : "No"}
-                                                    </TableCell>
-                                                    <TableCell className="max-w-[20px] truncate">
-                                                        {
-                                                            chat.clientFeedback ? (
-                                                                <TooltipProvider>
-
-                                                                    <Tooltip>
-                                                                        <TooltipTrigger asChild>
-                                                                            <span className="block truncate cursor-pointer">
-                                                                                {chat.clientFeedback || "N/A"}
-                                                                            </span>
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>
-                                                                            <p className="max-w-sm break-words">
-                                                                                {chat.clientFeedback}
-                                                                            </p>
-                                                                        </TooltipContent>
-                                                                    </Tooltip>
-                                                                </TooltipProvider>
-                                                            ) : 'N/A'
-                                                        }
-
+                                                        {chat?.review?.reviewAsked == true ? "Yes" : "No"}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {new Date(chat.createdAt).toLocaleDateString()}
+                                                        {chat?.review?.reviewStatus == true ? "Yes" : "No"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {chat.chatDate ? format(new Date(chat.chatDate), "yyyy-MM-dd") : "N/A"}
                                                     </TableCell>
                                                     <TableCell>
                                                         <DropdownMenu>
@@ -379,6 +590,7 @@ export default function ChatsListPage() {
                                                                 {
                                                                     canCreate && (
                                                                         <DropdownMenuItem onClick={() => {
+                                                                            setExternalChat(false);
                                                                             setClientId(chat.clientId);
                                                                             setSelectedChat(chat);
                                                                             setChatModalOpen(true);
@@ -405,7 +617,7 @@ export default function ChatsListPage() {
                                                                             <DropdownMenuItem
                                                                                 variant="destructive"
                                                                                 onClick={() => {
-                                                                                    setChatToDelete(chat);
+                                                                                    setSelectedChat(chat);
                                                                                     setDeleteDialogOpen(true);
                                                                                 }}
                                                                             >
@@ -442,8 +654,6 @@ export default function ChatsListPage() {
                                         </TableRow>
                                     )
                                 )
-
-
                             }
                         </TableBody>
                     </Table>
@@ -457,7 +667,7 @@ export default function ChatsListPage() {
             </div>
 
             {/* Modals */}
-            {chatModalOpen && selectedChat && (
+            {chatModalOpen && (
                 <Suspense fallback={<CenterSpinner />}>
                     <AddChatModal
                         clientId={clientId}
@@ -465,12 +675,13 @@ export default function ChatsListPage() {
                         onOpenChange={setChatModalOpen}
                         refreshPage={refreshPage}
                         chat={selectedChat}
+                        externalChat={externalChat}
                     />
                 </Suspense>
             )}
             {viewChatModal && selectedChat && (
                 <Suspense fallback={<CenterSpinner />}>
-                    <ViewChatDetailsModal chat={selectedChat} open={viewChatModal} onOpenChange={setViewChatModal} />
+                    <ViewChatDetailsModal chatId={selectedChat.id} open={viewChatModal} onOpenChange={setViewChatModal} />
                 </Suspense>
             )}
             {editChatModal && selectedChat && (

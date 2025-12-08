@@ -1,5 +1,44 @@
+import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server";
 import { prisma } from "~/lib/prisma.server";
 import { uploadFile } from "~/lib/upload.server";
+import { getUserId } from "~/session.server";
+
+export async function loader({ params }: { params: any }) {
+    try {
+        const chatId = Number(params.chatId);
+        if (!chatId) return new Response(JSON.stringify({ message: "Chat ID required" }), { status: 400 });
+        const chat = await prisma.chat.findUnique({
+            where: {
+                id: chatId
+            },
+            include: {
+                client: {
+                    select: {
+                        id: true,
+                        shopDomain: true,
+                        shopName: true,
+                        clientEmail: { select: { id: true, email: true } },
+                    },
+                },
+                handledByUsers: { select: { id: true, fullName: true, email: true } },
+                createdByUser: { select: { id: true, fullName: true } },
+                updatedByUser: { select: { id: true, fullName: true } },
+                chatTags: { include: { tag: { select: { name: true } } } },
+                review: { include: { reviewApproachByUsers: true } },
+                project: { select: { name: true } },
+                featureRequest: true,
+            }
+        })
+
+        return Response.json({
+            success: true,
+            chat
+        });
+    } catch (error: any) {
+        console.error("Error fetching tasks:", error);
+        return Response.json({ success: false, message: error.message }, { status: 500 });
+    }
+}
 
 export async function action({ request, params }: { request: Request; params: any }) {
 
@@ -10,7 +49,7 @@ export async function action({ request, params }: { request: Request; params: an
         case "PUT":
             return await updateChat(chatId, request);
         case "DELETE":
-            return await deleteChatHard(chatId);
+            return await deleteChatHard(chatId, request);
         default:
             return new Response(JSON.stringify({ message: "Method not allowed" }), { status: 405 });
     }
@@ -18,113 +57,137 @@ export async function action({ request, params }: { request: Request; params: an
 
 const updateChat = async (chatId: number, request: Request) => {
     try {
-
+        const userId = await getUserId(request);
         const formData = await request.formData();
 
-        // Parse core fields
-        const handleBy = formData.get("handleBy") ? Number(formData.get("handleBy")) : null;
-        const clientQuery = formData.get("clientQuery")?.toString() || null;
-
-        if (!handleBy) {
-            return Response.json({ success: false, message: "Please select an agent (Handle By)." }, { status: 400 });
-        }
-        if (!clientQuery) {
-            return Response.json({ success: false, message: "Client query is required." }, { status: 400 });
-        }
-
-        // Build chat data object
+        // --- CHAT DATA ---
         const chatData: any = {
-            clientQuery,
+            clientQuery: formData.get("clientQuery")?.toString() || null,
             chatDate: formData.get("chatDate") ? new Date(formData.get("chatDate") as string) : null,
-            lastReviewApproach: formData.get("lastReviewApproach")
-                ? new Date(formData.get("lastReviewApproach") as string)
-                : null,
-            reviewText: formData.get("reviewText")?.toString() || null,
-            reviewAsked: formData.get("reviewAsked") === "true",
-            reviewStatus: formData.get("reviewStatus") === "true",
+            storefrontPassword: formData.get("storefrontPassword")?.toString() || null,
+            externalChat: formData.get("externalChat") === "true",
+            shopUrl: formData.get("shopUrl")?.toString() || null,
+            shopName: formData.get("shopName")?.toString() || null,
+            shopEmail: formData.get("shopEmail")?.toString() || null,
             clientFeedback: formData.get("clientFeedback")?.toString() || null,
             storeDetails: formData.get("storeDetails")?.toString() || null,
-            featureRequest: formData.get("featureRequest")?.toString() || null,
-            agentRating: formData.get("agentRating") ? Number(formData.get("agentRating")) : null,
-            agentComments: formData.get("agentComments")?.toString() || null,
             otherStoresUrl: formData.get("otherStoresUrl")?.toString() || null,
             changesMadeByAgent: formData.get("changesMadeByAgent")?.toString() || null,
+            agentRating: formData.get("agentRating") ? Number(formData.get("agentRating")) : null,
+            updatedBy: Number(userId),
+            updatedAt: new Date(),
+            clientId: formData.get("clientId") ? Number(formData.get("clientId")) : undefined,
+            projectId: formData.get("projectId") ? Number(formData.get("projectId")) : undefined,
         };
 
-        // Handle file upload
+        // --- Handle multiple handledBy users ---
+        const handledByUsers = formData.getAll("handledByUsers[]").map((t) => t.toString().trim()).filter(Boolean);
+        if (handledByUsers.length) {
+            chatData.handledByUsers = {
+                set: handledByUsers.map((id) => ({ id: Number(id) })),
+            };
+        } else {
+            chatData.handledByUsers = { set: [] };
+        }
+
+        // --- Handle Chat Transcript Upload ---
         const chatTranscriptFile = formData.get("chatTranscript") as File | null;
         if (chatTranscriptFile && chatTranscriptFile.size > 0) {
             const chatTranscriptUrl = await uploadFile(chatTranscriptFile);
             if (chatTranscriptUrl) chatData.chatTranscript = chatTranscriptUrl;
         }
 
-        // Update main chat record
+        // --- UPDATE CHAT ---
         const updatedChat = await prisma.chat.update({
             where: { id: chatId },
-            data: {
-                ...chatData,
-                handleByUser: { connect: { id: handleBy } },
-            },
-            include: { client: true },
+            data: chatData,
         });
 
-        // Sync client emails
-        const clientEmails = formData.getAll("clientEmails[]").map((e) => e.toString().trim()).filter(Boolean);
+        const reviewData: any = {
+            reviewAsked: formData.get("reviewAsked") === "true",
+            reviewStatus: formData.get("reviewStatus") === "true",
+            reviewText: formData.get("reviewText")?.toString() || null,
+            reviewNotAskReason: formData.get("reviewNotAskReason")?.toString() || null,
+            rating: formData.get("rating") ? Number(formData.get("rating")) : null,
+            ratingMood: formData.get("ratingMood")?.toString() || null,
+            lastReviewApproach: formData.get("lastReviewApproach")
+                ? new Date(formData.get("lastReviewApproach") as string)
+                : null,
+            reviewSubmittedAt: formData.get("reviewSubmittedAt")
+                ? new Date(formData.get("reviewSubmittedAt") as string)
+                : null,
+            updatedBy: Number(userId),
+        };
 
-        if (clientEmails.length > 0 && updatedChat.clientId) {
-            // Fetch existing emails for the client
-            const existingEmails = await prisma.clientEmail.findMany({
-                where: { clientId: updatedChat.clientId },
+
+        const updatedReview = await prisma.review.upsert({
+            where: { chatId },
+            update: reviewData,
+            create: { ...reviewData, chatId, createdBy: Number(userId) },
+        });
+
+        const reviewApproachByUsers = formData
+            .getAll("reviewApproachByUsers[]")
+            .map((t) => t.toString().trim())
+            .filter(Boolean);
+
+        await prisma.review.update({
+            where: { id: updatedReview.id },
+            data: {
+                reviewApproachByUsers: {
+                    set: reviewApproachByUsers.map((id) => ({ id: Number(id) })),
+                },
+            },
+        });
+
+        // --- FEATURE REQUEST ---
+        const featureRequest = formData.get("featureRequest")?.toString() || null;
+        if (featureRequest) {
+            await prisma.featureRequest.upsert({
+                where: { chatId },
+                update: {
+                    featureDetails: featureRequest,
+                    updatedBy: Number(userId),
+                    updatedAt: new Date(),
+                },
+                create: {
+                    chatId,
+                    clientId: updatedChat.clientId,
+                    featureDetails: featureRequest,
+                    createdBy: Number(userId),
+                },
             });
+        }
 
+        // --- CLIENT EMAILS ---
+        const clientEmails = formData.getAll("clientEmails[]").map((e) => e.toString().trim()).filter(Boolean);
+        if (clientEmails.length > 0 && updatedChat.clientId) {
+            const existingEmails = await prisma.clientEmail.findMany({ where: { clientId: updatedChat.clientId } });
             const existingSet = new Set(existingEmails.map((e) => e.email));
             const newSet = new Set(clientEmails);
 
-            // ➕ Add new emails
             for (const email of clientEmails) {
                 if (!existingSet.has(email)) {
-                    await prisma.clientEmail.create({
-                        data: { clientId: updatedChat.clientId, email },
-                    });
+                    await prisma.clientEmail.create({ data: { clientId: updatedChat.clientId, email } });
                 }
             }
-
-            // Hard delete removed emails
             for (const existing of existingEmails) {
                 if (!newSet.has(existing.email)) {
-                    await prisma.clientEmail.delete({
-                        where: { id: existing.id },
-                    });
+                    await prisma.clientEmail.delete({ where: { id: existing.id } });
                 }
             }
         }
 
-
-        // Sync tags
+        // --- TAGS ---
         const tags = formData.getAll("tags[]").map((t) => t.toString().trim()).filter(Boolean);
-
-        if (tags.length > 0) {
-            // Remove old chat tags first
-            await prisma.chatTag.deleteMany({ where: { chatId } });
-
-            // Recreate tags
-            for (const tagName of tags) {
-                const tag = await prisma.tag.upsert({
-                    where: { name: tagName },
-                    update: {},
-                    create: { name: tagName },
-                });
-
-                await prisma.chatTag.create({
-                    data: {
-                        chatId,
-                        tagId: tag.id,
-                    },
-                });
-            }
-        } else {
-            // Remove all if no tags sent
-            await prisma.chatTag.deleteMany({ where: { chatId } });
+        await prisma.chatTag.deleteMany({ where: { chatId } });
+        for (const tagName of tags) {
+            const tag = await prisma.tag.upsert({
+                where: { name: tagName },
+                update: {},
+                create: { name: tagName },
+            });
+            await prisma.chatTag.create({ data: { chatId, tagId: tag.id } });
         }
 
         return Response.json({
@@ -138,14 +201,29 @@ const updateChat = async (chatId: number, request: Request) => {
     }
 };
 
-const deleteChatHard = async (chatId: number) => {
+
+const deleteChatHard = async (chatId: number, request: Request) => {
     try {
 
+        const userId = await getUserId(request);
         // Delete associated tags
         await prisma.chatTag.deleteMany({ where: { chatId } });
 
         // Delete chat itself
         await prisma.chat.delete({ where: { id: chatId } });
+
+        const logsParams = {
+            userId: userId,
+            action: "DELETE" as ActivityAction,
+            modelName: "chat",
+            recordId: chatId,
+            metadata: {
+                chatId: chatId
+            }
+
+        }
+
+        await ActivityLog(logsParams);
 
         return Response.json({ success: true, message: "Chat permanently deleted." });
     } catch (error: any) {

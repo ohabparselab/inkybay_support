@@ -5,17 +5,23 @@ export async function action({ request }: { request: Request }) {
     try {
         const formData = await request.formData();
         const clientId = Number(formData.get('clientId'));
+        const installPhase = formData.get('installPhase');
 
         if (!clientId) {
             return Response.json({ status: 404, message: "Client not found" });
         }
 
+        const where:any = {
+            clientId: clientId,
+            isDeleted: false,
+        }
+
+        if(installPhase){
+            where.installPhase = installPhase
+        }
         // Fetch chats for that client
         const marketingFunnels = await prisma.marketingFunnel.findMany({
-            where: {
-                clientId: clientId,
-                isDeleted: false,
-            },
+            where: where,
             orderBy: { createdAt: "desc" },
             include: {
                 client: {
@@ -26,7 +32,7 @@ export async function action({ request }: { request: Request }) {
                         },
                     },
                 },
-                followUps: true,
+                // followUps: true,
             }
         });
 

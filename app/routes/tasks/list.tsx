@@ -14,9 +14,11 @@ import {
     TableRow,
 } from "~/components/ui/table";
 import { useLoaderData, useNavigate, useRouteLoaderData, type LoaderFunctionArgs } from "react-router";
-import { AlertTriangle, Ellipsis, Eye, PenBox, Plus, Search, Trash2 } from "lucide-react";
+import { AlertTriangle, Ellipsis, Eye, Filter, PenBox, Plus, Search, Trash2 } from "lucide-react";
+import { DateAndDateRangeFilter } from "~/components/ui/date-range-filter";
 import { DeleteConfirmDialog } from "~/components/ui/confirm-dialog";
 import { CenterSpinner } from "~/components/ui/center-spinner";
+import { StatusFilter } from "~/components/ui/status-filter";
 import { PaginationBar } from "~/components/pagination-bar";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -45,7 +47,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const skip = (page - 1) * limit;
     const searchLower = search.toLowerCase();
 
-    const where = search
+    const date = url.searchParams.get("date");
+    const startDate = url.searchParams.get("startDate");
+    const endDate = url.searchParams.get("endDate");
+
+    const statusId = url.searchParams.get("statusId");
+
+    const where: any = search
         ? {
             OR: [
                 { client: { shopDomain: { contains: searchLower } } },
@@ -57,7 +65,35 @@ export async function loader({ request }: LoaderFunctionArgs) {
         }
         : {};
 
-    const [tasks, total] = await Promise.all([
+    if (date) {
+        const start = new Date(date);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(date);
+        end.setHours(23, 59, 59, 999);
+
+        where.taskAddedDate = {
+            gte: start,
+            lt: end,
+        };
+    } else if (startDate && endDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+
+        where.taskAddedDate = {
+            gte: start,
+            lt: end,
+        };
+    }
+
+    if (statusId) {
+        where.statusId = Number(statusId);
+    }
+
+    const [tasks, total, statuses] = await Promise.all([
         prisma.task.findMany({
             where,
             skip,
@@ -75,19 +111,29 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 providedByUser: { select: { id: true, fullName: true } },
                 solvedByUser: { select: { id: true, fullName: true } },
                 status: { select: { id: true, name: true } },
+                project: { select: { id: true, name: true } },
             },
         }),
         prisma.task.count({ where }),
+        prisma.status.findMany({
+            select: { id: true, name: true }
+        })
     ]);
+
 
     return {
         tasks,
+        statuses,
         meta: {
             total,
             page,
             limit,
             totalPages: Math.ceil(total / limit),
             search,
+            date,
+            startDate,
+            endDate,
+            statusId
         },
     };
 }
@@ -97,7 +143,7 @@ export const meta = () => [{ title: "Tasks | InkyBay" }];
 export default function TasksListPage() {
 
     const [loading, setLoading] = useState(true);
-    const { tasks, meta } = useLoaderData<typeof loader>();
+    const { tasks, meta, statuses } = useLoaderData<typeof loader>();
     const [search, setSearch] = useState(meta.search ?? "");
     const [taskModalOpen, setTaskModalOpen] = useState(false);
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
@@ -168,6 +214,7 @@ export default function TasksListPage() {
         if (loading) setLoading(false);
     }, [tasks]);
 
+   
     return (
         <div className="px-6 space-y-2">
             <div className="flex items-center justify-between">
@@ -195,15 +242,31 @@ export default function TasksListPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
-                                <TableHead>Shop Name</TableHead>
-                                {/* <TableHead>Task Details</TableHead> */}
-                                {/* <TableHead>Client</TableHead> */}
+                                <TableHead>Store URL</TableHead>
                                 <TableHead>Provided By</TableHead>
                                 <TableHead>Solved By</TableHead>
                                 <TableHead>Store Access</TableHead>
                                 <TableHead>Store Password</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Task Added</TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Status</span>
+                                        <StatusFilter
+                                            meta={meta}
+                                            statuses={statuses}
+                                            navigateWithLoading={navigateWithLoading}
+                                        />
+                                    </div>
+                                </TableHead>
+
+                                <TableHead>
+                                    <div className="flex items-center gap-2">
+                                        <span>Task Added </span>
+                                        <DateAndDateRangeFilter
+                                            meta={meta}
+                                            navigateWithLoading={navigateWithLoading}
+                                        />
+                                    </div>
+                                </TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -230,9 +293,9 @@ export default function TasksListPage() {
                                                             setViewTaskModalOpen(true);
                                                         }}
 
-                                                    >{task.client.shopName}</TableCell>
-                                                    {/* <TableCell className="max-w-[20px] truncate">{task.taskDetails}</TableCell> */}
-                                                    {/* <TableCell>{task.client?.shopName ?? "—"}</TableCell> */}
+                                                    >
+                                                        {task.client?.shopDomain?.split(".")[0]}
+                                                    </TableCell>
                                                     <TableCell>{task.providedByUser?.fullName ?? "—"}</TableCell>
                                                     <TableCell>{task.solvedByUser?.fullName ?? "—"}</TableCell>
                                                     <TableCell>{task.storeAccess == 'given' ? "Given" : ' Not Necessary'}</TableCell>
@@ -354,7 +417,7 @@ export default function TasksListPage() {
             {viewTaskModalOpen && selectedTask && (
                 <Suspense fallback={<CenterSpinner />}>
                     <ViewTaskDetailsModal
-                        task={selectedTask}
+                        taskId={selectedTask.id}
                         open={viewTaskModalOpen}
                         onOpenChange={setViewTaskModalOpen}
                     />

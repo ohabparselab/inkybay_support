@@ -1,3 +1,4 @@
+import { connect } from "http2"
 import { prisma } from "~/lib/prisma.server"
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
@@ -37,55 +38,102 @@ const createMarketingFunnel = async (request: Request) => {
         const value = await request.json();
 
         if (!value.clientId) {
-            return Response.json({ success: false, message: "Client ID not found." }, { status: 400 });
+            return Response.json(
+                { success: false, message: "Client ID not found." },
+                { status: 400 }
+            );
         }
 
-        // 🧾 Create marketing funnel
-        const funnel = await prisma.marketingFunnel.create({
-            data: {
-                clientId: value.clientId,
-                installPhase: value.installPhase,
-                typeOfProducts: value.typeOfProducts,
-                otherAppsInstalled: value.otherAppsInstalled,
-                customizationType: value.customizationType,
-                initialFeedback: value.initialFeedback,
-                clientSuccessStatus: value.clientSuccessStatus,
-            },
-        });
+        const hasFollowUps = Array.isArray(value.followUps) && value.followUps.length > 0;
 
-        // Save emails (check duplicates)
+        if (hasFollowUps) {
+            const stepToNumber = (step: string) => parseInt(step, 10);
+
+            const sortedFollowUps = value.followUps.sort(
+                (a: any, b: any) =>
+                    stepToNumber(a.followUpStep) - stepToNumber(b.followUpStep)
+            );
+
+            const lastIndex = sortedFollowUps.length - 1;
+
+            for (const [index, followUp] of sortedFollowUps.entries()) {
+                let funnelId = Number(value.funnelId) || 0;
+                if(followUp?.funnelId){
+                    funnelId = Number(followUp.funnelId)
+                }
+                const funnelParams: any = {
+                    clientId: value.clientId,
+                    projectId: Number(value.projectId),
+                    typeOfProducts: value.typeOfProducts,
+                    customizationType: value.customizationType,
+                    followUpStep: followUp.followUpStep,
+                    followUpDate: followUp.followUpDate,
+                    installPhase: followUp.installPhase,
+                    otherAppsInstalled: followUp.otherAppsInstalled,
+                    initialFeedback: followUp.initialFeedback,
+                    clientSuccessStatus: followUp.clientSuccessStatus,
+                    currentPhase: index === lastIndex,
+                };
+
+                await prisma.marketingFunnel.upsert({
+                    where: { id: funnelId, clientId: value.clientId },
+                    update: funnelParams,
+                    create: funnelParams,
+                });
+            }
+        } else {
+
+            let funnelId = Number(value.funnelId) || 0;
+            const funnelParams = {
+                clientId: value.clientId,
+                projectId: Number(value.projectId),
+                typeOfProducts: value.typeOfProducts,
+                customizationType: value.customizationType,
+                followUpStep: null,
+                followUpDate: null,
+                installPhase: value.installPhase || null,
+                otherAppsInstalled: value.otherAppsInstalled || null,
+                initialFeedback: value.initialFeedback || null,
+                clientSuccessStatus: value.clientSuccessStatus || "no",
+                currentPhase: true,
+            }
+
+            await prisma.marketingFunnel.upsert({
+                where: { id: funnelId, clientId: value.clientId },
+                update: funnelParams,
+                create: funnelParams,
+            });
+        }
+
+        // -----------------------------------------
+        // SAVE EMAILS
+        // -----------------------------------------
         if (Array.isArray(value.emails) && value.emails.length > 0) {
             for (const email of value.emails) {
                 const exists = await prisma.clientEmail.findUnique({
-                    where: { clientId: value.clientId, email  },
+                    where: { clientId: value.clientId, email },
                 });
 
                 if (!exists) {
                     await prisma.clientEmail.create({
-                        data: {
-                            clientId: value.clientId,
-                            email,
-                        },
+                        data: { clientId: value.clientId, email },
                     });
                 }
             }
         }
 
-        // Save follow-up dates
-        if (Array.isArray(value.followUps) && value.followUps.length > 0) {
-            const followUpData = value.followUps.map((date: string) => ({
-                marketingFunnelId: funnel.id,
-                followUpDate: new Date(date),
-            }));
-
-            await prisma.followUp.createMany({
-                data: followUpData,
-            });
-        }
-
-        return Response.json({ success: true, message: "Marketing Funnel created successfully.", data: funnel });
+        return Response.json({
+            success: true,
+            message: "Marketing Funnel saved successfully.",
+        });
     } catch (error: any) {
-        console.error(" Create Marketing Funnel failed:", error);
-        return Response.json({ success: false, message: error.message || "Internal server error." }, { status: 500 });
+        console.error("Create Marketing Funnel failed:", error);
+        return Response.json(
+            {
+                success: false,
+                message: error.message || "Internal server error.",
+            },
+            { status: 500 }
+        );
     }
 };

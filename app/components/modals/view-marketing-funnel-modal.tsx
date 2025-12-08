@@ -11,6 +11,9 @@ import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { ShopDetails } from "@/components/shop-details";
 import { ShopHistory } from "@/components/shop-history";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import { useFetcher } from "react-router";
+import { useEffect, useState } from "react";
 
 interface ViewMarketingFunnelDetailsModalProps {
     open: boolean;
@@ -25,11 +28,33 @@ export function ViewMarketingFunnelDetailsModal({
 }: ViewMarketingFunnelDetailsModalProps) {
 
     if (!funnel) return null;
+    const funnelsFetcher = useFetcher<{ status: number; data: any }>();
+    const [funnels, setFunnels] = useState<any | null>([]);
+    const clientId = funnel.clientId;
+
 
     const formatDateTime = (date?: Date | string | null) => date ? format(new Date(date), "PPPp") : "-";
     const formatDate = (date?: Date | string | null) => date ? format(new Date(date), "PPP") : "-";
 
-    console.log(funnel.client.clientEmail);
+    // 🔹 Fetch funnels by clientId
+    useEffect(() => {
+        if (clientId) {
+            const cf = new FormData();
+            cf.set("clientId", String(clientId));
+            funnelsFetcher.submit(cf, {
+                method: "post",
+                action: "/api/marketing-funnels/get-marketing-funnels-by-client-id",
+            });
+        }
+    }, [clientId]);
+
+    useEffect(() => {
+        if (funnelsFetcher.data?.data) {
+            setFunnels(funnelsFetcher.data.data);
+        }
+    }, [funnelsFetcher.data]);
+
+    const loadingFunnels = funnelsFetcher.state !== "idle";
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -44,23 +69,14 @@ export function ViewMarketingFunnelDetailsModal({
 
                     <div className="grid grid-cols-2 gap-x-6 space-y-2 text-sm">
                         <p>
-                            <strong>Install Phase:</strong> {funnel.installPhase || "N/A"}
+                            <strong>Project:</strong> {funnel.project?.name || "N/A"}
                         </p>
                         <p>
                             <strong>Type of Products:</strong> {funnel.typeOfProducts || "N/A"}
                         </p>
                         <p>
-                            <strong>Other Apps Installed:</strong>{" "}
-                            {funnel.otherAppsInstalled || "N/A"}
-                        </p>
-                        <p>
                             <strong>Customization Type:</strong>{" "}
                             {funnel.customizationType || "N/A"}
-                        </p>
-                        <p>
-                            <strong>Client Success Status:</strong>{" "}
-                            {funnel.clientSuccessStatus == 'yes' ? "Yes" : "No"}
-                            {/* <Badge variant="secondary">{}</Badge> */}
                         </p>
                         <p>
                             <strong>Created At:</strong> {formatDateTime(funnel.createdAt)}
@@ -68,31 +84,55 @@ export function ViewMarketingFunnelDetailsModal({
                         <p>
                             <strong>Updated At:</strong> {formatDateTime(funnel.updatedAt)}
                         </p>
-                        <p>
-                            <strong>Initial Feedback:</strong>{" "}
-                            {funnel.initialFeedback || "N/A"}
-                        </p>
                     </div>
 
                     <Separator />
                     <section>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                             <div>
                                 <h3 className="text-base font-semibold mb-3">Follow Ups</h3>
-                                {funnel.followUps && funnel.followUps.length > 0 ? (
-                                    <ul className="list-disc ml-6 text-sm space-y-1">
-                                        {funnel.followUps.map((fu: any, index: number) => (
-                                            <li key={index}>
-                                                Follow-up Date:{" "}
-                                                <span className="font-medium">
-                                                    {formatDate(fu.followUpDate)}
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p className="italic">No follow-ups recorded.</p>
-                                )}
+                                <div className="rounded-md border bg-card shadow-sm">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Install Phase</TableHead>
+                                                <TableHead>Follow-up Status</TableHead>
+                                                <TableHead>Follow-up Date</TableHead>
+                                                <TableHead>Success Status</TableHead>
+                                                <TableHead>Initial Feedback</TableHead>
+                                                <TableHead>Other App Install</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {
+                                                loadingFunnels ? (
+                                                    Array.from({ length: 9 }).map((_, i) => (
+                                                        <TableRow key={i}>
+                                                            <TableCell colSpan={9} className="py-4">
+                                                                <div className="animate-pulse h-5 bg-accent rounded" />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))
+                                                ) : (
+                                                    funnels.length > 0 ? (
+                                                        funnels.map((funnel: any, index: number) => (
+                                                            <TableRow key={index}>
+                                                                <TableCell>{funnel.installPhase}</TableCell>
+                                                                <TableCell>{funnel.followUpStep}</TableCell>
+                                                                <TableCell>{formatDate(funnel.followUpDate)}</TableCell>
+                                                                <TableCell>{funnel.clientSuccessStatus}</TableCell>
+                                                                <TableCell>{funnel.initialFeedback}</TableCell>
+                                                                <TableCell>{funnel.otherAppsInstalled}</TableCell>
+                                                            </TableRow>
+                                                        ))
+                                                    ) : (
+                                                        <p className="italic">No follow-ups recorded.</p>
+                                                    )
+                                                )
+                                            }
+                                        </TableBody>
+                                    </Table>
+                                </div>
                             </div>
                             <div>
                                 <h3 className="text-base font-semibold mb-3">Client Emails</h3>

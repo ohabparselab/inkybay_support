@@ -1,7 +1,7 @@
 "use client"
+import pkg from "../../package.json";
 import { Link } from "react-router";
 import * as React from "react"
-import pkg from "../../package.json";
 import {
     House,
     Users,
@@ -13,7 +13,12 @@ import {
     Component,
     Columns3Cog,
     FileStack,
-    Settings
+    Settings,
+    Star,
+    Handbag,
+    CircleQuestionMark,
+    Handshake,
+    Logs
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -26,6 +31,7 @@ import {
     SidebarRail,
 } from "@/components/ui/sidebar"
 import { useOutletContext } from "react-router";
+import { NavNotification } from "./nav-notification";
 
 type RootContext = { currentUser: Awaited<ReturnType<typeof import("~/lib/user.server").getUser>> | null };
 
@@ -72,9 +78,31 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 url: "/marketing-funnels",
                 icon: Megaphone,
             },
+            {
+                title: "Reviews",
+                url: "/reviews",
+                icon: Star,
+            },
+            {
+                title: "Feature Requests",
+                url: "/features",
+                icon: CircleQuestionMark,
+            },
+            {
+                title: "Collaborations",
+                url: "/collaborations",
+                icon: Handshake,
+            },
+            {
+                title: "Shopify Communities",
+                url: "/communities",
+                icon: Handbag,
+            },
             ...(isSuperAdmin ? [
                 {
-                    title: "Users", url: "/users", icon: Users
+                    title: "Users", 
+                    url: "/users", 
+                    icon: Users
                 },
                 {
                     title: "Settings",
@@ -103,6 +131,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         }
                     ],
                 },
+                {
+                    title: "Activity Logs", 
+                    url: "/activity-logs", 
+                    icon: Logs
+                }                
             ] : []),
         ]
     }
@@ -121,6 +154,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <NavMain items={data.navMain as any} />
             </SidebarContent>
             <SidebarFooter>
+                <NavNotification/>
                 <NavUser user={data.user} />
                 <span className="text-[10px]">Version: {pkg.version}</span>
             </SidebarFooter>

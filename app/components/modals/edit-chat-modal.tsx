@@ -1,16 +1,13 @@
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { addChatSchema, type AddChatFormInput } from "~/lib/validations";
 import { CalendarIcon, ListRestart, Plus, Save, Star, X } from "lucide-react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
 import {
     Select,
     SelectContent,
@@ -25,8 +22,12 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { DatePickerWithClear } from "@/components/ui/date-picker";
+import { CommentList } from "@/components/comments/CommentList";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { Spinner } from "@/components/ui/spinner";
+import { TagsInput } from "@/components/ui/tags";
 import { toast } from "sonner";
-import { TagsInput } from "../ui/tags";
 
 interface EditChatModalProps {
     open: boolean;
@@ -37,8 +38,14 @@ interface EditChatModalProps {
 
 export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditChatModalProps) {
 
+    console.log(chat);
+
+    const [projects, setProjects] = useState<any>([]);
     const [users, setUsers] = useState<any[]>([]);
+    const [currentUserId, setCurrentUserId] = useState<any>();
     const [loadingUsers, setLoadingUsers] = useState(false);
+    const [loadingProjects, setLoadingProjects] = useState(false);
+
     const {
         control,
         register,
@@ -46,28 +53,27 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
         watch,
         setValue,
         reset,
-        formState: { errors },
+        formState: { errors, isSubmitting },
     } = useForm<AddChatFormInput>({
         resolver: zodResolver(addChatSchema),
         defaultValues: {
             clientQuery: chat?.clientQuery || "",
-            clientEmails: chat?.client.clientEmail?.map((e: any) => e.email) || [],
+            clientEmails: chat?.client?.clientEmail?.map((e: any) => e.email) || [],
             tags: chat?.chatTags?.map((t: any) => t.tag.name) || [],
-            reviewAsked: chat?.reviewAsked || false,
-            reviewStatus: chat?.reviewStatus || false,
-            handleBy: chat?.handleBy?.toString() || "",
-            agentRating: chat?.agentRating || 0,
-            reviewText: chat?.reviewText || "",
+            reviewAsked: chat?.review?.reviewAsked || false,
+            reviewStatus: chat?.review?.reviewStatus || false,
+            handledByUsers: chat.handledByUsers?.map((e: any) => String(e.id)) || [],
+            agentRating: chat?.review?.agentRating || 0,
+            reviewText: chat?.review?.reviewText || "",
             clientFeedback: chat?.clientFeedback || "",
             storeDetails: chat?.storeDetails || "",
-            featureRequest: chat?.featureRequest || "",
-            agentComments: chat?.agentComments || "",
+            featureRequest: chat?.featureRequest?.featureDetails || "",
             otherStoresUrl: chat?.otherStoresUrl || "",
             changesMadeByAgent: chat?.changesMadeByAgent || "",
             chatDate: chat?.chatDate ? new Date(chat.chatDate) : undefined,
-            lastReviewApproach: chat?.lastReviewApproach
-                ? new Date(chat.lastReviewApproach)
-                : undefined,
+            lastReviewApproach: chat?.review?.lastReviewApproach ? new Date(chat.review?.lastReviewApproach) : undefined,
+            externalChat: chat.externalChat,
+            reviewApproachByUsers: chat.review?.reviewApproachByUsers?.map((e: any) => String(e.id)) || [],
         },
     });
 
@@ -76,19 +82,13 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
         name: "clientEmails",
     });
 
-    // useEffect(() => {
-    //     if (chat?.client?.clientEmail) {
-    //         const emails = chat.client.ClientEmail.map((e:any) => e.email);
-    //         replace(emails.map((email: any) => ({ value: email })));
-    //     }
-    // }, [chat, replace]);
-
     const fetchUsers = async () => {
         try {
             setLoadingUsers(true);
             const res = await fetch("/api/users");
             const data = await res.json();
             setUsers(data.users);
+            setCurrentUserId(data.currentUserId);
         } catch (err) {
             console.error("Failed to fetch users:", err);
         } finally {
@@ -96,32 +96,54 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
         }
     };
 
+    const fetchProjects = async () => {
+        try {
+            setLoadingProjects(true);
+            const res = await fetch("/api/settings/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        } finally {
+            setLoadingProjects(false);
+        }
+    }
+
     useEffect(() => {
         fetchUsers();
+        fetchProjects();
     }, []);
 
     // Reset form when chat changes
     useEffect(() => {
         if (chat) {
             reset({
-                clientQuery: chat.clientQuery || "",
-                clientEmails: chat?.client.clientEmail?.map((e: any) => e.email) || [],
+                clientQuery: chat?.clientQuery || "",
+                clientEmails: chat?.client?.clientEmail?.map((e: any) => e.email) || [],
                 tags: chat.chatTags?.map((t: any) => t.tag.name) || [],
-                reviewAsked: chat.reviewAsked || false,
-                reviewStatus: chat.reviewStatus || false,
-                handleBy: chat.handleBy?.toString() || "",
-                agentRating: chat.agentRating || 0,
-                reviewText: chat.reviewText || "",
+                reviewAsked: chat.review?.reviewAsked || false,
+                reviewStatus: chat.review?.reviewStatus || false,
+                handledByUsers: chat.handledByUsers?.map((e: any) => String(e.id)) || [],
+                agentRating: chat?.agentRating || 0,
+                reviewText: chat.review?.reviewText || "",
                 clientFeedback: chat.clientFeedback || "",
                 storeDetails: chat.storeDetails || "",
-                featureRequest: chat.featureRequest || "",
-                agentComments: chat.agentComments || "",
+                featureRequest: chat.featureRequest?.featureDetails || "",
                 otherStoresUrl: chat.otherStoresUrl || "",
                 changesMadeByAgent: chat.changesMadeByAgent || "",
                 chatDate: chat.chatDate ? new Date(chat.chatDate) : undefined,
-                lastReviewApproach: chat.lastReviewApproach
-                    ? new Date(chat.lastReviewApproach)
-                    : undefined,
+                lastReviewApproach: chat.review?.lastReviewApproach ? new Date(chat.review?.lastReviewApproach) : undefined,
+                shopUrl: chat.shopUrl || "",
+                shopName: chat.shopName || "",
+                shopEmail: chat.shopEmail || "",
+                projectId: chat.projectId?.toString() || "",
+                storefrontPassword: chat.storefrontPassword || "",
+                reviewNotAskReason: chat.review?.reviewNotAskReason || "",
+                reviewSubmittedAt: chat.review?.reviewSubmittedAt ? new Date(chat.review?.reviewSubmittedAt) : undefined,
+                reviewApproachByUsers: chat.review?.reviewApproachByUsers?.map((e: any) => String(e.id)) || [],
+                ratingMood: chat.review?.ratingMood?.toString() || "",
+                rating: chat.review?.rating || 0,
+                externalChat: chat.externalChat,
             });
         }
     }, [chat, reset]);
@@ -129,30 +151,46 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
     const onSubmit = async (data: AddChatFormInput) => {
 
         const formData = new FormData();
-        formData.append("clientQuery", data.clientQuery);
-        formData.append("handleBy", data.handleBy);
-        formData.append("chatDate", data.chatDate ? data.chatDate.toISOString() : "");
-        formData.append(
-            "lastReviewApproach",
-            data.lastReviewApproach ? data.lastReviewApproach.toISOString() : ""
-        );
-        formData.append("reviewAsked", data.reviewAsked ? "true" : "false");
-        formData.append("reviewStatus", data.reviewStatus ? "true" : "false");
-        formData.append("reviewText", data.reviewText || "");
-        formData.append("clientFeedback", data.clientFeedback || "");
-        formData.append("storeDetails", data.storeDetails || "");
-        formData.append("featureRequest", data.featureRequest || "");
-        formData.append("agentRating", String(data.agentRating || 0));
-        formData.append("agentComments", data.agentComments || "");
-        formData.append("otherStoresUrl", data.otherStoresUrl || "");
-        formData.append("changesMadeByAgent", data.changesMadeByAgent || "");
 
-        if (data.chatTranscript?.[0]) {
-            formData.append("chatTranscript", data.chatTranscript[0]);
-        }
+        const appendFormData = (key: string, value: any) => {
+            if (value === undefined || value === null) return;
+            // Handle arrays
+            if (Array.isArray(value)) {
+                value.forEach((v) => appendFormData(`${key}[]`, v));
+                return;
+            }
 
-        data.clientEmails?.forEach((email) => formData.append("clientEmails[]", email));
-        data.tags?.forEach((tag) => formData.append("tags[]", tag));
+            // Handle Date
+            if (value instanceof Date) {
+                formData.append(key, value.toISOString());
+                return;
+            }
+            // Handle FileList
+            if (value instanceof FileList) {
+                if (value.length > 0) formData.append(key, value[0]);
+                return;
+            }
+            // Handle object (recursive)
+            if (typeof value === "object" && !(value instanceof File)) {
+                Object.entries(value).forEach(([subKey, subVal]) =>
+                    appendFormData(`${key}[${subKey}]`, subVal)
+                );
+                return;
+            }
+            // Handle boolean
+            if (typeof value === "boolean") {
+                formData.append(key, value ? "true" : "false");
+                return;
+            }
+            // Default primitive (string, number)
+            formData.append(key, String(value));
+        };
+
+        // Always append clientId (if exists)
+        if (chat?.clientId) appendFormData("clientId", chat?.clientId);
+
+        // Dynamically append all form fields
+        Object.entries(data).forEach(([key, value]) => appendFormData(key, value));
 
         const res = await fetch(`/api/chats/${chat.id}`, {
             method: "PUT",
@@ -168,27 +206,71 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
         }
     };
 
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
                 <DialogHeader>
                     <DialogTitle>Edit Chat
-                        (
-                            <span className="font-semibold text-foreground">{chat.client.shopName}</span>,{" "}
-                            <a
-                                href={`https://${chat.client.shopDomain}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline"
-                            >
-                                {chat.client.shopDomain}
-                            </a>
-                        )
+                        {
+                            chat?.client?.shopDomain && (
+                                <>
+                                    (
+                                    <span className="font-semibold text-foreground">{chat.client.shopName}</span>, {" "}
+                                    < a
+                                        href={`https://${chat.client.shopDomain}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline"
+                                    >
+                                        {chat.client.shopDomain}
+                                    </a>
+                                    )
+                                </>
+                            )
+                        }
                     </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-3">
                     {/* Client Query */}
+
+                    {
+                        chat.externalChat && (
+                            <>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <Label>External chat </Label>
+                                        <Controller
+                                            name="externalChat"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Checkbox
+                                                    checked={chat.externalChat}
+                                                    onCheckedChange={(checked) => field.onChange(checked)}
+                                                />
+                                            )}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label className="mb-2">Store URL</Label>
+                                        <Input {...register("shopUrl")} placeholder="Enter shop url..." />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <Label className="mb-2">Shop Name</Label>
+                                        <Input type="text" {...register("shopName")} placeholder="Enter shop name..." />
+                                    </div>
+                                    <div>
+                                        <Label className="mb-2">Shop Email</Label>
+                                        <Input type="email" {...register("shopEmail")} placeholder="Enter shop email..." />
+                                    </div>
+                                </div>
+                            </>
+                        )
+                    }
                     <div>
                         <Label className="mb-2">Client Query</Label>
                         <Textarea
@@ -201,6 +283,48 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                         )}
                     </div>
 
+                    {/* project + store password */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <Label className="mb-2">Project</Label>
+                            <Controller
+                                control={control}
+                                name="projectId"
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        disabled={loadingProjects}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={loadingProjects ? "Loading..." : "Select Project"} />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            {loadingProjects ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
+                                            ) : projects.length === 0 ? (
+                                                <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
+                                            ) : (
+                                                projects.map((project: any) => (
+                                                    <SelectItem key={project.id} value={String(project.id)}>
+                                                        {project.projectName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.projectId && (
+                                <p className="text-sm text-red-500">{errors.projectId.message}</p>
+                            )}
+                        </div>
+                        <div>
+                            <Label className="mb-2">Storefront Password</Label>
+                            <Input {...register("storefrontPassword")} placeholder="Enter store password..." />
+                        </div>
+                    </div>
+
                     {/* Client Emails + Chat Transcript */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -209,7 +333,7 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                                 <div key={field.id} className="flex gap-2 mt-2">
                                     <Input
                                         {...register(`clientEmails.${index}`)}
-                                        placeholder="name@example.com"
+                                        placeholder="client@example.com"
                                     />
                                     <Button
                                         type="button"
@@ -232,35 +356,8 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                             </Button>
                         </div>
                         <div>
-                            <Label className="mb-2">Chat Transcript
-                                <div className="flex gap-2 ">
-                                    {chat.chatTranscript ? (
-                                        <>
-                                            <a
-                                                href={chat.chatTranscript}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 hover:underline"
-                                            >
-                                                View
-                                            </a>
-                                            <a
-                                                href={chat.chatTranscript}
-                                                download
-                                                className="bg-blue-100 text-blue-700 px-2 rounded hover:bg-blue-200 text-xs"
-                                            >
-                                                Download
-                                            </a>
-                                        </>
-                                    ) : (
-                                        <span className="text-gray-500">N/A</span>
-                                    )}
-                                </div>
-                            </Label>
-                            <Input
-                                type="file"
-                                {...register("chatTranscript")}
-                            />
+                            <Label className="mb-2">Chat Transcript</Label>
+                            <Input type="file" {...register("chatTranscript")} />
                         </div>
                     </div>
 
@@ -293,37 +390,81 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                                     )}
                                 />
                             </div>
+                            <div>
+                                <Label className="mb-2">Review Rating</Label>
+                                <div className="flex gap-1 mt-2">
+                                    {[...Array(5)].map((_, i) => {
+                                        const current = watch("rating") ?? 0;
+                                        return (
+                                            <Star
+                                                key={i}
+                                                className={`h-6 w-6 cursor-pointer ${i < current ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
+                                                    }`}
+                                                onClick={() => {
+                                                    setValue("rating", current === i + 1 ? 0 : i + 1);
+                                                }}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <Label className="mb-2">Review Approach Date</Label>
+                                <Controller
+                                    control={control}
+                                    name="lastReviewApproach"
+                                    render={({ field }) => (
+                                        <DatePickerWithClear
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            placeholder="Pick a date"
+                                        />
+                                    )}
+                                />
+                            </div>
+                            <div>
+                                <Label className="mb-2">Review Approach By</Label>
+                                <Controller
+                                    control={control}
+                                    name="reviewApproachByUsers"
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            options={users.map((u: any) => ({
+                                                label: u.fullName,
+                                                value: String(u.id),
+                                            }))}
+                                            value={field.value || []}
+                                            onChange={field.onChange}
+                                            placeholder="Select approachers..."
+                                        />
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    </div>
 
+                    {/* Last Review Approach Date + Client Feedback */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <Label className="mb-2">Reason Behind not Asking for Review</Label>
+                            <Textarea {...register("reviewNotAskReason")} placeholder="Enter reason details..." />
                         </div>
                         <div>
-                            <Label className="mb-2">Last Review Approach Date</Label>
+                            <Label className="mb-2">Review submitted at</Label>
                             <Controller
                                 control={control}
-                                name="lastReviewApproach"
+                                name="reviewSubmittedAt"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-start text-left font-normal"
-                                            >
-                                                {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>
-
                     </div>
 
                     {/* Last Review Approach Date + Client Feedback */}
@@ -353,23 +494,41 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                     {/* Agent Rating + Other Store URL */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                         <div>
-                            <Label className="mb-2">Rating</Label>
+                            <Label className="mb-2">Agent Rating</Label>
                             <div className="flex gap-1 mt-2">
-                                {[...Array(10)].map((_, i) => (
-                                    <Star
-                                        key={i}
-                                        className={`h-6 w-6 cursor-pointer ${i < (watch("agentRating") ?? 0)
-                                            ? "text-yellow-500 fill-yellow-500"
-                                            : "text-gray-300"
-                                            }`}
-                                        onClick={() => setValue("agentRating", i + 1)}
-                                    />
-                                ))}
+                                {[...Array(10)].map((_, i) => {
+                                    const current = watch("agentRating") ?? 0;
+                                    return (
+                                        <Star
+                                            key={i}
+                                            className={`h-6 w-6 cursor-pointer ${i < current ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
+                                                }`}
+                                            onClick={() => {
+                                                setValue("agentRating", current === i + 1 ? 0 : i + 1);
+                                            }}
+                                        />
+                                    );
+                                })}
                             </div>
                         </div>
                         <div>
-                            <Label className="mb-2">Feature Request</Label>
-                            <Textarea {...register("featureRequest")} placeholder="Feature request..." />
+                            <Label className="mb-2">Rating mood</Label>
+                            <Controller
+                                name="ratingMood"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select rating mood" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="positive">Positive</SelectItem>
+                                            <SelectItem value="neutral">Neutral</SelectItem>
+                                            <SelectItem value="negative">Negative</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </div>
                     </div>
 
@@ -378,35 +537,23 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                         <div>
                             <Label className="mb-2">Handled By</Label>
                             <Controller
+                                name="handledByUsers"
                                 control={control}
-                                name="handleBy"
+                                defaultValue={[]}
                                 render={({ field }) => (
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                        disabled={loadingUsers}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder={loadingUsers ? "Loading..." : "Select Agent"} />
-                                        </SelectTrigger>
-                                        <SelectContent className="w-full">
-                                            {loadingUsers ? (
-                                                <div className="p-2 text-center text-sm text-muted-foreground">Loading...</div>
-                                            ) : users.length === 0 ? (
-                                                <div className="p-2 text-center text-sm text-muted-foreground">No user found</div>
-                                            ) : (
-                                                users.map((user: any) => (
-                                                    <SelectItem key={user.id} value={String(user.id)}>
-                                                        {user.fullName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                    <MultiSelect
+                                        options={users.map((u: any) => ({
+                                            label: u.fullName,
+                                            value: String(u.id),
+                                        }))}
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        placeholder="Select agents..."
+                                    />
                                 )}
                             />
-                            {errors.handleBy && (
-                                <p className="text-sm text-red-500">{errors.handleBy.message}</p>
+                            {errors.handledByUsers && (
+                                <p className="text-sm text-red-500">{errors.handledByUsers.message}</p>
                             )}
                         </div>
                         <div>
@@ -415,25 +562,11 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                                 control={control}
                                 name="chatDate"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-start text-left font-normal"
-                                            >
-                                                {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                             {errors.chatDate && (
@@ -453,25 +586,37 @@ export function EditChatModal({ open, onOpenChange, chat, refreshPage }: EditCha
                             <Textarea {...register("changesMadeByAgent")} placeholder="Write changes..." />
                         </div>
                     </div>
+                    <div>
+                        <Label className="mb-2">Feature Request</Label>
+                        <Textarea {...register("featureRequest")} placeholder="Enter feature request details..." />
+                    </div>
                     {/* Agent Comments */}
                     <div>
                         <Label className="mb-2">Comments</Label>
-                        <Textarea {...register("agentComments")} placeholder="Write comments..." />
+                        <CommentList contextId={chat.id} currentUserId={currentUserId} contextType="chat" users={users} />
                     </div>
 
                     <DialogFooter className="!justify-center flex w-full">
-                        <Button
-                            onClick={() => {
-                                onOpenChange(false);
-                                reset();
-                            }}
-                            variant="destructive"
-                        >
+                        <Button type="button" onClick={() => {
+                            onOpenChange(false);
+                            reset();
+                        }} variant="destructive">
                             <X />
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={loadingUsers}>
-                            <Save className="h-4 w-4" />
+                        <Button type="button" onClick={() => {
+                            reset();
+                        }} variant="outline">
+                            <ListRestart />
+                            Reset
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting}
+                        >
+                            {
+                                isSubmitting ? (<Spinner />) : (<Save className="h-4 w-4" />)
+                            }
                             Save Changes
                         </Button>
                     </DialogFooter>

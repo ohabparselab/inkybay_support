@@ -22,17 +22,34 @@ model User {
     roleId    Int
     role      Role      @relation(fields: [roleId], references: [id])
     isActive  Boolean   @default(true)
-    createdBy Int? // user ID of creator (admin)
+    createdBy Int?
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
     isDeleted Boolean   @default(false)
     deletedAt DateTime?
 
-    modulePermissions UserModulePermission[]
-    chat              Chat[]
-    providedTasks     Task[]                 @relation("UserProvidedTasks")
-    solvedTasks       Task[]                 @relation("UserSolvedTasks")
-    meeting           Meeting[]
+    modulePermissions      UserModulePermission[]
+    providedTasks          Task[]                 @relation("UserProvidedTasks")
+    solvedTasks            Task[]                 @relation("UserSolvedTasks")
+    meetingAgents          Meeting[]              @relation("MeetingAgents")
+    handledChats           Chat[]                 @relation("ChatHandledByUsers")
+    createdChats           Chat[]                 @relation("ChatCreatedBy")
+    createdTasks           Task[]                 @relation("TaskCreatedBy")
+    createdCommunities     Community[]            @relation("CommunityCreatedBy")
+    updatedChats           Chat[]                 @relation("ChatUpdatedBy")
+    reviewApproachByUsers  Review[]               @relation("reviewApproachByUsers")
+    createdReviews         Review[]               @relation("ReviewCreatedBy")
+    updatedReviews         Review[]               @relation("ReviewUpdatedBy")
+    createdFeatureRequests FeatureRequest[]       @relation("FeatureCreatedBy")
+    updatedFeatureRequests FeatureRequest[]       @relation("FeatureUpdatedBy")
+    activityLogs           ActivityLog[]
+    comments               Comment[]
+    commentMentions        CommentMention[]
+    sendByUserApp          CollaborationApp[]     @relation("SendByUser")
+    addedByUserApp         CollaborationApp[]     @relation("AddedByUser")
+    communities            Community[]
+    notifications          Notification[]         @relation("UserNotifications")
+    triggeredActions       Notification[]         @relation("ActorNotifications")
 
     @@index([email])
     @@map("users")
@@ -110,11 +127,12 @@ model Client {
     deletedAt  DateTime?
 
     // Relations
-    platform        Platform?         @relation(fields: [platformId], references: [id])
-    chat            Chat[]
-    clientEmail     ClientEmail[]
-    task            Task[]
-    marketingFunnel MarketingFunnel[]
+    platform         Platform?         @relation(fields: [platformId], references: [id])
+    chat             Chat[]
+    clientEmail      ClientEmail[]
+    task             Task[]
+    marketingFunnels MarketingFunnel[]
+    featureRequests  FeatureRequest[]
 
     @@index([shopDomain, email])
     @@map("clients")
@@ -147,39 +165,120 @@ model Project {
     deletedAt DateTime?
 
     // Relations
-    platforms Platform[]
+    platforms         Platform[]
+    chats             Chat[]
+    tasks             Task[]
+    meetings          Meeting[]
+    collaborationApps CollaborationApp[]
+    communities       Community[]
+    marketingFunnels  MarketingFunnel[]
+    featureRequests   FeatureRequest[]
+    reviews           Review[]
 
     @@map("projects")
 }
 
+// =======================
+// Chat Table
+// =======================
 model Chat {
     id                 Int       @id @default(autoincrement())
-    clientId           Int
+    clientId           Int?
     clientQuery        String    @db.Text
-    handleBy           Int
+    projectId          Int?
+    agentRating        Int?
     chatDate           DateTime?
     chatTranscript     String?   @db.Text
-    reviewAsked        Boolean   @default(false)
-    reviewStatus       Boolean   @default(false)
-    reviewText         String?   @db.Text
-    lastReviewApproach DateTime?
+    storefrontPassword String?   @db.Text
+    externalChat       Boolean?  @default(false)
+    shopUrl            String?   @db.Text
+    shopName           String?   @db.Text
+    shopEmail          String?   @db.Text
     clientFeedback     String?   @db.Text
     storeDetails       String?   @db.Text
-    featureRequest     String?   @db.Text
-    agentRating        Int?
-    agentComments      String?   @db.Text
     otherStoresUrl     String?   @db.Text
     changesMadeByAgent String?   @db.Text
     isDeleted          Boolean   @default(false)
     deletedAt          DateTime?
+    createdBy          Int?
+    updatedBy          Int?
     createdAt          DateTime  @default(now())
     updatedAt          DateTime  @updatedAt
 
-    handleByUser User      @relation(fields: [handleBy], references: [id])
-    client       Client    @relation(fields: [clientId], references: [id])
-    chatTags     ChatTag[]
+    // Relations
+    handledByUsers User[]          @relation("ChatHandledByUsers")
+    createdByUser  User?           @relation("ChatCreatedBy", fields: [createdBy], references: [id])
+    updatedByUser  User?           @relation("ChatUpdatedBy", fields: [updatedBy], references: [id])
+    client         Client?         @relation(fields: [clientId], references: [id])
+    project        Project?        @relation(fields: [projectId], references: [id])
+    chatTags       ChatTag[]
+    review         Review?
+    featureRequest FeatureRequest?
+    comments       Comment[]
 
     @@map("chats")
+}
+
+// =======================
+// Review Table
+// =======================
+model Review {
+    id                 Int       @id @default(autoincrement())
+    chatId             Int?      @unique
+    meetingId          Int?      @unique
+    projectId          Int?
+    reviewAsked        Boolean?  @default(false)
+    reviewStatus       Boolean?  @default(false)
+    shopUrl            String?
+    shopName           String?
+    reviewText         String?   @db.Text
+    reviewNotAskReason String?   @db.Text
+    rating             Int?
+    ratingMood         String? // "positive" | "neutral" | "negative"
+    lastReviewApproach DateTime?
+    reviewDate         DateTime?
+    reviewSubmittedAt  DateTime?
+    createdBy          Int?
+    updatedBy          Int?
+    createdAt          DateTime  @default(now())
+    updatedAt          DateTime  @updatedAt
+
+    // Relations
+    chat                  Chat?    @relation(fields: [chatId], references: [id])
+    meeting               Meeting? @relation(fields: [meetingId], references: [id])
+    reviewApproachByUsers User[]   @relation("reviewApproachByUsers")
+    createdByUser         User?    @relation("ReviewCreatedBy", fields: [createdBy], references: [id])
+    updatedByUser         User?    @relation("ReviewUpdatedBy", fields: [updatedBy], references: [id])
+    project               Project? @relation(fields: [projectId], references: [id])
+
+    @@map("reviews")
+}
+
+// =======================
+// Feature Request Table
+// =======================
+model FeatureRequest {
+    id             Int      @id @default(autoincrement())
+    clientId       Int?
+    chatId         Int?     @unique
+    projectId      Int?
+    featureDetails String?  @db.Text
+    shopUrl        String?
+    shopName       String?
+    email          String?
+    createdBy      Int?
+    updatedBy      Int?
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+
+    // Relations
+    client        Client?  @relation(fields: [clientId], references: [id])
+    chat          Chat?    @relation(fields: [chatId], references: [id])
+    createdByUser User?    @relation("FeatureCreatedBy", fields: [createdBy], references: [id])
+    updatedByUser User?    @relation("FeatureUpdatedBy", fields: [updatedBy], references: [id])
+    project       Project? @relation(fields: [projectId], references: [id])
+
+    @@map("feature_requests")
 }
 
 model Tag {
@@ -220,23 +319,27 @@ model Task {
     clientId      Int
     providedBy    Int
     solvedBy      Int?
+    projectId     Int?
     taskDetails   String    @db.Text
     statusId      Int?
     storePassword String?
     storeAccess   String?
     taskAddedDate DateTime?
-    reply         String?   @db.Text
-    comments      String?   @db.Text
+    notes         String?   @db.Text
     createdAt     DateTime  @default(now())
+    createdBy     Int?
     updatedAt     DateTime  @updatedAt
     isDeleted     Boolean   @default(false)
     deletedAt     DateTime?
 
     // Relations
-    client         Client  @relation(fields: [clientId], references: [id])
-    providedByUser User    @relation("UserProvidedTasks", fields: [providedBy], references: [id])
-    solvedByUser   User?   @relation("UserSolvedTasks", fields: [solvedBy], references: [id])
-    status         Status? @relation(fields: [statusId], references: [id])
+    client         Client    @relation(fields: [clientId], references: [id])
+    providedByUser User      @relation("UserProvidedTasks", fields: [providedBy], references: [id])
+    solvedByUser   User?     @relation("UserSolvedTasks", fields: [solvedBy], references: [id])
+    createdByUser  User?     @relation("TaskCreatedBy", fields: [createdBy], references: [id])
+    status         Status?   @relation(fields: [statusId], references: [id])
+    project        Project?  @relation(fields: [projectId], references: [id])
+    comments       Comment[]
 
     @@map("tasks")
 }
@@ -249,22 +352,18 @@ model Status {
     updatedAt DateTime  @updatedAt
     isDeleted Boolean   @default(false)
     deletedAt DateTime?
-    task      Task[]
+    tasks     Task[]
 
     @@map("statuses")
 }
 
 model Meeting {
     id                Int       @id @default(autoincrement())
-    agentId           Int
+    projectId         Int?
     storeUrl          String    @db.Text
     isExternalMeeting Boolean?  @default(false)
     meetingDetails    String?   @db.Text
     meetingDateTime   DateTime
-    reviewAsked       Boolean?  @default(false)
-    reviewGiven       Boolean?  @default(false)
-    reviewDate        DateTime?
-    reviewsInfo       String?   @db.Text
     joiningStatus     Boolean?  @default(false)
     recordedVideo     String?   @db.Text
     meetingNotes      String?   @db.Text
@@ -273,11 +372,11 @@ model Meeting {
     isDeleted         Boolean   @default(false)
     deletedAt         DateTime?
 
-    // Each meeting can have multiple associated emails
-    emails MeetingEmail[]
-
+    emails  MeetingEmail[]
     // Relations
-    user User @relation(fields: [agentId], references: [id])
+    agents  User[]         @relation("MeetingAgents")
+    project Project?       @relation(fields: [projectId], references: [id])
+    review  Review?
 
     @@map("meetings")
 }
@@ -293,40 +392,212 @@ model MeetingEmail {
 
     meeting Meeting @relation(fields: [meetingId], references: [id])
 
-    @@unique([meetingId, email]) // prevents duplicate emails per meeting
+    @@unique([meetingId, email])
     @@map("meeting_emails")
 }
 
 model MarketingFunnel {
     id                  Int       @id @default(autoincrement())
     clientId            Int
-    installPhase        String
-    typeOfProducts      String
+    projectId           Int?
+    followUpStep        String?
+    followUpDate        DateTime?
+    installPhase        String?
+    typeOfProducts      String?
     otherAppsInstalled  String?
     customizationType   String?
     initialFeedback     String?   @db.Text
-    clientSuccessStatus String
+    clientSuccessStatus String?
+    currentPhase        Boolean   @default(false)
     createdAt           DateTime  @default(now())
     updatedAt           DateTime  @updatedAt
     isDeleted           Boolean   @default(false)
     deletedAt           DateTime?
 
-    client    Client     @relation(fields: [clientId], references: [id])
-    followUps FollowUp[]
+    client  Client   @relation(fields: [clientId], references: [id])
+    project Project? @relation(fields: [projectId], references: [id])
 
     @@map("marketing_funnels")
 }
 
-model FollowUp {
-    id                Int       @id @default(autoincrement())
-    marketingFunnelId Int
-    followUpDate      DateTime
-    createdAt         DateTime  @default(now())
-    updatedAt         DateTime  @updatedAt
-    isDeleted         Boolean   @default(false)
-    deletedAt         DateTime?
+model ActivityLog {
+    id        Int      @id @default(autoincrement())
+    userId    Int?
+    desc      String?
+    action    String? // "CREATE", "UPDATE", "DELETE", "COMMENT", "REVIEW", etc.
+    modelName String? // e.g., "Chat", "Task", "Comment", "Review"
+    recordId  Int? // ID of the affected record
+    changes   Json? // JSON object storing what changed
+    metadata  Json? // optional, e.g., parent record, extra info
+    createdAt DateTime @default(now())
 
-    marketingFunnel MarketingFunnel @relation(fields: [marketingFunnelId], references: [id])
+    user User? @relation(fields: [userId], references: [id])
 
-    @@map("follow_ups")
+    @@index([userId])
+    @@index([modelName, recordId])
+    @@map("activity_logs")
+}
+
+model Comment {
+    id          Int       @id @default(autoincrement())
+    content     String    @db.Text
+    userId      Int
+    chatId      Int?
+    taskId      Int?
+    communityId Int?
+    parentId    Int?
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+    isDeleted   Boolean   @default(false)
+    deletedAt   DateTime?
+
+    // Relations
+    user User  @relation(fields: [userId], references: [id])
+    chat Chat? @relation(fields: [chatId], references: [id])
+    task Task? @relation(fields: [taskId], references: [id])
+
+    parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+    replies Comment[] @relation("CommentReplies")
+
+    // Mentions (many-to-many)
+    mentions  CommentMention[]
+    community Community?       @relation(fields: [communityId], references: [id])
+
+    @@index([chatId])
+    @@index([taskId])
+    @@map("comments")
+}
+
+model CommentMention {
+    id          Int @id @default(autoincrement())
+    commentId   Int
+    mentionedId Int
+
+    // Relations
+    comment   Comment @relation(fields: [commentId], references: [id])
+    mentioned User    @relation(fields: [mentionedId], references: [id])
+
+    // @@unique([commentId, mentionedId])
+    @@map("comment_mentions")
+}
+
+model CollaborationApp {
+    id             Int       @id @default(autoincrement())
+    projectId      Int?
+    appName        String
+    appUrl         String?
+    companyName    String?
+    companyUrl     String?
+    appDetails     String?   @db.Text
+    appAddedDate   DateTime?
+    statusId       Int?
+    completedDate  DateTime?
+    comments       String?   @db.Text
+    meetingDetails String?   @db.Text
+    sendById       Int?
+    addedById      Int?
+    requestType    String?
+    createdAt      DateTime  @default(now())
+    updatedAt      DateTime  @updatedAt
+
+    emails             CollaborationAppEmail[]
+    collaborationAreas CollaborationAppArea[]
+    status             CollaborationStatus?    @relation(fields: [statusId], references: [id])
+    sendBy             User?                   @relation("SendByUser", fields: [sendById], references: [id])
+    addedBy            User?                   @relation("AddedByUser", fields: [addedById], references: [id])
+    project            Project?                @relation(fields: [projectId], references: [id])
+}
+
+model CollaborationAppEmail {
+    id    Int              @id @default(autoincrement())
+    email String
+    appId Int
+    app   CollaborationApp @relation(fields: [appId], references: [id])
+}
+
+model CollaborationAppArea {
+    id           Int               @id @default(autoincrement())
+    appId        Int
+    areaOptionId Int
+    app          CollaborationApp  @relation(fields: [appId], references: [id])
+    areaOption   CollaborationArea @relation(fields: [areaOptionId], references: [id])
+
+    @@unique([appId, areaOptionId])
+}
+
+model CollaborationArea {
+    id        Int                    @id @default(autoincrement())
+    name      String                 @unique
+    slug      String                 @unique
+    createdAt DateTime               @default(now())
+    updatedAt DateTime               @updatedAt
+    apps      CollaborationAppArea[]
+}
+
+model CollaborationStatus {
+    id        Int                @id @default(autoincrement())
+    name      String             @unique
+    slug      String             @unique
+    createdAt DateTime           @default(now())
+    updatedAt DateTime           @updatedAt
+    apps      CollaborationApp[]
+}
+
+model Community {
+    id          Int       @id @default(autoincrement())
+    question    String
+    questionUrl String
+    reply       String?   @db.Text
+    listedDate  DateTime?
+    statusId    Int?
+    projectId   Int?
+    addedById   Int?
+    createdAt   DateTime  @default(now())
+    createdBy   Int?
+    updatedAt   DateTime  @updatedAt
+
+    // Relations
+    project       Project?         @relation(fields: [projectId], references: [id])
+    addedBy       User?            @relation(fields: [addedById], references: [id])
+    createdByUser User?            @relation("CommunityCreatedBy", fields: [createdBy], references: [id])
+    status        CommunityStatus? @relation(fields: [statusId], references: [id])
+    comments      Comment[]
+
+    @@map("communities")
+}
+
+model CommunityStatus {
+    id        Int      @id @default(autoincrement())
+    name      String   @unique
+    slug      String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    communities Community[]
+
+    @@map("community_statuses")
+}
+
+enum NotificationType {
+    CHAT
+    TASK
+    COMMUNITY
+}
+
+model Notification {
+    id        Int              @id @default(autoincrement())
+    userId    Int // recipient user
+    actorId   Int? // who triggered (optional)
+    type      NotificationType // "CHAT" | "TASK" | "COMMUNITY"
+    title     String // short title like "New Comment on your post"
+    message   String? // optional longer message
+    entityId  Int // id of the related entity
+    isRead    Boolean          @default(false)
+    readAt    DateTime? // timestamp when marked read
+    createdAt DateTime         @default(now())
+    updatedAt DateTime         @updatedAt
+
+    // Relations
+    user  User  @relation("UserNotifications", fields: [userId], references: [id])
+    actor User? @relation("ActorNotifications", fields: [actorId], references: [id])
 }

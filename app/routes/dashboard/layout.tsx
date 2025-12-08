@@ -1,5 +1,6 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { DashboardHeader } from "~/components/dashboard-header";
+import { CenterSpinner } from "~/components/ui/center-spinner";
 import type { LoaderFunctionArgs } from "react-router";
 import { AppSidebar } from "@/components/app-sidebar"
 import { Outlet, redirect } from "react-router";
@@ -14,7 +15,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function DashboardLayout() {
-    
+
     return (
         <SidebarProvider
             style={

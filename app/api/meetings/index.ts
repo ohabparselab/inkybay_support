@@ -1,6 +1,7 @@
-import { uploadFile } from "~/lib/upload.server"
 import { prisma } from "~/lib/prisma.server"
 import { parseDate } from "~/lib/helper.sever"
+import { getUserId } from "~/session.server"
+import { ActivityLog, type ActivityAction } from "~/lib/activity-log.server"
 
 const methodNotAllowed = () => Response.json({ message: "Method Not Allowed" }, { status: 405 })
 
@@ -37,14 +38,11 @@ const getAllMeetings = async (_request: Request) => {
 
 const createMeeting = async (request: Request) => {
     try {
-
+        const userId = await getUserId(request);
         const formData = await request.formData();
 
-        const agentId = formData.get("agentId") ? Number(formData.get("agentId")) : null;
-
-        if (!agentId) {
-            return Response.json({ success: false, message: "Agent ID not found." }, { status: 400 });
-        }
+        const agents = formData.getAll("agents[]").map((t) => t.toString().trim()).filter(Boolean);
+        const projectId = formData.get("projectId") ? Number(formData.get("projectId")) : null;
 
         const storeUrl = formData.get("storeUrl")?.toString() ?? ""
 
@@ -52,39 +50,48 @@ const createMeeting = async (request: Request) => {
             storeUrl: storeUrl.trim(),
             isExternalMeeting: formData.get("isExternalMeeting") === "true",
             meetingDetails: formData.get("meetingDetails")?.toString() ?? null,
-            meetingDateTime: parseDate(formData.get("meetingDateTime")),
-            reviewAsked: formData.get("reviewAsked") === "true",
-            reviewGiven: formData.get("reviewGiven") === "true",
-            reviewDate: parseDate(formData.get("reviewDate")),
-            reviewsInfo: formData.get("reviewsInfo")?.toString() ?? null,
+            meetingDateTime: formData.get("meetingDateTime") ? new Date(formData.get("meetingDateTime") as string) : null,
             joiningStatus: formData.get("joiningStatus") === "true",
             meetingNotes: formData.get("meetingNotes")?.toString() ?? null,
+            recordedVideo: formData.get("recordedVideo")?.toString() ?? null,
+            agents: agents.length ?
+                {
+                    connect: agents.map((id) => ({ id: Number(id) })),
+                } : undefined,
         };
 
-        // Handle file upload
-        const recordedVideoFile = formData.get("recordedVideo") as File | null;
-        if (recordedVideoFile) {
-            const recordedVideoFileUrl = await uploadFile(recordedVideoFile);
-            if (recordedVideoFileUrl) meetingData.recordedVideo = recordedVideoFileUrl;
+        if (projectId) {
+            meetingData.project = {
+                connect: { id: projectId }
+            }
         }
 
         const meeting = await prisma.meeting.create({
-            data: {
-                ...meetingData,
-                user: {
-                    connect: { id: agentId },
-                },
-            },
+            data: meetingData,
         });
 
-        // Insert client emails
+        const reviewData: any = {
+            reviewAsked: formData.get("reviewAsked") === "true",
+            reviewStatus: formData.get("reviewGiven") === "true",
+            reviewDate: parseDate(formData.get("reviewDate")),
+            reviewText: formData.get("reviewsInfo")?.toString() ?? null,
+        }
+        const meetingId = meeting.id;
+        const review = await prisma.review.create({
+            data: {
+                meeting: {
+                    connect: { id: meetingId },
+                },
+                ...reviewData,
+            }
+        });
+
         const emails = formData.getAll("emails[]").map((email) => email.toString());
+
         if (emails.length > 0) {
             for (const email of emails) {
                 const exists = await prisma.meetingEmail.findUnique({
-                    where: {
-                        meetingId_email: { meetingId: meeting.id, email },
-                    },
+                    where: { meetingId_email: { meetingId: meeting.id, email } },
                 });
 
                 if (!exists) {
@@ -97,6 +104,21 @@ const createMeeting = async (request: Request) => {
                 }
             }
         }
+
+
+        const logsParams = {
+            userId: userId,
+            action: "CREATE" as ActivityAction,
+            modelName: "meeting",
+            recordId: meeting.id,
+            metaData: {
+                meetingData: meeting,
+                reviewData: review,
+                emails: emails
+            }
+        }
+
+        await ActivityLog(logsParams);
 
         return Response.json({ success: true, message: "Meeting created successfully.", meeting });
     } catch (error: any) {

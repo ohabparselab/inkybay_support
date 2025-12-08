@@ -2,6 +2,28 @@ import { updateUserSchema } from "~/lib/validations";
 import { prisma } from "~/lib/prisma.server";
 import bcrypt from "bcryptjs";
 
+
+export async function loader({ request, params }: { request: Request; params: any }) {
+
+    try {
+        const userId = Number(params.id);
+        if (!userId) return new Response(JSON.stringify({ message: "User ID required" }), { status: 400 });
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true, avatar: true, fullName: true, email: true,
+                role: true
+
+            },
+
+        });
+        return Response.json({ success: true, user });
+    } catch (err: any) {
+        return Response.json({ users: [], error: err.message }, { status: 500 });
+    }
+}
+
 export async function action({ request, params }: { request: Request; params: any }) {
 
     const userId = Number(params.id);

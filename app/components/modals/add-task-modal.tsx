@@ -1,17 +1,13 @@
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { CalendarIcon, Eye, EyeOff, ListRestart, Plus, X } from "lucide-react";
 import { addTaskSchema, type AddTaskFormInput } from "~/lib/validations";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
-import { CalendarIcon, Eye, EyeOff, ListRestart, Plus, X } from "lucide-react";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/components/ui/dialog";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { CommentInput } from "../comments/CommentInput";
+import { DatePickerWithClear } from "../ui/date-picker";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CenterSpinner } from "../ui/center-spinner";
 import { Calendar } from "@/components/ui/calendar";
@@ -37,14 +33,14 @@ interface AddTaskModalProps {
 export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }: AddTaskModalProps) {
 
     const [users, setUsers] = useState<any>([]);
+    const [projects, setProjects] = useState<any>([]);
+    const [clientEmails, setClientEmails] = useState<any>([]);
+    const [latestTask, setLatestTask] = useState<any>({});
     const [loadingUsers, setLoadingUsers] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
 
-
-    const { control, register, handleSubmit, formState: { errors }, reset } = useForm<AddTaskFormInput>({
+    const { control, register, watch, setValue, handleSubmit, formState: { errors }, reset } = useForm<AddTaskFormInput>({
         resolver: zodResolver(addTaskSchema),
         defaultValues: {
-            taskDetails: "",
             providedBy: "",
             taskStatus: "",
             taskAddedDate: undefined,
@@ -52,8 +48,9 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
             storeAccess: "",
             emails: [],
             solvedBy: "",
-            reply: "",
+            notes: "",
             comments: "",
+            mentions: [],
         },
     });
 
@@ -66,19 +63,6 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
         setStatuses(data.statuses);
     };
 
-    const fetchUsers = async () => {
-        try {
-            setLoadingUsers(true);
-            const res = await fetch("/api/users");
-            const data = await res.json();
-            setUsers(data.users);
-        } catch (err) {
-            console.error("Failed to fetch users:", err);
-        } finally {
-            setLoadingUsers(false);
-        }
-    }
-
     const { fields, append, remove } = useFieldArray<any>({
         control,
         name: "emails",
@@ -89,6 +73,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
             ...data,
             clientId
         }
+
         const res = await fetch("/api/tasks", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -105,10 +90,80 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
         }
     };
 
+    const fetchUsers = async () => {
+        try {
+            setLoadingUsers(true);
+            const res = await fetch("/api/users");
+            const data = await res.json();
+            setUsers(data.users);
+        } catch (err) {
+            console.error("Failed to fetch users:", err);
+        } finally {
+            setLoadingUsers(false);
+        }
+    }
+
+    const fetchProjects = async () => {
+        try {
+            const res = await fetch("/api/settings/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        }
+    }
+
+    const fetchClientEmails = async () => {
+        try {
+            const res = await fetch(`/api/clients/emails/${clientId}`);
+            const data = await res.json();
+            setClientEmails(data.clientEmails);
+        } catch (err) {
+            console.error("Failed to fetch client emails:", err);
+        }
+    }
+
+    const getLatestTask = async () => {
+        try {
+            const res = await fetch(`/api/tasks/latest-task/${clientId}`);
+            const data = await res.json();
+            setLatestTask(data.task);
+        } catch (err) {
+            console.error("Failed to fetch latest task:", err);
+        }
+    }
+
     useEffect(() => {
         fetchUsers();
         fetchStatuses();
+        fetchProjects();
+        if (clientId) {
+            fetchClientEmails();
+            getLatestTask();
+        }
     }, []);
+
+    useEffect(() => {
+        if (!projects) return;
+
+        const inkybay = projects.find((p: any) => p.slug === "inkybay");
+        reset({
+            taskDetails: "",
+            projectId: inkybay?.id ? String(inkybay.id) : "",
+            emails: clientEmails?.map((e: any) => e.email) || [],
+            storePassword: latestTask?.storePassword || "",
+            storeAccess: latestTask?.storeAccess == 'given' ? 'given' : 'notNecessary',
+            providedBy: "",
+            taskStatus: "",
+            taskAddedDate: undefined,
+            solvedBy: "",
+            notes: "",
+            comments: "",
+            mentions: [],
+
+        });
+
+    }, [projects, latestTask]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -138,7 +193,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                             name="taskDetails"
                             label="Task Details"
                             placeholder="Enter task details..."
-                            error={errors.taskDetails?.message}                        />
+                            error={errors.taskDetails?.message} />
                     </div>
 
                     {/* Provided By + Task Status */}
@@ -154,11 +209,17 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                                             <SelectValue placeholder="Select Provider" />
                                         </SelectTrigger>
                                         <SelectContent className="w-full">
-                                            {users.map((user: any) => (
-                                                <SelectItem key={user.id} value={String(user.id)}>
-                                                    {user.fullName}
-                                                </SelectItem>
-                                            ))}
+                                            {
+                                                users.length === 0 ? (
+                                                    <div className="p-2 text-center text-sm text-muted-foreground">No users found</div>
+                                                ) : (
+                                                    users.map((user: any) => (
+                                                        <SelectItem key={user.id} value={String(user.id)}>
+                                                            {user.fullName}
+                                                        </SelectItem>
+                                                    ))
+                                                )
+                                            }
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -196,7 +257,7 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                                 />
                                 <Button
                                     type="button"
-                                    size="sm"
+                                    // size="sm"
                                     variant="outline"
                                     onClick={() => {
                                         setAddStatusModalOpen(true);
@@ -218,22 +279,13 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                             <Label className="mb-2">Store Password</Label>
                             <div className="relative w-full">
                                 <Input
-                                    type={showPassword ? "text" : "password"}
+                                    type="text"
                                     {...register("storePassword")}
                                     placeholder="Enter store password"
-                                    className="pr-10" 
+                                    className="pr-10"
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                    {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-                                </button>
                             </div>
                         </div>
-
-
                         <div>
                             <Label className="mb-2">Store Access</Label>
                             <Controller
@@ -291,25 +343,11 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                                 control={control}
                                 name="taskAddedDate"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-start text-left font-normal"
-                                            >
-                                                {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>
@@ -328,11 +366,17 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                                             <SelectValue placeholder="Select User" />
                                         </SelectTrigger>
                                         <SelectContent className="w-full">
-                                            {users.map((user: any) => (
-                                                <SelectItem key={user.id} value={String(user.id)}>
-                                                    {user.fullName}
-                                                </SelectItem>
-                                            ))}
+                                            {
+                                                users.length === 0 ? (
+                                                    <div className="p-2 text-center text-sm text-muted-foreground">No users found</div>
+                                                ) : (
+                                                    users.map((user: any) => (
+                                                        <SelectItem key={user.id} value={String(user.id)}>
+                                                            {user.fullName}
+                                                        </SelectItem>
+                                                    ))
+                                                )
+                                            }
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -341,17 +385,50 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                                 <p className="text-sm text-red-500">{errors.solvedBy.message}</p>
                             )}
                         </div>
-
                         <div>
-                            <Label className="mb-2">Reply</Label>
-                            <Textarea {...register("reply")} placeholder="Enter reply..." />
+                            <Label className="mb-2">Project</Label>
+                            <Controller
+                                control={control}
+                                name="projectId"
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select Project" />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            {projects.map((project: any) => (
+                                                <SelectItem key={project.id} value={String(project.id)}>
+                                                    {project.projectName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.projectId && (
+                                <p className="text-sm text-red-500">{errors.projectId.message}</p>
+                            )}
                         </div>
+                    </div>
+
+                    <div>
+                        <Label className="mb-2">Notes</Label>
+                        <Textarea {...register("notes")} placeholder="Enter notes details..." />
                     </div>
 
                     {/* Comments */}
                     <div>
                         <Label className="mb-2">Comments</Label>
-                        <Textarea {...register("comments")} placeholder="Enter comments..." />
+                        <CommentInput
+                            value={watch("comments")}
+                            onChange={(value: any, mentions: any) => {
+                                setValue("comments", value);
+                                setValue("mentions", mentions);
+                            }}
+                            onSubmit={async () => { }}
+                            users={users}
+                            sendButtonShow={false}
+                        />
                     </div>
 
                     {/* Footer */}
@@ -386,6 +463,5 @@ export function AddTaskModal({ clientId, open, onOpenChange, task, refreshPage }
                 </Suspense>
             )}
         </Dialog>
-
     );
 }

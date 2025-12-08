@@ -3,14 +3,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { DashboardCardsSection } from "~/components/dashboard-cards-section";
 import { Badge } from "~/components/ui/badge";
 import { useFetcher } from "react-router-dom";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Spinner } from "~/components/ui/spinner";
+import { CenterSpinner } from "~/components/ui/center-spinner";
+
+const ViewTaskDetailsModal = lazy(() =>
+    import("~/components/modals/view-task-modal").then((m) => ({ default: m.ViewTaskDetailsModal }))
+);
+
+const ViewMeetingDetailsModal = lazy(() =>
+    import("~/components/modals/view-meeting-modal").then((m) => ({ default: m.ViewMeetingDetailsModal }))
+);
 
 export const meta = () => [{ title: "Dashboard | InkyBay" }];
 
 export default function DashboardPage() {
 
     const fetcher = useFetcher();
+    const [selectedTaskId, setSelectedTaskId] = useState<any | null>(null);
+    const [viewTaskModalOpen, setViewTaskModalOpen] = useState(false);
+    const [selectedMeeting, setSelectedMeeting] = useState<any | null>(null);
+    const [viewMeetingModalOpen, setViewMeetingModalOpen] = useState(false);
 
     useEffect(() => {
         fetcher.submit({}, { method: "post", action: "/api/dashboard" });
@@ -21,12 +34,14 @@ export default function DashboardPage() {
     if (!data) {
         return (
             <div className="flex items-center justify-center h-[80vh] text-muted-foreground text-lg">
-                <Spinner/>
+                <Spinner />
             </div>
         )
     }
 
     const { summary, pendingTasks, latestTasks, todayMeetings, upcomingMeetings } = data;
+
+
 
     return (
         <>
@@ -52,7 +67,7 @@ export default function DashboardPage() {
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Shop Name</TableHead>
+                                                <TableHead>Store URL</TableHead>
                                                 <TableHead>Provided By</TableHead>
                                                 <TableHead>Task Added</TableHead>
                                                 <TableHead>Status</TableHead>
@@ -61,10 +76,17 @@ export default function DashboardPage() {
                                         <TableBody>
                                             {pendingTasks.length > 0 ? (
                                                 pendingTasks.map((task: any, idx: number) => (
-                                                    <TableRow key={task.id}>
-                                                        <TableCell>{task.client.shopName}</TableCell>
+                                                    <TableRow
+                                                        key={task.id}
+                                                        className="cursor-pointer"
+                                                        onClick={() => {
+                                                            setSelectedTaskId(task.id);
+                                                            setViewTaskModalOpen(true);
+                                                        }}
+                                                    >
+                                                        <TableCell className="text-blue-500 hover:underline">{task.client.shopDomain}</TableCell>
                                                         <TableCell>{task.providedByUser.fullName}</TableCell>
-                                                        <TableCell>{new Date(task.taskAddedDate).toLocaleString()}</TableCell>
+                                                        <TableCell>{task.taskAddedDate ? new Date(task.taskAddedDate).toLocaleDateString() : '-'}</TableCell>
                                                         <TableCell>
                                                             <Badge variant="outline">
                                                                 {task.status.name}
@@ -88,7 +110,7 @@ export default function DashboardPage() {
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Shop Name</TableHead>
+                                                <TableHead>Store URL</TableHead>
                                                 <TableHead>Provided By</TableHead>
                                                 <TableHead>Task Added</TableHead>
                                                 <TableHead>Status</TableHead>
@@ -97,10 +119,19 @@ export default function DashboardPage() {
                                         <TableBody>
                                             {latestTasks.length > 0 ? (
                                                 latestTasks.map((task: any, idx: number) => (
-                                                    <TableRow key={task.id}>
-                                                        <TableCell>{task.client.shopName}</TableCell>
+                                                    <TableRow
+                                                        key={task.id}
+                                                        className="cursor-pointer"
+                                                        onClick={() => {
+                                                            setSelectedTaskId(task.id);
+                                                            setViewTaskModalOpen(true);
+                                                        }}
+                                                    >
+                                                        <TableCell>{task.client.shopDomain}</TableCell>
                                                         <TableCell>{task.providedByUser.fullName}</TableCell>
-                                                        <TableCell>{new Date(task.taskAddedDate).toLocaleString()}</TableCell>
+                                                        <TableCell>{task.taskAddedDate
+                                                            ? new Date(task.taskAddedDate).toLocaleDateString()
+                                                            : "—"}</TableCell>
                                                         <TableCell>
                                                             <Badge variant="outline">
                                                                 {task.status.name}
@@ -153,15 +184,22 @@ export default function DashboardPage() {
                                         <TableBody>
                                             {todayMeetings.length > 0 ? (
                                                 todayMeetings.map((meeting: any, idx: number) => (
-                                                    <TableRow key={meeting.id}>
-                                                        <TableCell>{meeting.storeUrl}</TableCell>
-                                                        <TableCell>{meeting.user.fullName}</TableCell>
+                                                    <TableRow
+                                                        key={idx}
+                                                        className="cursor-pointer"
+                                                        onClick={() => {
+                                                            setSelectedMeeting(meeting);
+                                                            setViewMeetingModalOpen(true);
+                                                        }}
+                                                    >
+                                                        <TableCell className="cursor-pointer hover:underline text-blue-500">{meeting.storeUrl}</TableCell>
+                                                        <TableCell>{meeting.agents.map((e:any) => e.fullName).join(', ')}</TableCell>
                                                         <TableCell>
                                                             <Badge variant="outline">
                                                                 {meeting.joiningStatus ? 'Yes' : 'No'}
                                                             </Badge>
                                                         </TableCell>
-                                                        <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
+                                                        <TableCell>{meeting.meetingDateTime ? new Date(meeting.meetingDateTime).toLocaleString() : "—"}</TableCell>
                                                     </TableRow>
                                                 ))) : (
                                                 <TableRow>
@@ -188,15 +226,22 @@ export default function DashboardPage() {
                                         <TableBody>
                                             {upcomingMeetings.length > 0 ? (
                                                 upcomingMeetings.map((meeting: any, idx: number) => (
-                                                    <TableRow key={meeting.id}>
-                                                        <TableCell>{meeting.storeUrl}</TableCell>
-                                                        <TableCell>{meeting.user.fullName}</TableCell>
+                                                    <TableRow
+                                                        key={meeting.id}
+                                                        className="cursor-pointer"
+                                                        onClick={() => {
+                                                            setSelectedMeeting(meeting);
+                                                            setViewMeetingModalOpen(true);
+                                                        }}
+                                                    >
+                                                        <TableCell className="cursor-pointer hover:underline text-blue-500">{meeting.storeUrl}</TableCell>
+                                                        <TableCell>{meeting.agents.map((e:any) => e.fullName).join(', ')}</TableCell>
                                                         <TableCell>
                                                             <Badge variant="outline">
                                                                 {meeting.joiningStatus ? 'Yes' : 'No'}
                                                             </Badge>
                                                         </TableCell>
-                                                        <TableCell>{new Date(meeting.meetingDateTime).toLocaleString()}</TableCell>
+                                                        <TableCell>{meeting.meetingDateTime ? new Date(meeting.meetingDateTime).toLocaleString() : '-'}</TableCell>
                                                     </TableRow>
                                                 ))) : (
                                                 <TableRow>
@@ -213,7 +258,27 @@ export default function DashboardPage() {
                     </section>
                 </div>
             </div>
-            {/* <DataTable data={data} /> */}
+
+            {viewTaskModalOpen && selectedTaskId && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <ViewTaskDetailsModal
+                        taskId={selectedTaskId}
+                        open={viewTaskModalOpen}
+                        onOpenChange={setViewTaskModalOpen}
+                    />
+                </Suspense>
+            )}
+
+            {/* View Meeting Modal */}
+            {viewMeetingModalOpen && selectedMeeting && (
+                <Suspense fallback={<CenterSpinner />}>
+                    <ViewMeetingDetailsModal
+                        meeting={selectedMeeting}
+                        open={viewMeetingModalOpen}
+                        onOpenChange={setViewMeetingModalOpen}
+                    />
+                </Suspense>
+            )}
         </>
     );
 };

@@ -35,7 +35,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     // Transform into structure for <SelectGroup>
     const projectsPlatforms = projects.map((project) => ({
+        id: project.id,
         projectName: project.name,
+        slug: project.slug,
         platforms: project.platforms.map((p) => ({
             id: p.id,
             name: p.name,

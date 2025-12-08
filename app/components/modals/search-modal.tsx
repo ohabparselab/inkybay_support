@@ -1,11 +1,11 @@
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Dialog, DialogContent } from "../ui/dialog";
+import { MoveRight, Search } from "lucide-react";
 import { Link, useFetcher } from "react-router";
 import { useEffect, useState } from "react";
 import { Spinner } from "../ui/spinner";
-import { MoveRight, Search } from "lucide-react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import React from "react";
@@ -48,7 +48,6 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
     // Update results when fetcher returns data
     useEffect(() => {
         if (searchFetcher.data?.status === 200) {
-            // assuming backend returns { data: [...] }
             setResults(searchFetcher.data.data || []);
         } else if (searchFetcher.data?.status && searchFetcher.data.status !== 200) {
             setResults([]);
@@ -59,16 +58,12 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
 
     const fetchProjects = async () => {
         try {
-            // setLoadingUsers(true);
             const res = await fetch("api/settings/projects");
             const data = await res.json();
             setProjects(data.projects);
         } catch (err) {
             console.error("Failed to fetch projects:", err);
         }
-        // finally {
-        //     setLoadingUsers(false);
-        // }
     };
 
     useEffect(() => {
@@ -96,9 +91,6 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                                 <SelectContent align="end" className="mt-3">
                                     {projects.map((p: any, index: number) => (
                                         <React.Fragment key={index}>
-                                            {/* Optional: you can group per project */}
-                                            {/* <SelectGroup>
-                                            <SelectLabel>{p.projectName}</SelectLabel> */}
                                             {p.platforms.map((pf: any, inx: number) => (
                                                 <SelectItem key={inx} value={pf.id}>
                                                     <div className="flex items-center gap-2">
@@ -108,7 +100,6 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                                                     </div>
                                                 </SelectItem>
                                             ))}
-                                            {/* </SelectGroup> */}
                                         </React.Fragment>
                                     ))}
 
@@ -139,12 +130,6 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                         onValueChange={setSearchType}
                         className="flex justify-center gap-6 mt-4"
                     >
-                        {/* <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="all" id="all" />
-                            <Label htmlFor="all" className="text-sm font-medium">
-                                Search All
-                            </Label>
-                        </div> */}
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="url" id="url" />
                             <Label htmlFor="url" className="text-sm font-medium">

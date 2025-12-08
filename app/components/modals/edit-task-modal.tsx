@@ -1,18 +1,14 @@
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { addTaskSchema, type AddTaskFormInput } from "~/lib/validations";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { CalendarIcon, ListRestart, Save, X } from "lucide-react";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/components/ui/dialog";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { CommentList } from "@/components/comments/CommentList";
 import { CenterSpinner } from "@/components/ui/center-spinner";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { DatePickerWithClear } from "../ui/date-picker";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,6 +32,8 @@ interface EditTaskModalProps {
 export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTaskModalProps) {
 
     const [users, setUsers] = useState<any[]>([]);
+    const [currentUserId, setCurrentUserId] = useState<any>();
+    const [projects, setProjects] = useState<any>([]);
     const [statuses, setStatuses] = useState<{ id: number, name: string }[]>([]);
     const [addStatusModalOpen, setAddStatusModalOpen] = useState(false);
     const [loadingUsers, setLoadingUsers] = useState(false);
@@ -61,6 +59,8 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
             const res = await fetch("/api/users");
             const data = await res.json();
             setUsers(data.users);
+            setCurrentUserId(data.currentUserId);
+
         } catch (err) {
             console.error("Failed to fetch users:", err);
         } finally {
@@ -76,8 +76,6 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
             body: JSON.stringify(data),
         });
 
-        console.log(res.ok)
-
         if (res.ok) {
             toast.success("Task updated successfully!");
             onOpenChange(false);
@@ -87,9 +85,21 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
         }
     };
 
+    const fetchProjects = async () => {
+        try {
+            const res = await fetch("/api/settings/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        } catch (err) {
+            console.error("Failed to fetch projects:", err);
+        } finally {
+        }
+    }
+
     useEffect(() => {
         fetchUsers();
         fetchStatuses();
+        fetchProjects();
     }, []);
 
     useEffect(() => {
@@ -103,11 +113,13 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
                 storeAccess: task.storeAccess || "",
                 emails: task.client.clientEmail?.map((e: any) => e.email) || [],
                 solvedBy: String(task.solvedBy || ""),
-                reply: task.reply || "",
-                comments: task.comments || "",
+                projectId: String(task.projectId || ""),
+                notes: task.notes || "",
             });
         }
     }, [task, open, reset]);
+
+    console.log(errors);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -207,7 +219,7 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <Label className="mb-2">Store Password</Label>
-                            <Input type="password" {...register("storePassword")} />
+                            <Input type="text" {...register("storePassword")} />
                         </div>
                         <div>
                             <Label className="mb-2">Store Access</Label>
@@ -257,22 +269,11 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
                                 control={control}
                                 name="taskAddedDate"
                                 render={({ field }) => (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline" className="w-full justify-start text-left font-normal">
-                                                {field.value ? format(field.value, "PPP") : "Pick a date"}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start" className="p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePickerWithClear
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Pick a date"
+                                    />
                                 )}
                             />
                         </div>
@@ -302,15 +303,39 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
                             />
                         </div>
                         <div>
-                            <Label className="mb-2">Reply</Label>
-                            <Textarea {...register("reply")} placeholder="Enter reply..." />
+                            <Label className="mb-2">Project</Label>
+                            <Controller
+                                control={control}
+                                name="projectId"
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select Project" />
+                                        </SelectTrigger>
+                                        <SelectContent className="w-full">
+                                            {projects.map((project: any) => (
+                                                <SelectItem key={project.id} value={String(project.id)}>
+                                                    {project.projectName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.projectId && (
+                                <p className="text-sm text-red-500">{errors.projectId.message}</p>
+                            )}
                         </div>
                     </div>
 
-                    {/* Comments */}
+                    <div>
+                        <Label className="mb-2">Notes</Label>
+                        <Textarea {...register("notes")} placeholder="Enter note details..." />
+                    </div>
+
                     <div>
                         <Label className="mb-2">Comments</Label>
-                        <Textarea {...register("comments")} placeholder="Enter comments..." />
+                        <CommentList contextId={task.id} currentUserId={currentUserId} contextType="task" users={users} />
                     </div>
 
                     {/* Footer */}
@@ -324,6 +349,16 @@ export function EditTaskModal({ open, onOpenChange, task, refreshPage }: EditTas
                             }}
                         >
                             <X /> Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                reset();
+                            }}
+                            variant="outline"
+                        >
+                            <ListRestart />
+                            Reset
                         </Button>
                         <Button type="submit">
                             <Save className="h-4 w-4" /> Save Changes
