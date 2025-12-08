@@ -3,9 +3,10 @@ import { CenterSpinner } from "@/components/ui/center-spinner";
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Separator } from "@/components/ui/separator"
+import { Headset, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Suspense, useState } from "react";
-import { Search } from "lucide-react";
-import { Input } from "./ui/input";
+import { Link } from "react-router";
 
 export function DashboardHeader() {
 
@@ -33,7 +34,16 @@ export function DashboardHeader() {
                         />
                     </div>
                 </div>
-                <ThemeToggle/>
+                <Link
+                    to="https://support.inkybay.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground transition"
+                >
+                    <Headset className="h-4 w-4" />
+                    <span>Support</span>
+                </Link>
+                <ThemeToggle />
             </div>
             {
                 searchModalOpen && (
