@@ -18,7 +18,7 @@ export async function action({ request }: { request: Request }) {
             },
             orderBy: { createdAt: "desc" },
             include: {
-                user: { select: { id: true, fullName: true, email: true } },
+                agents: { select: { id: true, fullName: true, email: true } },
                 emails: { select: { email: true } },
             },
         });

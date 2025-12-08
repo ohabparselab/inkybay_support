@@ -1193,7 +1193,20 @@ export default function ShopDetailsPage() {
                                                                                 setViewMeetingModalOpen(true);
                                                                             }}
                                                                         >{meeting.storeUrl}</TableCell>
-                                                                        <TableCell>{meeting.user?.fullName ?? "—"}</TableCell>
+                                                                        <TableCell>
+                                                                            {meeting.agents && meeting.agents.length > 0 ? (
+                                                                                meeting.agents.map((user: any) => (
+                                                                                    <span
+                                                                                        key={user.fullName}
+                                                                                        className="bg-blue-100 text-blue-700 ml-0.5 px-2 py-0.5 rounded-full text-xs"
+                                                                                    >
+                                                                                        {user.fullName}
+                                                                                    </span>
+                                                                                ))
+                                                                            ) : (
+                                                                                <span>N/A</span>
+                                                                            )}
+                                                                        </TableCell>
                                                                         <TableCell>
                                                                             {meeting.joiningStatus ? 'Yes' : 'No'}
                                                                         </TableCell>
